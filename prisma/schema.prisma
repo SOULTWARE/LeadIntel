@@ -30,7 +30,10 @@ model Lead {
   leadScore       Float?
   confidenceScore Float?
 
-  outreachStage OutreachStage @default(NOT_CONTACTED)
+  outreachStage  OutreachStage @default(NOT_CONTACTED)
+  requiresReview Boolean       @default(false)
+  domain         String?       @unique
+  leadPurpose    String?
 
   aiRawOutput Json?
 

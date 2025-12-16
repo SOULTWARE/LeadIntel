@@ -6,6 +6,11 @@ const requestSchema = z.object({
   industry: z.string().min(1, 'Industry is required'),
   location: z.string().min(1, 'Location is required'),
   count: z.number().int().min(1).max(50).default(5),
+  leadPurpose: z
+    .string()
+    .min(1, 'Lead purpose is required')
+    .max(300, 'Lead purpose must be 300 characters or less')
+    .transform((val) => val.trim()),
 });
 
 export async function POST(request: NextRequest) {
@@ -27,12 +32,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { industry, location, count } = validation.data;
+    const { industry, location, count, leadPurpose } = validation.data;
 
     const result = await generateLeads({
       industry,
       location,
       count,
+      leadPurpose,
       senderName: 'Lead Intel',
       senderCompany: 'Lead Intel',
     });

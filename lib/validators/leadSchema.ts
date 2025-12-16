@@ -27,6 +27,7 @@ const issueSchema = z.object({
   category: z.string().optional(),
   severity: z.enum(['low', 'medium', 'high', 'critical']).optional(),
   confidence_score: scoreSchema.optional(),
+  purpose_aligned: z.boolean().default(false),
   source_evidence: sourceEvidenceSchema,
   ai_raw_output: z.unknown().optional(),
 });
@@ -70,11 +71,11 @@ const leadSchema = z.object({
 
   lead_score: scoreSchema,
   confidence_score: scoreSchema,
+  score_explainer: z.string().optional(),
+  next_steps_recommendation: z.string().optional(),
 
   decision_makers: z.array(decisionMakerSchema).default([]),
-  issues: z
-    .array(issueSchema)
-    .min(1, 'At least one issue is required'),
+  issues: z.array(issueSchema).default([]),
   email_drafts: z
     .array(
       z.object({

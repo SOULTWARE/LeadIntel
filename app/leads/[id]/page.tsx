@@ -108,6 +108,14 @@ export default async function LeadDetailPage({ params }: PageProps) {
         )}
       </div>
 
+      {/* Outreach Intent */}
+      {lead.leadPurpose && (
+        <div className="border border-purple-300 bg-purple-50 rounded p-4 mb-6">
+          <h2 className="font-bold text-purple-800 mb-2">🎯 Outreach Intent</h2>
+          <p className="text-purple-900">{lead.leadPurpose}</p>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         {/* Scores */}
         <div className="border border-gray-300 rounded p-4">
