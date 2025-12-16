@@ -1,0 +1,140 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum OutreachStage {
+  NOT_CONTACTED
+  FIRST_EMAIL_SENT
+  FOLLOW_UP_1_SENT
+  FOLLOW_UP_2_SENT
+  HOT_LEAD
+  NO_RESPONSE
+}
+
+model Lead {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  companyName   String
+  website       String?
+  industry      String?
+  employeeCount Int?
+  location      String?
+  description   String?
+
+  leadScore       Float?
+  confidenceScore Float?
+
+  outreachStage OutreachStage @default(NOT_CONTACTED)
+
+  aiRawOutput Json?
+
+  decisionMakers DecisionMaker[]
+  issues         Issue[]
+  emailDrafts    EmailDraft[]
+
+  @@map("leads")
+}
+
+model DecisionMaker {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  firstName String
+  lastName  String
+  title     String?
+  role      String?
+
+  aiRawOutput Json?
+
+  leadId String @db.Uuid
+  lead   Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  contacts Contact[]
+
+  @@map("decision_makers")
+}
+
+model Contact {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  type  String
+  value String
+
+  isPrimary  Boolean @default(false)
+  isVerified Boolean @default(false)
+
+  decisionMakerId String        @db.Uuid
+  decisionMaker   DecisionMaker @relation(fields: [decisionMakerId], references: [id], onDelete: Cascade)
+
+  @@map("contacts")
+}
+
+model Issue {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  title       String
+  description String?
+  category    String?
+  severity    String?
+
+  confidenceScore Float?
+
+  aiRawOutput Json?
+
+  leadId String @db.Uuid
+  lead   Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  sourceEvidenceId String         @db.Uuid
+  sourceEvidence   SourceEvidence @relation(fields: [sourceEvidenceId], references: [id])
+
+  @@map("issues")
+}
+
+model SourceEvidence {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sourceType String
+  sourceUrl  String?
+  rawContent String?
+  snippet    String?
+
+  retrievedAt DateTime @default(now())
+
+  aiRawOutput Json?
+
+  issues Issue[]
+
+  @@map("source_evidences")
+}
+
+model EmailDraft {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  subject String
+  body    String
+  version Int    @default(1)
+  status  String @default("draft")
+  sentAt  DateTime?
+
+  aiRawOutput Json?
+
+  leadId String @db.Uuid
+  lead   Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@map("email_drafts")
+}
