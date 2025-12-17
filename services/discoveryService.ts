@@ -78,9 +78,17 @@ export class DiscoveryService {
   }
 
   async discoverCandidates(input: DiscoveryInput): Promise<DiscoveryResult[]> {
-    const { industry, location, count, leadPurpose } = input;
+    const { industry, location, count, leadPurpose, excludeCompanies = [], excludeDomains = [] } = input;
     const allCandidates: DiscoveryResult[] = [];
     const seenKeys = new Set<string>();
+
+    // Pre-populate seen keys with exclusions
+    for (const company of excludeCompanies) {
+      seenKeys.add(`${company.toLowerCase().trim()}::`);
+    }
+    for (const domain of excludeDomains) {
+      seenKeys.add(`::${domain.toLowerCase().trim()}`);
+    }
 
     const queries = this.buildSearchQueries(industry, location, leadPurpose);
     let queryIndex = 0;
@@ -98,12 +106,24 @@ export class DiscoveryService {
         try {
           const candidates = await this.executeDiscoveryQuery(
             query,
-            count - allCandidates.length
+            count - allCandidates.length,
+            excludeCompanies,
+            excludeDomains
           );
 
           for (const candidate of candidates) {
             const key = this.getCandidateKey(candidate);
-            if (!seenKeys.has(key)) {
+
+            // Also check if company name or domain matches exclusions
+            const companyLower = candidate.company_name.toLowerCase().trim();
+            const isExcludedCompany = excludeCompanies.some(exc =>
+              companyLower.includes(exc.toLowerCase()) || exc.toLowerCase().includes(companyLower)
+            );
+            const isExcludedDomain = candidate.domain_candidates.some(d =>
+              excludeDomains.some(exc => d.toLowerCase().includes(exc.toLowerCase()))
+            );
+
+            if (!seenKeys.has(key) && !isExcludedCompany && !isExcludedDomain) {
               seenKeys.add(key);
               allCandidates.push(candidate);
               if (allCandidates.length >= count) break;
@@ -179,16 +199,32 @@ export class DiscoveryService {
 
   private async executeDiscoveryQuery(
     query: string,
-    maxResults: number
+    maxResults: number,
+    excludeCompanies: string[] = [],
+    excludeDomains: string[] = []
   ): Promise<DiscoveryResult[]> {
+    // Build exclusion text if we have exclusions
+    let exclusionText = "";
+    if (excludeCompanies.length > 0 || excludeDomains.length > 0) {
+      exclusionText = `\n\nIMPORTANT - DO NOT include these companies (already in database):`;
+      if (excludeCompanies.length > 0) {
+        exclusionText += `\nExcluded company names: ${excludeCompanies.slice(0, 20).join(", ")}`;
+      }
+      if (excludeDomains.length > 0) {
+        exclusionText += `\nExcluded domains: ${excludeDomains.slice(0, 20).join(", ")}`;
+      }
+      exclusionText += `\nFind DIFFERENT companies not in this list.`;
+    }
+
     const userPrompt = `Search for companies matching: "${query}"
 
-Find up to ${maxResults} companies. For each company found, extract:
+Find up to ${maxResults} NEW companies. For each company found, extract:
 - company_name: The official company name
 - domain_candidates: Any website domains found (may be empty)
 - profile_urls: LinkedIn, Google Maps, Facebook, Instagram, directory listings
 - search_provenance: Top 3 search results that led to this company (queryUsed, resultUrl, snippet)
 - discovery_confidence: Your confidence 0-100 that this is a real, active company
+${exclusionText}
 
 Remember: Return ONLY the JSON array. No other text.`;
 

@@ -110,76 +110,139 @@ async function orchestrateLeadGeneration(
   const fetchService = new FetchService({ maxConcurrentFetches: maxConcurrent });
   const analysisService = new AnalysisService();
 
-  console.log(
-    `[Orchestrator] Starting discovery: industry=${industry}, location=${location}, count=${count}`
-  );
-
-  const candidates = await discoveryService.discoverCandidates({
-    industry,
-    location,
-    count,
-    leadPurpose,
-  });
-
-  console.log(`[Orchestrator] Discovered ${candidates.length} candidates`);
-
   const results: CandidateResult[] = [];
   let leadsSaved = 0;
   let requiresReview = 0;
   let skipped = 0;
   let failed = 0;
 
-  const processingQueue = [...candidates];
-  const processing: Promise<void>[] = [];
+  // Track seen domains/companies to avoid re-discovering same candidates
+  const seenDomains = new Set<string>();
+  const seenCompanies = new Set<string>();
 
-  const processCandidate = async (candidate: DiscoveryResult) => {
-    const result = await processSingleCandidate(
-      candidate,
-      fetchService,
-      analysisService,
-      { sender_name, sender_company, leadPurpose }
-    );
+  // Load existing leads to pre-populate seen sets
+  const existingLeads = await prisma.lead.findMany({
+    select: { domain: true, companyName: true, website: true },
+  });
+  for (const lead of existingLeads) {
+    if (lead.domain) seenDomains.add(lead.domain.toLowerCase());
+    if (lead.website) seenDomains.add(lead.website.replace(/^https?:\/\//, '').toLowerCase());
+    if (lead.companyName) seenCompanies.add(lead.companyName.toLowerCase());
+  }
 
-    results.push(result);
+  const targetNewLeads = count;
+  let newLeadsFound = 0;
+  let discoveryOffset = 0;
+  const maxDiscoveryAttempts = 5; // Prevent infinite loop
+  let discoveryAttempts = 0;
 
-    switch (result.status) {
-      case "saved":
-        leadsSaved++;
-        break;
-      case "requires_review":
-        requiresReview++;
-        break;
-      case "skipped":
-        skipped++;
-        break;
-      case "failed":
-        failed++;
-        break;
+  console.log(
+    `[Orchestrator] Starting discovery: industry=${industry}, location=${location}, target=${targetNewLeads} new leads`
+  );
+
+  while (newLeadsFound < targetNewLeads && discoveryAttempts < maxDiscoveryAttempts) {
+    discoveryAttempts++;
+
+    // Request more candidates than needed to account for duplicates
+    const requestCount = Math.max(count, (targetNewLeads - newLeadsFound) * 2);
+
+    const candidates = await discoveryService.discoverCandidates({
+      industry,
+      location,
+      count: requestCount,
+      leadPurpose,
+      excludeCompanies: Array.from(seenCompanies),
+      excludeDomains: Array.from(seenDomains),
+    });
+
+    console.log(`[Orchestrator] Discovery attempt ${discoveryAttempts}: found ${candidates.length} candidates`);
+
+    if (candidates.length === 0) {
+      console.log(`[Orchestrator] No more candidates found, stopping discovery`);
+      break;
     }
-  };
 
-  while (processingQueue.length > 0 || processing.length > 0) {
-    while (processing.length < maxConcurrent && processingQueue.length > 0) {
-      const candidate = processingQueue.shift()!;
-      const promise = processCandidate(candidate).then(() => {
-        const idx = processing.indexOf(promise);
-        if (idx !== -1) processing.splice(idx, 1);
-      });
-      processing.push(promise);
+    // Filter out already-seen candidates before processing
+    const newCandidates = candidates.filter(c => {
+      const domainsSeen = (c.domain_candidates || []).some(d => seenDomains.has(d.toLowerCase()));
+      const companySeen = seenCompanies.has(c.company_name.toLowerCase());
+      return !domainsSeen && !companySeen;
+    });
+
+    console.log(`[Orchestrator] ${newCandidates.length} candidates after filtering duplicates`);
+
+    if (newCandidates.length === 0) {
+      console.log(`[Orchestrator] All candidates were duplicates, trying again...`);
+      discoveryOffset += requestCount;
+      continue;
     }
 
-    if (processing.length > 0) {
-      await Promise.race(processing);
+    // Mark these as seen
+    for (const c of newCandidates) {
+      for (const d of c.domain_candidates || []) {
+        seenDomains.add(d.toLowerCase());
+      }
+      seenCompanies.add(c.company_name.toLowerCase());
     }
+
+    // Process candidates until we have enough new leads
+    const processingQueue = [...newCandidates];
+    const processing: Promise<void>[] = [];
+
+    const processCandidate = async (candidate: DiscoveryResult) => {
+      const result = await processSingleCandidate(
+        candidate,
+        fetchService,
+        analysisService,
+        { sender_name, sender_company, leadPurpose }
+      );
+
+      results.push(result);
+
+      switch (result.status) {
+        case "saved":
+          leadsSaved++;
+          newLeadsFound++;
+          break;
+        case "requires_review":
+          requiresReview++;
+          newLeadsFound++;
+          break;
+        case "skipped":
+          skipped++;
+          break;
+        case "failed":
+          failed++;
+          break;
+      }
+    };
+
+    while ((processingQueue.length > 0 || processing.length > 0) && newLeadsFound < targetNewLeads) {
+      while (processing.length < maxConcurrent && processingQueue.length > 0 && newLeadsFound < targetNewLeads) {
+        const candidate = processingQueue.shift()!;
+        const promise = processCandidate(candidate).then(() => {
+          const idx = processing.indexOf(promise);
+          if (idx !== -1) processing.splice(idx, 1);
+        });
+        processing.push(promise);
+      }
+
+      if (processing.length > 0) {
+        await Promise.race(processing);
+      }
+    }
+
+    // Wait for remaining processing to complete
+    await Promise.all(processing);
   }
 
   console.log(
-    `[Orchestrator] Complete: saved=${leadsSaved}, review=${requiresReview}, skipped=${skipped}, failed=${failed}`
+    `[Orchestrator] Complete: saved=${leadsSaved}, review=${requiresReview}, skipped=${skipped}, failed=${failed} (target was ${targetNewLeads})`
   );
 
-  // Fetch created leads to include in response
+  // Fetch created leads to include in response (exclude skipped duplicates)
   const leadIds = results
-    .filter((r) => r.leadId)
+    .filter((r) => r.leadId && r.status !== "skipped")
     .map((r) => r.leadId as string);
 
   const leads: LeadSummary[] = leadIds.length > 0
@@ -200,7 +263,7 @@ async function orchestrateLeadGeneration(
     requiresReview,
     skipped,
     failed,
-    results,
+    results: results.filter(r => r.status !== "skipped"), // Don't return skipped duplicates
     leads,
   };
 }
@@ -214,6 +277,41 @@ async function processSingleCandidate(
   let candidateId = "";
 
   try {
+    // Check for duplicate leads by domain or company name BEFORE processing
+    const domains = candidate.domain_candidates || [];
+    const companyName = candidate.company_name;
+
+    // Check if any of these domains already exist as leads
+    const existingLead = await prisma.lead.findFirst({
+      where: {
+        OR: [
+          // Match by domain
+          ...(domains.length > 0
+            ? [{ domain: { in: domains } }]
+            : []),
+          // Match by website (with or without protocol)
+          ...(domains.length > 0
+            ? [{ website: { in: domains.flatMap(d => [d, `https://${d}`, `http://${d}`]) } }]
+            : []),
+          // Match by company name (case insensitive)
+          { companyName: { equals: companyName, mode: "insensitive" as const } },
+        ],
+      },
+      select: { id: true, companyName: true, domain: true },
+    });
+
+    if (existingLead) {
+      console.log(
+        `[Orchestrator] Skipping duplicate: "${companyName}" already exists as "${existingLead.companyName}" (id: ${existingLead.id})`
+      );
+      return {
+        candidateId: existingLead.id,
+        leadId: existingLead.id,
+        status: "skipped",
+        reasons: [`Lead already exists: ${existingLead.companyName} (${existingLead.domain || 'no domain'})`],
+      };
+    }
+
     // @ts-expect-error - Prisma client types will be updated after migration
     const dbCandidate = await prisma.candidate.create({
       data: {
@@ -335,18 +433,47 @@ async function processSingleCandidate(
           updateData.description = research.description;
         }
 
-        if (Object.keys(updateData).length > 0) {
-          await prisma.lead.update({
-            where: { id: lead.id },
-            data: updateData,
-          });
-          console.log(`[Orchestrator] Updated lead with researched data:`, Object.keys(updateData));
+        // Compute overall lead score from research signals
+        const scoreBreakdown = research.scoreBreakdown;
+        const overallScore = Math.round(
+          (scoreBreakdown.reputationScore * 0.2) +
+          (scoreBreakdown.onlinePresenceScore * 0.15) +
+          (scoreBreakdown.growthSignalsScore * 0.15) +
+          (scoreBreakdown.intentMatchScore * 0.3) +
+          (scoreBreakdown.accessibilityScore * 0.2)
+        );
+
+        // Update lead score if we have signals
+        if (research.signals.length > 0) {
+          updateData.leadScore = overallScore;
+          updateData.confidenceScore = Math.min(100, research.signals.length * 5 + 30);
         }
 
-        // Add decision makers from research
+        // Store deep search data in aiRawOutput
+        const existingRawOutput = (lead.aiRawOutput as Record<string, unknown>) || {};
+        updateData.aiRawOutput = {
+          ...existingRawOutput,
+          deep_search: {
+            signals: research.signals,
+            score_breakdown: research.scoreBreakdown,
+            discovery_info: research.discoveryInfo,
+            overall_score: overallScore,
+            searches_performed: research.searchesPerformed.length,
+            iterations_used: research.iterationsUsed,
+          },
+        };
+
+        await prisma.lead.update({
+          where: { id: lead.id },
+          data: updateData,
+        });
+        console.log(`[Orchestrator] Updated lead with deep search data: score=${overallScore}, signals=${research.signals.length}`);
+        console.log(`[Orchestrator] Score breakdown:`, research.scoreBreakdown);
+
+        // Add decision makers from research with their contacts
         if (research.decisionMakers.length > 0) {
           for (const dm of research.decisionMakers) {
-            await prisma.decisionMaker.create({
+            const decisionMaker = await prisma.decisionMaker.create({
               data: {
                 leadId: lead.id,
                 firstName: dm.firstName,
@@ -355,6 +482,22 @@ async function processSingleCandidate(
                 aiRawOutput: { source: dm.source, evidence: dm.evidence },
               },
             });
+
+            // Add contacts for this decision maker
+            if (dm.contacts && dm.contacts.length > 0) {
+              for (const contact of dm.contacts) {
+                await prisma.contact.create({
+                  data: {
+                    decisionMakerId: decisionMaker.id,
+                    type: contact.type,
+                    value: contact.value,
+                    isPrimary: contact.type === "email",
+                    isVerified: false,
+                  },
+                });
+              }
+              console.log(`[Orchestrator] Added ${dm.contacts.length} contacts for ${dm.firstName} ${dm.lastName}`);
+            }
           }
           console.log(`[Orchestrator] Added ${research.decisionMakers.length} decision makers from research`);
         }

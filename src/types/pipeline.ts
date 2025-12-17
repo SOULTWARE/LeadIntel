@@ -132,6 +132,9 @@ export interface DiscoveryInput {
   location: string;
   count: number;
   leadPurpose: string;
+  /** Companies/domains to exclude from results (already in database) */
+  excludeCompanies?: string[];
+  excludeDomains?: string[];
 }
 
 /**
