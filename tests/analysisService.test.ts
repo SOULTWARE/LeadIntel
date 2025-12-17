@@ -9,76 +9,77 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { AnalysisService } from "../services/analysisService";
-import type { AIClient, AICompletionRequest, AICompletionResponse } from "../services/ai/types";
+import type { AIClient, AICompletionResponse } from "../services/ai/types";
 
-const mockCandidate = {
-  id: "candidate-123",
-  createdAt: new Date(),
-  updatedAt: new Date(),
-  companyName: "Test Corp",
-  domainCandidates: ["testcorp.com"],
-  profileUrls: [],
-  discoveryProvenance: [],
-  discoveryConfidence: 80,
-  discoveredAt: new Date(),
-  status: "VERIFIED" as const,
-  snapshots: [
-    {
-      id: "snapshot-1",
-      createdAt: new Date(),
-      url: "https://testcorp.com/",
-      httpStatus: 200,
-      contentType: "text/html",
-      html: "<html><body>Welcome to Test Corp</body></html>",
-      textExtract:
-        "Welcome to Test Corp. We specialize in enterprise software solutions. Contact our CEO John Smith for partnerships. We are currently hiring and expanding our team.",
-      sourceType: "homepage",
-      headers: {},
-      candidateId: "candidate-123",
-      candidateName: "Test Corp",
-      fetchedAt: new Date(),
-    },
-    {
-      id: "snapshot-2",
-      createdAt: new Date(),
-      url: "https://testcorp.com/about",
-      httpStatus: 200,
-      contentType: "text/html",
-      html: "<html><body>About Test Corp</body></html>",
-      textExtract:
-        "About Test Corp. Founded in 2020, we have grown to 50 employees. Our budget for new tools is $100k annually.",
-      sourceType: "about",
-      headers: {},
-      candidateId: "candidate-123",
-      candidateName: "Test Corp",
-      fetchedAt: new Date(),
-    },
-  ],
-};
-
-const mockLeadCreated = {
-  id: "lead-123",
-  createdAt: new Date(),
-  updatedAt: new Date(),
-  companyName: "Test Corp",
-  website: "https://testcorp.com",
-  industry: "Software",
-  employeeCount: null,
-  location: null,
-  description: "Enterprise software company",
-  leadScore: 75,
-  confidenceScore: 85,
-  outreachStage: "NOT_CONTACTED" as const,
-  requiresReview: false,
-  domain: null,
-  leadPurpose: "B2B sales",
-  aiRawOutput: {},
-  candidateId: "candidate-123",
-  issues: [],
-  decisionMakers: [],
-  emailDrafts: [],
-};
+// Use vi.hoisted to define mock data before vi.mock hoisting
+const { mockCandidate, mockLeadCreated } = vi.hoisted(() => ({
+  mockCandidate: {
+    id: "candidate-123",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    companyName: "Test Corp",
+    domainCandidates: ["testcorp.com"],
+    profileUrls: [],
+    discoveryProvenance: [],
+    discoveryConfidence: 80,
+    discoveredAt: new Date(),
+    status: "VERIFIED" as const,
+    snapshots: [
+      {
+        id: "snapshot-1",
+        createdAt: new Date(),
+        url: "https://testcorp.com/",
+        httpStatus: 200,
+        contentType: "text/html",
+        html: "<html><body>Welcome to Test Corp</body></html>",
+        textExtract:
+          "Welcome to Test Corp. We specialize in enterprise software solutions. Contact our CEO John Smith for partnerships. We are currently hiring and expanding our team.",
+        sourceType: "homepage",
+        headers: {},
+        candidateId: "candidate-123",
+        candidateName: "Test Corp",
+        fetchedAt: new Date(),
+      },
+      {
+        id: "snapshot-2",
+        createdAt: new Date(),
+        url: "https://testcorp.com/about",
+        httpStatus: 200,
+        contentType: "text/html",
+        html: "<html><body>About Test Corp</body></html>",
+        textExtract:
+          "About Test Corp. Founded in 2020, we have grown to 50 employees. Our budget for new tools is $100k annually.",
+        sourceType: "about",
+        headers: {},
+        candidateId: "candidate-123",
+        candidateName: "Test Corp",
+        fetchedAt: new Date(),
+      },
+    ],
+  },
+  mockLeadCreated: {
+    id: "lead-123",
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    companyName: "Test Corp",
+    website: "https://testcorp.com",
+    industry: "Software",
+    employeeCount: null,
+    location: null,
+    description: "Enterprise software company",
+    leadScore: 75,
+    confidenceScore: 85,
+    outreachStage: "NOT_CONTACTED" as const,
+    requiresReview: false,
+    domain: null,
+    leadPurpose: "B2B sales",
+    aiRawOutput: {},
+    candidateId: "candidate-123",
+    issues: [],
+    decisionMakers: [],
+    emailDrafts: [],
+  },
+}));
 
 vi.mock("../db", () => ({
   prisma: {
@@ -104,6 +105,9 @@ vi.mock("../db", () => ({
     },
   },
 }));
+
+// Import after mocks are set up
+import { AnalysisService } from "../services/analysisService";
 
 function createMockAIClient(response: string): AIClient {
   return {

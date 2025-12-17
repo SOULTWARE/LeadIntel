@@ -61,10 +61,10 @@ const DecisionMakerSchema = z.object({
 });
 
 const ScoreExplainerSchema = z.object({
-  need: z.number().min(0).max(40),
-  budget: z.number().min(0).max(30),
-  contact: z.number().min(0).max(20),
-  timing: z.number().min(0).max(10),
+  need: z.number().min(0).max(40).optional().default(0),
+  budget: z.number().min(0).max(30).optional().default(0),
+  contact: z.number().min(0).max(20).optional().default(0),
+  timing: z.number().min(0).max(10).optional().default(0),
   notes: z.string().optional(),
 });
 
@@ -85,7 +85,7 @@ const AnalysisOutputSchema = z.object({
   top_issues: z.array(IssueSchema),
   decision_makers: z.array(DecisionMakerSchema).optional().nullable(),
   email_drafts: z.array(EmailDraftSchema).optional(),
-  recommended_manual_review: z.string().optional().nullable(),
+  recommended_manual_review: z.union([z.string(), z.boolean()]).optional().nullable(),
 });
 
 type AnalysisOutput = z.infer<typeof AnalysisOutputSchema>;
@@ -187,6 +187,16 @@ export class AnalysisService {
 
       rawAIResponse = response.content;
       const parsed = JSON.parse(rawAIResponse);
+
+      // Normalize score_explainer keys to lowercase (AI sometimes returns capitalized keys)
+      if (parsed.score_explainer && typeof parsed.score_explainer === 'object') {
+        const normalized: Record<string, unknown> = {};
+        for (const [key, value] of Object.entries(parsed.score_explainer)) {
+          normalized[key.toLowerCase()] = value;
+        }
+        parsed.score_explainer = normalized;
+      }
+
       analysisOutput = AnalysisOutputSchema.parse(parsed);
     } catch (error) {
       console.error("Analysis failed:", error);
@@ -243,7 +253,9 @@ export class AnalysisService {
 
     if (analysisOutput.recommended_manual_review) {
       requiresReview = true;
-      reviewReason = analysisOutput.recommended_manual_review;
+      reviewReason = typeof analysisOutput.recommended_manual_review === 'string'
+        ? analysisOutput.recommended_manual_review
+        : 'Manual review recommended';
     }
 
     const lead = await this.persistLead(

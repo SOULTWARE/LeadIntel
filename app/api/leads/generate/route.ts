@@ -39,12 +39,21 @@ interface CandidateResult {
   reasons?: string[];
 }
 
+interface LeadSummary {
+  id: string;
+  companyName: string;
+  leadScore: number | null;
+  confidenceScore: number | null;
+  requiresReview: boolean;
+}
+
 interface OrchestrationResult {
   leadsSaved: number;
   requiresReview: number;
   skipped: number;
   failed: number;
   results: CandidateResult[];
+  leads: LeadSummary[];
 }
 
 export async function POST(request: NextRequest) {
@@ -167,12 +176,31 @@ async function orchestrateLeadGeneration(
     `[Orchestrator] Complete: saved=${leadsSaved}, review=${requiresReview}, skipped=${skipped}, failed=${failed}`
   );
 
+  // Fetch created leads to include in response
+  const leadIds = results
+    .filter((r) => r.leadId)
+    .map((r) => r.leadId as string);
+
+  const leads: LeadSummary[] = leadIds.length > 0
+    ? (await prisma.lead.findMany({
+        where: { id: { in: leadIds } },
+        select: {
+          id: true,
+          companyName: true,
+          leadScore: true,
+          confidenceScore: true,
+          requiresReview: true,
+        },
+      }))
+    : [];
+
   return {
     leadsSaved,
     requiresReview,
     skipped,
     failed,
     results,
+    leads,
   };
 }
 
@@ -202,7 +230,7 @@ async function processSingleCandidate(
       `[Orchestrator] Processing candidate: ${candidate.company_name} (${candidateId})`
     );
 
-    const fetchResult = await fetchService.verifyAndFetch(candidate);
+    const fetchResult = await fetchService.verifyAndFetch(candidate, candidateId);
 
     if (
       fetchResult.verifiedResources.length === 0 &&

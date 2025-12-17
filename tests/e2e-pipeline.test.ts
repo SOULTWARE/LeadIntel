@@ -20,20 +20,9 @@ import path from "path";
 
 const FIXTURES_DIR = path.join(__dirname, "fixtures");
 
-const fixtureHtml = {
-  techcorp: fs.readFileSync(
-    path.join(FIXTURES_DIR, "homepage-techcorp.html"),
-    "utf-8"
-  ),
-  beautysalon: fs.readFileSync(
-    path.join(FIXTURES_DIR, "instagram-beautysalon.html"),
-    "utf-8"
-  ),
-  plumber: fs.readFileSync(
-    path.join(FIXTURES_DIR, "directory-listing-plumber.html"),
-    "utf-8"
-  ),
-};
+function loadFixture(filename: string): string {
+  return fs.readFileSync(path.join(FIXTURES_DIR, filename), "utf-8");
+}
 
 function extractText(html: string): string {
   return html
@@ -43,6 +32,12 @@ function extractText(html: string): string {
     .replace(/\s+/g, " ")
     .trim();
 }
+
+const fixtureHtml = {
+  techcorp: loadFixture("homepage-techcorp.html"),
+  beautysalon: loadFixture("instagram-beautysalon.html"),
+  plumber: loadFixture("directory-listing-plumber.html"),
+};
 
 const fixtureText = {
   techcorp: extractText(fixtureHtml.techcorp),
@@ -305,87 +300,77 @@ function createMockAnalysisResponse(candidateId: string) {
 let candidateIndex = 0;
 let snapshotIndex = 0;
 
-const mockPrisma = {
-  candidate: {
-    create: vi.fn().mockImplementation(() => {
-      const candidate = mockDbCandidates[candidateIndex];
-      candidateIndex = (candidateIndex + 1) % mockDbCandidates.length;
-      return Promise.resolve(candidate);
-    }),
-    update: vi.fn().mockResolvedValue(mockDbCandidates[0]),
-    findUnique: vi.fn().mockImplementation(({ where }) => {
-      const idx = parseInt(where.id.split("-")[1]) - 1;
-      const candidate = mockDbCandidates[idx];
-      if (!candidate) return Promise.resolve(null);
-      return Promise.resolve({
-        ...candidate,
-        snapshots: [mockSnapshots[idx]],
-      });
-    }),
-  },
-  lead: {
-    create: vi.fn().mockImplementation(({ data }) => {
-      return Promise.resolve({
-        id: `lead-${Date.now()}`,
-        ...data,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
-    }),
-    findUnique: vi.fn().mockImplementation(({ where }) => {
-      return Promise.resolve({
-        id: where.id,
-        companyName: "TechCorp Solutions",
-        confidenceScore: 85,
-        requiresReview: false,
-        issues: [],
-        decisionMakers: [],
-        emailDrafts: [],
-      });
-    }),
-    update: vi.fn().mockResolvedValue({}),
-  },
-  snapshot: {
-    create: vi.fn().mockImplementation(({ data }) => {
-      const snapshot = mockSnapshots[snapshotIndex % mockSnapshots.length];
-      snapshotIndex++;
-      return Promise.resolve({ ...snapshot, ...data });
-    }),
-    findMany: vi.fn().mockResolvedValue(mockSnapshots),
-  },
-  verifiedResource: {
-    create: vi.fn().mockResolvedValue({ id: "vr-1" }),
-  },
-  issue: {
-    create: vi.fn().mockResolvedValue({ id: "issue-1" }),
-  },
-  decisionMaker: {
-    create: vi.fn().mockResolvedValue({ id: "dm-1" }),
-  },
-  contact: {
-    create: vi.fn().mockResolvedValue({ id: "contact-1" }),
-  },
-  emailDraft: {
-    create: vi.fn().mockResolvedValue({ id: "draft-1" }),
-  },
-  rawAiResponse: {
-    create: vi.fn().mockResolvedValue({ id: "raw-1" }),
-  },
-};
+// Create mock functions that will be populated with actual implementations
+const mockDiscoverCandidates = vi.fn();
+const mockVerifyAndFetch = vi.fn();
+const mockAnalyzeCandidate = vi.fn();
+const mockSnapshotFindMany = vi.fn();
 
 vi.mock("@/db", () => ({
-  prisma: mockPrisma,
+  prisma: {
+    candidate: {
+      create: vi.fn().mockResolvedValue({ id: "candidate-1" }),
+      update: vi.fn().mockResolvedValue({}),
+      findUnique: vi.fn().mockResolvedValue(null),
+    },
+    lead: {
+      create: vi.fn().mockResolvedValue({ id: "lead-1" }),
+      findUnique: vi.fn().mockResolvedValue(null),
+      update: vi.fn().mockResolvedValue({}),
+    },
+    snapshot: {
+      create: vi.fn().mockResolvedValue({ id: "snapshot-1" }),
+      findMany: mockSnapshotFindMany,
+    },
+    verifiedResource: {
+      create: vi.fn().mockResolvedValue({ id: "vr-1" }),
+    },
+    issue: {
+      create: vi.fn().mockResolvedValue({ id: "issue-1" }),
+    },
+    decisionMaker: {
+      create: vi.fn().mockResolvedValue({ id: "dm-1" }),
+    },
+    contact: {
+      create: vi.fn().mockResolvedValue({ id: "contact-1" }),
+    },
+    emailDraft: {
+      create: vi.fn().mockResolvedValue({ id: "draft-1" }),
+    },
+    rawAiResponse: {
+      create: vi.fn().mockResolvedValue({ id: "raw-1" }),
+    },
+  },
 }));
 
 vi.mock("@/services/discoveryService", () => ({
   DiscoveryService: vi.fn().mockImplementation(() => ({
-    discoverCandidates: vi.fn().mockResolvedValue(mockCandidates),
+    discoverCandidates: mockDiscoverCandidates,
   })),
 }));
 
 vi.mock("@/services/fetchService", () => ({
   FetchService: vi.fn().mockImplementation(() => ({
-    verifyAndFetch: vi.fn().mockImplementation(async (candidate) => {
+    verifyAndFetch: mockVerifyAndFetch,
+  })),
+}));
+
+vi.mock("@/services/analysisService", () => ({
+  AnalysisService: vi.fn().mockImplementation(() => ({
+    analyzeCandidate: mockAnalyzeCandidate,
+  })),
+}));
+
+describe("E2E Pipeline Test", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    candidateIndex = 0;
+    snapshotIndex = 0;
+
+    // Set up mock implementations
+    mockDiscoverCandidates.mockResolvedValue(mockCandidates);
+
+    mockVerifyAndFetch.mockImplementation(async (candidate: { company_name: string }) => {
       const idx = mockCandidates.findIndex(
         (c) => c.company_name === candidate.company_name
       );
@@ -416,13 +401,9 @@ vi.mock("@/services/fetchService", () => ({
           },
         ],
       };
-    }),
-  })),
-}));
+    });
 
-vi.mock("@/services/analysisService", () => ({
-  AnalysisService: vi.fn().mockImplementation(() => ({
-    analyzeCandidate: vi.fn().mockImplementation(async (candidateId, opts) => {
+    mockAnalyzeCandidate.mockImplementation(async (candidateId: string) => {
       const response = createMockAnalysisResponse(candidateId);
       const parsed = JSON.parse(response);
 
@@ -444,15 +425,9 @@ vi.mock("@/services/analysisService", () => ({
         decisionMakers: parsed.decision_makers || [],
         emailDrafts: parsed.email_drafts || [],
       };
-    }),
-  })),
-}));
+    });
 
-describe("E2E Pipeline Test", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    candidateIndex = 0;
-    snapshotIndex = 0;
+    mockSnapshotFindMany.mockResolvedValue(mockSnapshots);
   });
 
   afterEach(() => {
@@ -530,15 +505,8 @@ describe("E2E Pipeline Test", () => {
     });
 
     it("completes full orchestration and returns correct counts", async () => {
-      const { DiscoveryService } = await import("@/services/discoveryService");
-      const { FetchService } = await import("@/services/fetchService");
-      const { AnalysisService } = await import("@/services/analysisService");
-
-      const discoveryService = new DiscoveryService();
-      const fetchService = new FetchService();
-      const analysisService = new AnalysisService();
-
-      const candidates = await discoveryService.discoverCandidates({
+      // Use the mock functions directly instead of dynamic imports
+      const candidates = await mockDiscoverCandidates({
         industry: "various",
         location: "USA",
         count: 3,
@@ -553,14 +521,14 @@ describe("E2E Pipeline Test", () => {
         const candidate = candidates[i];
         const candidateId = `candidate-${i + 1}`;
 
-        const fetchResult = await fetchService.verifyAndFetch(candidate);
+        const fetchResult = await mockVerifyAndFetch(candidate);
 
         if (fetchResult.verifiedResources.length === 0) {
           skipped++;
           continue;
         }
 
-        const lead = await analysisService.analyzeCandidate(candidateId, {
+        const lead = await mockAnalyzeCandidate(candidateId, {
           leadPurpose: "B2B sales",
         });
 
@@ -582,13 +550,10 @@ describe("E2E Pipeline Test", () => {
     });
 
     it("persists snapshots in database", async () => {
-      const { FetchService } = await import("@/services/fetchService");
-      const fetchService = new FetchService();
+      // Use mock functions directly
+      await Promise.all(mockCandidates.map((c) => mockVerifyAndFetch(c)));
 
-      await Promise.all(mockCandidates.map((c) => fetchService.verifyAndFetch(c)));
-
-      const { prisma } = await import("@/db");
-      const snapshots = await prisma.snapshot.findMany();
+      const snapshots = await mockSnapshotFindMany();
 
       expect(snapshots).toHaveLength(3);
       expect(snapshots[0].sourceType).toBe("homepage");
@@ -598,7 +563,7 @@ describe("E2E Pipeline Test", () => {
 
     it("evidence verification passes for TechCorp lead", async () => {
       const { verifyEvidenceAgainstSnapshots } = await import(
-        "@/lib/validators/leadSchema"
+        "../lib/validators/leadSchema"
       );
 
       const techCorpSnapshot = {
@@ -648,7 +613,7 @@ describe("E2E Pipeline Test", () => {
 
     it("evidence verification fails for fabricated excerpts", async () => {
       const { verifyEvidenceAgainstSnapshots } = await import(
-        "@/lib/validators/leadSchema"
+        "../lib/validators/leadSchema"
       );
 
       const techCorpSnapshot = {

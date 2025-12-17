@@ -111,6 +111,24 @@ export class OpenAISearchAdapter implements ISearchAdapter {
     systemPrompt: string,
     userPrompt: string
   ): Promise<{ content: string; searchResults: SearchResult[] }> {
+    // Try the Responses API first (supports web_search)
+    try {
+      const responsesResult = await this.tryResponsesAPI(systemPrompt, userPrompt);
+      if (responsesResult.content) {
+        return responsesResult;
+      }
+    } catch (error) {
+      console.warn("[SearchAdapter] Responses API failed, falling back to Chat Completions:", error);
+    }
+
+    // Fallback to standard Chat Completions API (no web search, but more reliable)
+    return this.fallbackToChatCompletions(systemPrompt, userPrompt);
+  }
+
+  private async tryResponsesAPI(
+    systemPrompt: string,
+    userPrompt: string
+  ): Promise<{ content: string; searchResults: SearchResult[] }> {
     const response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
       headers: {
@@ -132,20 +150,76 @@ export class OpenAISearchAdapter implements ISearchAdapter {
       const errorText = await response.text();
 
       if (status === 429 || status >= 500) {
-        const error = new Error(`OpenAI API error: ${status} - ${errorText}`);
+        const error = new Error(`OpenAI Responses API error: ${status} - ${errorText}`);
         (error as RetryableError).retryable = true;
         throw error;
       }
 
-      throw new Error(`OpenAI API error: ${status} - ${errorText}`);
+      throw new Error(`OpenAI Responses API error: ${status} - ${errorText}`);
     }
 
     const data = await response.json();
+    console.log("[SearchAdapter] Responses API raw response:", JSON.stringify(data).slice(0, 500));
 
     const content = this.extractContent(data);
     const searchResults = this.extractSearchResults(data);
 
     return { content, searchResults };
+  }
+
+  private async fallbackToChatCompletions(
+    systemPrompt: string,
+    userPrompt: string
+  ): Promise<{ content: string; searchResults: SearchResult[] }> {
+    console.log("[SearchAdapter] Using Chat Completions API fallback");
+
+    // Modify system prompt to wrap array in object for json_object mode
+    const wrappedSystemPrompt = systemPrompt + `\n\nIMPORTANT: Wrap your JSON array in an object like this: {"candidates": [...]}`;
+
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${this.apiKey}`,
+      },
+      body: JSON.stringify({
+        model: this.model,
+        messages: [
+          { role: "system", content: wrappedSystemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+        response_format: { type: "json_object" },
+        temperature: 0.7,
+      }),
+    });
+
+    if (!response.ok) {
+      const status = response.status;
+      const errorText = await response.text();
+
+      if (status === 429 || status >= 500) {
+        const error = new Error(`OpenAI Chat API error: ${status} - ${errorText}`);
+        (error as RetryableError).retryable = true;
+        throw error;
+      }
+
+      throw new Error(`OpenAI Chat API error: ${status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    let content = data.choices?.[0]?.message?.content ?? "";
+
+    // Unwrap the candidates array if wrapped in object
+    try {
+      const parsed = JSON.parse(content);
+      if (parsed.candidates && Array.isArray(parsed.candidates)) {
+        content = JSON.stringify(parsed.candidates);
+      }
+    } catch {
+      // Keep original content if parsing fails
+    }
+
+    return { content, searchResults: [] };
   }
 
   private extractContent(data: OpenAIResponseData): string {
@@ -208,17 +282,132 @@ interface OpenAIResponseData {
 }
 
 /**
+ * SerpAPI-based search adapter.
+ * Uses SerpAPI for Google search results, then GPT for parsing.
+ */
+export class SerpAPISearchAdapter implements ISearchAdapter {
+  private apiKey: string;
+  private openaiApiKey: string;
+  private model: string;
+
+  constructor(config: SearchAdapterConfig) {
+    this.apiKey = config.apiKey;
+    this.openaiApiKey = process.env.OPENAI_API_KEY || "";
+    this.model = "gpt-4o";
+  }
+
+  async search(query: string): Promise<SearchResponse> {
+    const url = new URL("https://serpapi.com/search");
+    url.searchParams.set("q", query);
+    url.searchParams.set("api_key", this.apiKey);
+    url.searchParams.set("engine", "google");
+
+    const response = await fetch(url.toString());
+
+    if (!response.ok) {
+      throw new Error(`SerpAPI error: ${response.status} - ${await response.text()}`);
+    }
+
+    const data = await response.json();
+    const results: SearchResult[] = [];
+
+    // Extract organic results
+    if (data.organic_results && Array.isArray(data.organic_results)) {
+      for (const result of data.organic_results.slice(0, 10)) {
+        results.push({
+          url: result.link || "",
+          title: result.title || "",
+          snippet: result.snippet || "",
+        });
+      }
+    }
+
+    return {
+      query,
+      results,
+      provider: "serpapi",
+      rawResponse: data,
+    };
+  }
+
+  async searchWithGPT(
+    systemPrompt: string,
+    userPrompt: string
+  ): Promise<{ content: string; searchResults: SearchResult[] }> {
+    // Extract search query from user prompt
+    const queryMatch = userPrompt.match(/Search for companies matching: "([^"]+)"/);
+    const searchQuery = queryMatch ? queryMatch[1] : userPrompt.slice(0, 100);
+
+    // Perform SerpAPI search
+    const searchResponse = await this.search(searchQuery);
+
+    // Build context from search results
+    const searchContext = searchResponse.results
+      .map((r, i) => `[${i + 1}] ${r.title}\nURL: ${r.url}\nSnippet: ${r.snippet}`)
+      .join("\n\n");
+
+    // Use GPT to parse results into structured format
+    const gptPrompt = `Based on these search results, ${userPrompt}
+
+SEARCH RESULTS:
+${searchContext}
+
+Remember: Return ONLY the JSON array based on the search results above.`;
+
+    // Modify system prompt for json_object mode
+    const wrappedSystemPrompt = systemPrompt + `\n\nIMPORTANT: Wrap your JSON array in an object like this: {"candidates": [...]}`;
+
+    const gptResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${this.openaiApiKey}`,
+      },
+      body: JSON.stringify({
+        model: this.model,
+        messages: [
+          { role: "system", content: wrappedSystemPrompt },
+          { role: "user", content: gptPrompt },
+        ],
+        response_format: { type: "json_object" },
+        temperature: 0.7,
+      }),
+    });
+
+    if (!gptResponse.ok) {
+      throw new Error(`OpenAI API error: ${gptResponse.status} - ${await gptResponse.text()}`);
+    }
+
+    const gptData = await gptResponse.json();
+    let content = gptData.choices?.[0]?.message?.content ?? "";
+
+    // Unwrap the candidates array if wrapped in object
+    try {
+      const parsed = JSON.parse(content);
+      if (parsed.candidates && Array.isArray(parsed.candidates)) {
+        content = JSON.stringify(parsed.candidates);
+      }
+    } catch {
+      // Keep original content if parsing fails
+    }
+
+    return { content, searchResults: searchResponse.results };
+  }
+}
+
+/**
  * Factory function to create the appropriate search adapter based on provider.
  */
 export function createSearchAdapter(config: SearchAdapterConfig): ISearchAdapter {
   switch (config.provider) {
     case "openai":
       return new OpenAISearchAdapter(config);
-    case "bing":
     case "serpapi":
+      return new SerpAPISearchAdapter(config);
+    case "bing":
     case "brave":
       throw new Error(
-        `Search provider "${config.provider}" not yet implemented. Use "openai" for now.`
+        `Search provider "${config.provider}" not yet implemented. Use "openai" or "serpapi".`
       );
     default:
       throw new Error(`Unknown search provider: ${config.provider}`);

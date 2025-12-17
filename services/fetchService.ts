@@ -78,9 +78,10 @@ export class FetchService {
   }
 
   async verifyAndFetch(
-    candidate: DiscoveryResult
+    candidate: DiscoveryResult,
+    existingCandidateId?: string
   ): Promise<VerifyAndFetchResult> {
-    const candidateId = this.generateCandidateId(candidate);
+    const candidateId = existingCandidateId ?? this.generateCandidateId(candidate);
     const verifiedResources: VerifiedResource[] = [];
     const failedReasons: string[] = [];
 
@@ -451,7 +452,7 @@ export class FetchService {
         httpStatus: fetchResult.status,
         contentType: fetchResult.contentType,
         html: fetchResult.html,
-        bodyText: truncatedBodyText,
+        textExtract: truncatedBodyText,
         headers: fetchResult.headers,
         candidateId,
         candidateName,
