@@ -185,6 +185,42 @@ export default async function LeadDetailPage({ params }: PageProps) {
         </div>
       </div>
 
+      {/* Company Contact Info (from AI analysis) */}
+      {(() => {
+        const aiOutput = lead.aiRawOutput as { contact_info?: { email?: string; phone?: string; address?: string } } | null;
+        const contactInfo = aiOutput?.contact_info;
+        if (!contactInfo?.email && !contactInfo?.phone && !contactInfo?.address) return null;
+        return (
+          <div className="border border-teal-300 bg-teal-50 rounded p-4 mb-6">
+            <h2 className="font-bold text-teal-800 mb-3">📞 Company Contact Info</h2>
+            <div className="space-y-2 text-sm">
+              {contactInfo.email && (
+                <div className="flex items-center gap-2">
+                  <span className="text-teal-600 font-medium w-16">Email:</span>
+                  <a href={`mailto:${contactInfo.email}`} className="text-teal-800 hover:underline">
+                    {contactInfo.email}
+                  </a>
+                </div>
+              )}
+              {contactInfo.phone && (
+                <div className="flex items-center gap-2">
+                  <span className="text-teal-600 font-medium w-16">Phone:</span>
+                  <a href={`tel:${contactInfo.phone}`} className="text-teal-800 hover:underline">
+                    {contactInfo.phone}
+                  </a>
+                </div>
+              )}
+              {contactInfo.address && (
+                <div className="flex items-center gap-2">
+                  <span className="text-teal-600 font-medium w-16">Address:</span>
+                  <span className="text-teal-800">{contactInfo.address}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Quick Wins */}
       {quickWins.length > 0 && (
         <div className="border border-green-300 bg-green-50 rounded p-4 mb-6">

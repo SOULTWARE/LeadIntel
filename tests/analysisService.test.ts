@@ -432,13 +432,13 @@ describe("AnalysisService", () => {
         .calls[0][0] as AICompletionRequest;
 
       expect(callArgs.messages[0].role).toBe("system");
-      expect(callArgs.messages[0].content).toContain("evidence-only analysis assistant");
+      expect(callArgs.messages[0].content).toContain("lead research specialist");
       expect(callArgs.messages[0].content).toContain("Use ONLY the provided body_text");
-      expect(callArgs.messages[0].content).toContain("appears verbatim");
-      expect(callArgs.messages[0].content).toContain("Need(0-40)");
-      expect(callArgs.messages[0].content).toContain("Budget(0-30)");
-      expect(callArgs.messages[0].content).toContain("Contact(0-20)");
-      expect(callArgs.messages[0].content).toContain("Timing(0-10)");
+      expect(callArgs.messages[0].content).toContain("excerpt (max 25 words from body_text)");
+      expect(callArgs.messages[0].content).toContain("Need (0-40)");
+      expect(callArgs.messages[0].content).toContain("Budget (0-30)");
+      expect(callArgs.messages[0].content).toContain("Contact (0-20)");
+      expect(callArgs.messages[0].content).toContain("Timing (0-10)");
     });
 
     it("truncates snapshot body_text to limit tokens", async () => {

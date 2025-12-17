@@ -21,15 +21,34 @@ const MAX_BODY_TEXT_LENGTH = 20000;
 const MAX_RETRIES = 2;
 const RETRY_DELAY_MS = 1000;
 
-const PAGE_PATHS = ["/", "/about", "/contact", "/services", "/order", "/book"];
+const PAGE_PATHS = [
+  "/",
+  "/about",
+  "/about-us",
+  "/aboutus",
+  "/contact",
+  "/contact-us",
+  "/team",
+  "/our-team",
+  "/leadership",
+  "/management",
+  "/staff",
+  "/people",
+  "/services",
+  "/locations",
+  "/careers",
+  "/jobs",
+];
 
 const SOURCE_TYPE_PRIORITY: SourceType[] = [
   "homepage",
   "about",
+  "team",
+  "leadership",
   "contact",
   "services",
-  "order",
-  "book",
+  "careers",
+  "locations",
   "linkedin",
   "facebook",
   "instagram",
@@ -446,6 +465,12 @@ export class FetchService {
     const bodyText = this.extractPlainText(fetchResult.html);
     const truncatedBodyText = bodyText.slice(0, MAX_BODY_TEXT_LENGTH);
 
+    // If sourceType is unknown, try to infer it from the actual fetched URL
+    let finalSourceType = sourceType;
+    if (sourceType === "unknown") {
+      finalSourceType = this.inferSourceTypeFromUrl(fetchResult.url);
+    }
+
     const snapshot = await prisma.snapshot.create({
       data: {
         url: fetchResult.url,
@@ -453,6 +478,7 @@ export class FetchService {
         contentType: fetchResult.contentType,
         html: fetchResult.html,
         textExtract: truncatedBodyText,
+        sourceType: finalSourceType,
         headers: fetchResult.headers,
         candidateId,
         candidateName,
@@ -464,7 +490,7 @@ export class FetchService {
       data: {
         candidateRef: candidateId,
         sourceUrl: fetchResult.url,
-        sourceType,
+        sourceType: finalSourceType,
         httpStatus: fetchResult.status,
         contentType: fetchResult.contentType,
         bodyText: truncatedBodyText,
@@ -479,7 +505,7 @@ export class FetchService {
       id: verifiedResource.id,
       candidate_ref: candidateId,
       source_url: fetchResult.url,
-      source_type: sourceType,
+      source_type: finalSourceType,
       http_status: fetchResult.status,
       content_type: fetchResult.contentType,
       body_text: truncatedBodyText,
@@ -536,15 +562,46 @@ export class FetchService {
   }
 
   private pathToSourceType(path: string): SourceType {
+    // Normalize path: remove trailing slash and convert to lowercase
+    const normalizedPath = path.replace(/\/$/, '').toLowerCase() || '/';
+
     const mapping: Record<string, SourceType> = {
       "/": "homepage",
       "/about": "about",
+      "/about-us": "about",
+      "/aboutus": "about",
       "/contact": "contact",
+      "/contact-us": "contact",
       "/services": "services",
-      "/order": "order",
-      "/book": "book",
+      "/team": "team",
+      "/our-team": "team",
+      "/leadership": "leadership",
+      "/management": "leadership",
+      "/staff": "team",
+      "/people": "team",
+      "/locations": "locations",
+      "/careers": "careers",
+      "/jobs": "careers",
     };
-    return mapping[path] ?? "homepage";
+    return mapping[normalizedPath] ?? "unknown";
+  }
+
+  private inferSourceTypeFromUrl(fullUrl: string): SourceType {
+    try {
+      const url = new URL(fullUrl);
+      const path = url.pathname;
+
+      // First try pathToSourceType
+      const typeFromPath = this.pathToSourceType(path);
+      if (typeFromPath !== "unknown") {
+        return typeFromPath;
+      }
+
+      // Then try urlToSourceType for external profiles
+      return this.urlToSourceType(fullUrl);
+    } catch {
+      return "unknown";
+    }
   }
 
   private urlToSourceType(url: string): SourceType {

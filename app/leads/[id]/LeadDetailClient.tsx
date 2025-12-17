@@ -198,26 +198,27 @@ export function LeadDetailClient({
         </div>
       )}
 
-      {/* Profile URLs (when no website) */}
+      {/* Profile URLs - show website from snapshots if lead.website is null */}
       {!lead.website && profileUrls.length > 0 && (
         <div className="border border-blue-300 bg-blue-50 rounded-lg p-4">
-          <h2 className="font-bold text-blue-800 mb-3">📱 Profile URLs</h2>
-          <p className="text-sm text-blue-700 mb-2">
-            No website found. Available profile pages:
-          </p>
+          <h2 className="font-bold text-blue-800 mb-3">🌐 Website & Profile Pages</h2>
           <ul className="space-y-2">
             {profileUrls.map((url, i) => {
               const snapshot = snapshots.find((s) => s.url === url);
+              const isHomepage = url.endsWith('/') && new URL(url).pathname === '/';
               return (
                 <li key={i} className="flex items-center justify-between">
-                  <a
-                    href={url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:underline text-sm"
-                  >
-                    {url}
-                  </a>
+                  <div className="flex items-center gap-2">
+                    {isHomepage && <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">Website</span>}
+                    <a
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline text-sm"
+                    >
+                      {url}
+                    </a>
+                  </div>
                   {snapshot && (
                     <button
                       onClick={() => handleViewSnapshot(snapshot.id)}

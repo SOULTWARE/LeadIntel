@@ -13,6 +13,7 @@ import { prisma } from "@/db";
 import { DiscoveryService } from "@/services/discoveryService";
 import { FetchService } from "@/services/fetchService";
 import { AnalysisService } from "@/services/analysisService";
+import { ResearchAgentService } from "@/services/researchAgentService";
 import type { DiscoveryResult } from "@/src/types/pipeline";
 
 const MIN_CONFIDENCE_THRESHOLD = 60;
@@ -288,6 +289,97 @@ async function processSingleCandidate(
         modelUsed: process.env.AI_MODEL ?? "gpt-4o",
       },
     });
+
+    // AI-guided research to find missing data via real web searches
+    const needsResearch = !lead.industry || !lead.location || !lead.employeeCount;
+    if (needsResearch && process.env.SEARCH_API_KEY) {
+      try {
+        console.log(`[Orchestrator] Starting AI-guided research for lead ${lead.id}`);
+        const researchAgent = new ResearchAgentService();
+        const domain = candidate.domain_candidates[0];
+
+        // Get website content summary for context
+        const websiteContent = fetchResult.verifiedResources
+          .filter((r: { body_text?: string }) => r.body_text)
+          .map((r: { body_text?: string }) => r.body_text || '')
+          .join('\n')
+          .slice(0, 3000);
+
+        const research = await researchAgent.research({
+          companyName: candidate.company_name,
+          domain,
+          leadPurpose: opts.leadPurpose || "general business development",
+          existingData: {
+            industry: lead.industry,
+            location: lead.location,
+            employeeCount: lead.employeeCount,
+            description: lead.description,
+          },
+          websiteContent,
+        });
+
+        console.log(`[Orchestrator] Research complete: ${research.iterationsUsed} iterations, ${research.searchesPerformed.length} searches`);
+
+        // Update lead with researched data (only real discovered data, no defaults)
+        const updateData: Record<string, unknown> = {};
+        if (research.industry && !lead.industry) {
+          updateData.industry = research.industry;
+        }
+        if (research.location && !lead.location) {
+          updateData.location = research.location;
+        }
+        if (research.employeeCount && !lead.employeeCount) {
+          updateData.employeeCount = research.employeeCount;
+        }
+        if (research.description && !lead.description) {
+          updateData.description = research.description;
+        }
+
+        if (Object.keys(updateData).length > 0) {
+          await prisma.lead.update({
+            where: { id: lead.id },
+            data: updateData,
+          });
+          console.log(`[Orchestrator] Updated lead with researched data:`, Object.keys(updateData));
+        }
+
+        // Add decision makers from research
+        if (research.decisionMakers.length > 0) {
+          for (const dm of research.decisionMakers) {
+            await prisma.decisionMaker.create({
+              data: {
+                leadId: lead.id,
+                firstName: dm.firstName,
+                lastName: dm.lastName,
+                title: dm.title,
+                aiRawOutput: { source: dm.source, evidence: dm.evidence },
+              },
+            });
+          }
+          console.log(`[Orchestrator] Added ${research.decisionMakers.length} decision makers from research`);
+        }
+
+        // Add issues identified by research agent
+        if (research.issues.length > 0) {
+          for (const issue of research.issues) {
+            await prisma.issue.create({
+              data: {
+                leadId: lead.id,
+                title: issue.title,
+                description: issue.description,
+                category: issue.category,
+                severity: issue.severity,
+                aiRawOutput: { source: issue.source, evidence: issue.evidence },
+              },
+            });
+          }
+          console.log(`[Orchestrator] Added ${research.issues.length} issues from research`);
+        }
+      } catch (error) {
+        console.error("[Orchestrator] Research failed:", error);
+        // Continue without research - analysis data is still available
+      }
+    }
 
     const confidence = lead.confidenceScore ?? 0;
     const requiresManualReview = lead.requiresReview || confidence < MIN_CONFIDENCE_THRESHOLD;

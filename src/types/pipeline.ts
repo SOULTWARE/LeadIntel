@@ -52,14 +52,17 @@ export type SourceType =
   | "about"
   | "contact"
   | "services"
-  | "order"
-  | "book"
+  | "team"
+  | "leadership"
+  | "careers"
+  | "locations"
   | "instagram"
   | "facebook"
   | "linkedin"
   | "maps"
   | "review"
-  | "directory";
+  | "directory"
+  | "unknown";
 
 /**
  * Resource verified via actual network fetch.
