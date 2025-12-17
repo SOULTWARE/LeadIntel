@@ -15,6 +15,36 @@ enum OutreachStage {
   NO_RESPONSE
 }
 
+enum CandidateStatus {
+  DISCOVERED
+  VERIFYING
+  VERIFIED
+  FAILED
+  CONVERTED
+}
+
+model Candidate {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  companyName         String
+  domainCandidates    Json     @default("[]")
+  profileUrls         Json     @default("[]")
+  discoveryProvenance Json     @default("[]")
+  discoveryConfidence Int?
+
+  discoveredAt DateTime @default(now())
+  status       CandidateStatus @default(DISCOVERED)
+
+  leads     Lead[]
+  snapshots Snapshot[]
+
+  @@index([companyName])
+  @@index([status])
+  @@map("candidates")
+}
+
 model Lead {
   id        String   @id @default(uuid()) @db.Uuid
   createdAt DateTime @default(now())
@@ -37,10 +67,14 @@ model Lead {
 
   aiRawOutput Json?
 
+  candidateId String?    @db.Uuid
+  candidate   Candidate? @relation(fields: [candidateId], references: [id])
+
   decisionMakers DecisionMaker[]
   issues         Issue[]
   emailDrafts    EmailDraft[]
 
+  @@index([candidateId])
   @@map("leads")
 }
 
@@ -98,9 +132,13 @@ model Issue {
   leadId String @db.Uuid
   lead   Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
 
-  sourceEvidenceId String         @db.Uuid
-  sourceEvidence   SourceEvidence @relation(fields: [sourceEvidenceId], references: [id])
+  sourceEvidenceId String?         @db.Uuid
+  sourceEvidence   SourceEvidence? @relation(fields: [sourceEvidenceId], references: [id])
 
+  snapshotId String?   @db.Uuid
+  snapshot   Snapshot? @relation(fields: [snapshotId], references: [id])
+
+  @@index([snapshotId])
   @@map("issues")
 }
 
@@ -140,4 +178,92 @@ model EmailDraft {
   lead   Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
 
   @@map("email_drafts")
+}
+
+model Snapshot {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now())
+
+  url           String
+  httpStatus    Int
+  contentType   String?
+  html          String
+  textExtract   String?
+  sourceType    String?
+  headers       Json?
+
+  candidateId   String?    @db.Uuid
+  candidate     Candidate? @relation(fields: [candidateId], references: [id])
+  candidateName String?
+
+  fetchedAt DateTime @default(now())
+
+  verifiedResources VerifiedResource[]
+  issues            Issue[]
+
+  @@index([candidateId])
+  @@index([url])
+  @@index([sourceType])
+  @@map("snapshots")
+}
+
+model VerifiedResource {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now())
+
+  candidateRef String
+  sourceUrl    String
+  sourceType   String
+  httpStatus   Int
+  contentType  String?
+  bodyText     String?
+
+  rawHtmlSnapshotPath String?
+
+  fetchedAt DateTime @default(now())
+  headers   Json?
+
+  snapshotId String?   @db.Uuid
+  snapshot   Snapshot? @relation(fields: [snapshotId], references: [id])
+
+  skipReason String?
+
+  @@index([candidateRef])
+  @@map("verified_resources")
+}
+
+model RawAiResponse {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now())
+
+  candidateId  String?  @db.Uuid
+  leadId       String?  @db.Uuid
+  responseType String
+  prompt       String?
+  response     Json
+  modelUsed    String?
+  tokensUsed   Int?
+
+  @@index([candidateId])
+  @@index([leadId])
+  @@index([responseType])
+  @@map("raw_ai_responses")
+}
+
+model EvidenceVerification {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now())
+
+  snapshotId      String  @db.Uuid
+  issueId         String? @db.Uuid
+  originalExcerpt String?
+  newExcerpt      String
+  isValid         Boolean
+  notes           String?
+  verifierId      String?
+  verifiedAt      DateTime @default(now())
+
+  @@index([snapshotId])
+  @@index([issueId])
+  @@map("evidence_verifications")
 }

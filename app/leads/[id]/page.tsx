@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { prisma } from '@/db';
+import { LeadDetailClient } from './LeadDetailClient';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -18,10 +19,18 @@ async function getLead(id: string) {
       issues: {
         include: {
           sourceEvidence: true,
+          snapshot: true,
         },
       },
       emailDrafts: {
         orderBy: { version: 'desc' },
+      },
+      candidate: {
+        include: {
+          snapshots: {
+            orderBy: { fetchedAt: 'desc' },
+          },
+        },
       },
     },
   });
@@ -56,6 +65,7 @@ function getScoreExplanation(score: number | null): string {
 
 export default async function LeadDetailPage({ params }: PageProps) {
   const { id } = await params;
+  // @ts-expect-error - Prisma types will be updated after migration
   const lead = await getLead(id);
 
   if (!lead) {
@@ -63,8 +73,12 @@ export default async function LeadDetailPage({ params }: PageProps) {
   }
 
   const quickWins = lead.issues.filter(
-    (issue) => issue.severity === 'high' || issue.severity === 'critical'
+    (issue: { severity: string | null }) => issue.severity === 'high' || issue.severity === 'critical'
   );
+
+  const profileUrls: string[] = lead.candidate?.profileUrls
+    ? (Array.isArray(lead.candidate.profileUrls) ? lead.candidate.profileUrls : [])
+    : [];
 
   return (
     <div className="p-8 max-w-5xl mx-auto">
@@ -137,7 +151,7 @@ export default async function LeadDetailPage({ params }: PageProps) {
             <p className="text-gray-500 text-sm">No decision makers identified</p>
           ) : (
             <div className="space-y-4">
-              {lead.decisionMakers.map((dm) => (
+              {lead.decisionMakers.map((dm: { id: string; firstName: string; lastName: string; title: string | null; role: string | null; contacts: { id: string; type: string; value: string; isVerified: boolean; isPrimary: boolean }[] }) => (
                 <div key={dm.id} className="border-b border-gray-200 pb-3 last:border-0">
                   <div className="font-medium">
                     {dm.firstName} {dm.lastName}
@@ -176,7 +190,7 @@ export default async function LeadDetailPage({ params }: PageProps) {
         <div className="border border-green-300 bg-green-50 rounded p-4 mb-6">
           <h2 className="font-bold text-green-800 mb-3">🎯 Recommended Quick Wins</h2>
           <ul className="list-disc list-inside space-y-1">
-            {quickWins.map((issue) => (
+            {quickWins.map((issue: { id: string; title: string }) => (
               <li key={issue.id} className="text-sm text-green-900">
                 {issue.title}
               </li>
@@ -185,84 +199,30 @@ export default async function LeadDetailPage({ params }: PageProps) {
         </div>
       )}
 
-      {/* Issues with Evidence */}
-      <div className="border border-gray-300 rounded p-4 mb-6">
-        <h2 className="font-bold mb-4">Identified Issues & Evidence</h2>
-        <p className="text-xs text-gray-500 mb-4">
-          ⚠️ Verify each claim by clicking the source link
-        </p>
-        {lead.issues.length === 0 ? (
-          <p className="text-gray-500 text-sm">No issues identified</p>
-        ) : (
-          <div className="space-y-4">
-            {lead.issues.map((issue) => (
-              <div key={issue.id} className="border-l-4 border-gray-300 pl-4 py-2">
-                <div className="flex items-start justify-between">
-                  <h3 className="font-medium">{issue.title}</h3>
-                  {issue.severity && (
-                    <span
-                      className={`text-xs px-2 py-1 rounded ${
-                        issue.severity === 'critical'
-                          ? 'bg-red-100 text-red-700'
-                          : issue.severity === 'high'
-                            ? 'bg-orange-100 text-orange-700'
-                            : issue.severity === 'medium'
-                              ? 'bg-yellow-100 text-yellow-700'
-                              : 'bg-gray-100 text-gray-700'
-                      }`}
-                    >
-                      {issue.severity}
-                    </span>
-                  )}
-                </div>
-                {issue.description && (
-                  <p className="text-sm text-gray-600 mt-1">{issue.description}</p>
-                )}
-                {issue.category && (
-                  <span className="text-xs text-gray-400">Category: {issue.category}</span>
-                )}
-
-                {/* Evidence */}
-                <div className="mt-3 bg-gray-50 border border-gray-200 rounded p-3">
-                  <div className="text-xs text-gray-500 mb-1 font-medium">
-                    📄 Evidence ({issue.sourceEvidence.sourceType})
-                  </div>
-                  {issue.sourceEvidence.snippet && (
-                    <blockquote className="text-sm italic text-gray-700 border-l-2 border-gray-300 pl-2 my-2">
-                      "{issue.sourceEvidence.snippet}"
-                    </blockquote>
-                  )}
-                  {issue.sourceEvidence.sourceUrl && (
-                    <a
-                      href={issue.sourceEvidence.sourceUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline text-sm inline-flex items-center gap-1"
-                    >
-                      🔗 View Source
-                    </a>
-                  )}
-                  {issue.confidenceScore !== null && (
-                    <span className="text-xs text-gray-400 ml-4">
-                      Confidence: {issue.confidenceScore}%
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      {/* Client-side interactive components */}
+      <LeadDetailClient
+        lead={{
+          id: lead.id,
+          companyName: lead.companyName,
+          website: lead.website,
+          confidenceScore: lead.confidenceScore,
+          requiresReview: lead.requiresReview,
+          aiRawOutput: lead.aiRawOutput,
+          candidate: lead.candidate,
+        }}
+        issues={lead.issues}
+        profileUrls={profileUrls as string[]}
+      />
 
       {/* Proposed Value Prop */}
       {lead.issues.length > 0 && (
-        <div className="border border-blue-300 bg-blue-50 rounded p-4 mb-6">
+        <div className="border border-blue-300 bg-blue-50 rounded p-4 mb-6 mt-6">
           <h2 className="font-bold text-blue-800 mb-3">💡 Proposed Value Proposition</h2>
           <p className="text-sm text-blue-900">
             Based on {lead.issues.length} identified issue(s), focus outreach on solving:
           </p>
           <ul className="list-disc list-inside mt-2 space-y-1">
-            {lead.issues.slice(0, 3).map((issue) => (
+            {lead.issues.slice(0, 3).map((issue: { id: string; title: string; severity: string | null }) => (
               <li key={issue.id} className="text-sm text-blue-800">
                 {issue.title}
                 {issue.severity === 'critical' || issue.severity === 'high'
@@ -281,7 +241,7 @@ export default async function LeadDetailPage({ params }: PageProps) {
           <p className="text-gray-500 text-sm">No email drafts generated</p>
         ) : (
           <div className="space-y-4">
-            {lead.emailDrafts.map((draft) => (
+            {lead.emailDrafts.map((draft: { id: string; version: number; status: string; createdAt: Date; subject: string; body: string }) => (
               <div key={draft.id} className="border border-gray-200 rounded p-4">
                 <div className="flex justify-between items-start mb-2">
                   <div>
