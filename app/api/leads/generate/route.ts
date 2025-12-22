@@ -101,9 +101,11 @@ async function orchestrateLeadGeneration(
   const { industry, location, count, leadPurpose, sender_name, sender_company } =
     input;
 
-  const maxConcurrent = parseInt(
-    process.env.MAX_CONCURRENT_FETCHES ?? "10",
-    10
+  // Limit concurrency to avoid OpenAI rate limits (30k TPM)
+  // Each lead does deep search with multiple AI calls
+  const maxConcurrent = Math.min(
+    parseInt(process.env.MAX_CONCURRENT_FETCHES ?? "2", 10),
+    2
   );
 
   const discoveryService = new DiscoveryService();

@@ -247,12 +247,15 @@ export class ResearchAgentService {
 
         allSearchResults.push(...searchResults);
 
-        // Small delay to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 300));
+        // Delay between searches to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
 
       // Step 3: AI extracts facts AND signals from search results
       const extractedFacts = await this.extractFacts(context, allSearchResults);
+
+      // Delay before signal extraction to respect rate limits
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Step 3b: Extract signals for scoring
       const signals = await this.extractSignals(context, allSearchResults.slice(-20));

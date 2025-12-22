@@ -65,6 +65,11 @@ model Lead {
   domain         String?       @unique
   leadPurpose    String?
 
+  // Actionability fields for quick UX decisions
+  actionable         Boolean @default(false)
+  actionabilityScore Int?    // 0-100
+  primaryOpportunity String? // short human one-liner
+
   aiRawOutput Json?
 
   candidateId String?    @db.Uuid

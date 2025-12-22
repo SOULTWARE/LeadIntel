@@ -70,28 +70,43 @@ export function EvidenceEditor({
     );
   };
 
+  const [error, setError] = useState<string | null>(null);
+
   const handleSave = async () => {
     setSaving(true);
+    setError(null);
 
     try {
       if (snapshotId) {
-        await fetch(`/api/snapshots/${snapshotId}/verify`, {
+        const response = await fetch(`/api/snapshots/${snapshotId}/evidence-correct`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            issueId,
+            snapshotId,
+            oldExcerpt: currentExcerpt,
             newExcerpt,
-            isValid,
-            notes,
-            verifierId: "manual-review",
+            reason: notes || "Manual verification correction",
+            verifierName: "manual-review",
+            issueId,
           }),
         });
+
+        if (!response.ok) {
+          const data = await response.json();
+          if (response.status === 422) {
+            setError(data.detail || "New excerpt not found in snapshot text");
+            setSaving(false);
+            return;
+          }
+          throw new Error(data.error || "Failed to save correction");
+        }
       }
 
       onSave({ issueId, newExcerpt, isValid, notes });
       onClose();
-    } catch (error) {
-      console.error("Failed to save verification:", error);
+    } catch (err) {
+      console.error("Failed to save verification:", err);
+      setError(err instanceof Error ? err.message : "Failed to save verification");
     } finally {
       setSaving(false);
     }
@@ -211,6 +226,15 @@ export function EvidenceEditor({
                   <p className="text-sm text-red-700">
                     ⚠️ Marking evidence as invalid will flag this issue for manual
                     review and exclude it from outreach recommendations.
+                  </p>
+                </div>
+              )}
+
+              {/* Error message */}
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded p-3 mb-4">
+                  <p className="text-sm text-red-700">
+                    ❌ {error}
                   </p>
                 </div>
               )}

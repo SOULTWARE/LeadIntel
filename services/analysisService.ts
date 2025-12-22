@@ -16,10 +16,12 @@ import {
   verifyEvidenceAgainstSnapshots,
   type Snapshot as ValidatorSnapshot,
 } from "../lib/validators/leadSchema";
+import { actionabilityService } from "./actionabilityService";
 
 const MAX_SNAPSHOTS = 5;
 const MAX_BODY_TEXT_PER_SNAPSHOT = 4000;
 const MAX_EXCERPT_LENGTH = 150;
+const MAX_ISSUES_FROM_ANALYSIS = 8;
 
 const ANALYSIS_SYSTEM_PROMPT = `You are a lead research specialist. Analyze company websites to extract comprehensive business intelligence.
 
@@ -594,7 +596,10 @@ Return a JSON object matching the lead schema. Include evidence.excerpt as exact
       },
     });
 
-    for (const issue of output.top_issues) {
+    // Limit to MAX_ISSUES_FROM_ANALYSIS (backend later reduces to 3 in actionabilityService)
+    const limitedIssues = output.top_issues.slice(0, MAX_ISSUES_FROM_ANALYSIS);
+
+    for (const issue of limitedIssues) {
       const snapshotKey = issue.evidence.snapshot_id ?? issue.evidence.source_url;
       const snapshot = snapshotMap.get(snapshotKey);
 
@@ -663,6 +668,41 @@ Return a JSON object matching the lead schema. Include evidence.excerpt as exact
           },
         });
       }
+    }
+
+    // Compute actionability using actionabilityService and update lead
+    try {
+      const actionability = await actionabilityService.evaluateLeadForUI(lead.id);
+
+      // Get existing aiRawOutput to preserve it
+      const existingRawOutput = (lead.aiRawOutput as Record<string, unknown>) ?? {};
+
+      await prisma.lead.update({
+        where: { id: lead.id },
+        data: {
+          actionable: actionability.actionable,
+          actionabilityScore: actionability.actionabilityScore,
+          primaryOpportunity: actionability.primaryOpportunity.slice(0, 200),
+          // Store top issues in aiRawOutput for reference
+          aiRawOutput: {
+            ...existingRawOutput,
+            actionability: {
+              topIssues: JSON.parse(JSON.stringify(actionability.topIssues)),
+              reasons: actionability.reasons,
+              computedAt: new Date().toISOString(),
+            },
+          },
+        },
+      });
+
+      console.log(`[AnalysisService] Actionability computed for lead ${lead.id}:`, {
+        actionable: actionability.actionable,
+        score: actionability.actionabilityScore,
+        opportunity: actionability.primaryOpportunity,
+      });
+    } catch (error) {
+      console.error(`[AnalysisService] Failed to compute actionability for lead ${lead.id}:`, error);
+      // Don't fail the whole analysis if actionability computation fails
     }
 
     return prisma.lead.findUnique({
@@ -798,6 +838,9 @@ Return a JSON object matching the lead schema. Include evidence.excerpt as exact
         leadScore: 0,
         confidenceScore: 0,
         requiresReview: true,
+        actionable: false,
+        actionabilityScore: 0,
+        primaryOpportunity: null,
         leadPurpose,
         candidateId,
         aiRawOutput: {
