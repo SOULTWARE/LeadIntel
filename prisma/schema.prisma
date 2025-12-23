@@ -15,6 +15,7 @@ model Lead {
   name      String
   address   String?
   phone     String?
+  email     String?
   website   String?
   rating    Float?
   reviews   Int?

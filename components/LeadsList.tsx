@@ -16,7 +16,8 @@ import {
   Mail,
   Copy,
   Check,
-  Send
+  Send,
+  MapPin
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -33,6 +34,40 @@ export default function LeadsList({ initialLeads }: { initialLeads: any[] }) {
   // Filter state
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
+
+  const [isFindingBatch, setIsFindingBatch] = useState(false);
+
+  const handleFindEmailsBatch = async () => {
+    if (selectedIds.size === 0) {
+      toast.error("Please select leads to find emails for");
+      return;
+    }
+
+    setIsFindingBatch(true);
+    const leadIds = Array.from(selectedIds);
+
+    try {
+      const response = await fetch('/api/leads/find-emails-batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ leadIds }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        const foundCount = data.results.filter((r: any) => r.success).length;
+        toast.success(`Discovery finished: Found ${foundCount} emails.`);
+        toast.info("Refresh to see updated contacts.");
+      } else {
+        toast.error(data.error || "Batch discovery failed.");
+      }
+    } catch (error) {
+      toast.error("Error during batch discovery.");
+    } finally {
+      setIsFindingBatch(false);
+    }
+  };
 
   const generateEmail = async (lead: any) => {
     setIsGeneratingEmail(true);
@@ -102,7 +137,7 @@ export default function LeadsList({ initialLeads }: { initialLeads: any[] }) {
       return;
     }
 
-    const headers = ["Name", "Type", "Address", "Phone", "Website", "Recommendation", "Compatibility Score", "Reasoning"];
+    const headers = ["Name", "Type", "Address", "Phone", "Website", "Recommendation", "Compatibility Score", "Reasoning", "Email"];
     const csvContent = [
       headers.join(","),
       ...leadsToExport.map(l => [
@@ -113,7 +148,8 @@ export default function LeadsList({ initialLeads }: { initialLeads: any[] }) {
         `"${l.website || ''}"`,
         `"${l.recommendation || ''}"`,
         `${l.compatibilityScore || 0}%`,
-        `"${l.reasoning?.replace(/"/g, '""') || ''}"`
+        `"${l.reasoning?.replace(/"/g, '""') || ''}"`,
+        `"${l.email || ''}"`
       ].join(","))
     ].join("\n");
 
@@ -177,6 +213,19 @@ export default function LeadsList({ initialLeads }: { initialLeads: any[] }) {
                </>
              )}
            </div>
+
+           <button
+             onClick={handleFindEmailsBatch}
+             disabled={selectedIds.size === 0 || isFindingBatch}
+             className={`flex items-center gap-2 px-6 py-4 rounded-2xl text-sm font-bold transition-all shadow-sm ${
+               selectedIds.size > 0
+                 ? 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-xl shadow-indigo-100'
+                 : 'bg-white border border-slate-200 text-slate-400 opacity-50'
+             }`}
+            >
+              <Mail className="w-4 h-4" />
+              {isFindingBatch ? 'Searching...' : `Find Email${selectedIds.size > 1 ? 's' : ''}`}
+            </button>
 
            <button
             onClick={handleExport}
@@ -465,28 +514,58 @@ export default function LeadsList({ initialLeads }: { initialLeads: any[] }) {
                         </div>
                      </div>
                    )}
+
+                   {/* Contact details below outreach */}
+                    <div className="bg-slate-50 rounded-3xl p-8 border border-slate-100 space-y-6">
+                       <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-200 pb-3">Contact Information</h4>
+                       <div className="flex flex-col gap-5">
+                          {selectedLead.email && (
+                            <div className="flex items-center gap-4 group/item">
+                               <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 group-hover/item:scale-110 transition-transform">
+                                  <Mail size={18} />
+                               </div>
+                               <div className="flex flex-col">
+                                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Email Address</span>
+                                  <span className="text-sm font-bold text-slate-700">{selectedLead.email}</span>
+                               </div>
+                            </div>
+                          )}
+                          {selectedLead.phone && (
+                            <div className="flex items-center gap-4 group/item">
+                               <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 group-hover/item:scale-110 transition-transform">
+                                  <Phone size={18} />
+                               </div>
+                               <div className="flex flex-col">
+                                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Direct Line</span>
+                                  <span className="text-sm font-bold text-slate-700">{selectedLead.phone}</span>
+                               </div>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-4 group/item">
+                             <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 group-hover/item:scale-110 transition-transform">
+                                <MapPin size={18} />
+                             </div>
+                             <div className="flex flex-col">
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Primary Location</span>
+                                <span className="text-sm font-bold text-slate-700">{selectedLead.address}</span>
+                             </div>
+                          </div>
+                          {selectedLead.website && (
+                             <div className="flex items-center gap-4 group/item">
+                                <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 group-hover/item:scale-110 transition-transform">
+                                   <Globe size={18} />
+                                </div>
+                                <div className="flex flex-col">
+                                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Official Website</span>
+                                   <a href={selectedLead.website} target="_blank" className="text-sm font-bold text-blue-600 hover:underline">{selectedLead.website}</a>
+                                </div>
+                             </div>
+                          )}
+                       </div>
+                    </div>
                 </div>
 
                 <div className="space-y-6 pt-10 border-t border-slate-100">
-                  <div className="flex flex-col gap-4">
-                    <div className="flex items-center gap-4 text-slate-500">
-                      <MapPin size={20} className="text-slate-400" />
-                      <span className="text-sm font-medium">{selectedLead.address}</span>
-                    </div>
-                    {selectedLead.phone && (
-                      <div className="flex items-center gap-4 text-slate-500">
-                        <Phone size={20} className="text-slate-400" />
-                        <span className="text-sm font-medium">{selectedLead.phone}</span>
-                      </div>
-                    )}
-                    {selectedLead.website && (
-                      <div className="flex items-center gap-4 text-slate-500">
-                        <Globe size={20} className="text-slate-400" />
-                        <a href={selectedLead.website} target="_blank" className="text-sm font-bold text-blue-600 hover:underline">{selectedLead.website}</a>
-                      </div>
-                    )}
-                  </div>
-
                   <div className="flex gap-4 pt-4">
                      <button className="flex-1 py-5 bg-slate-900 text-white rounded-2xl font-black uppercase text-sm tracking-widest hover:bg-slate-800 transition-all shadow-xl shadow-slate-200">
                        Start Outreach
@@ -508,5 +587,3 @@ export default function LeadsList({ initialLeads }: { initialLeads: any[] }) {
     </div>
   );
 }
-
-function MapPin({ className, size }: { className?: string; size?: number }) { return <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>; }
