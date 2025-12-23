@@ -3,8 +3,21 @@ import Link from "next/link";
 import SessionDashboard from "@/components/SessionDashboard";
 import { Search, Database, LayoutGrid, ChevronLeft } from 'lucide-react';
 
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+
 async function getSessions() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect('/login');
+  }
+
   return prisma.session.findMany({
+    where: {
+      userId: user.id
+    },
     orderBy: { createdAt: 'desc' },
     include: {
       leads: true

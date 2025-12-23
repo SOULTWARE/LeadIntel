@@ -26,7 +26,7 @@ Create a `.env` file based on `.env.example`:
 DATABASE_URL="postgresql://..."
 OPENAI_API_KEY="sk-..."
 SEARCH_API_KEY="serpapi_key_..."
-AI_MODEL="gpt-4o"
+AI_MODEL="gpt-5-nano"
 ```
 
 ### 3. Installation

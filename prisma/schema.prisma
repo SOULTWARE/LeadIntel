@@ -36,6 +36,9 @@ model Lead {
   // Status
   isEnhanced Boolean @default(false)
 
+  // Ownership
+  userId    String
+
   // Relations
   sessionId String?  @db.Uuid
   session   Session? @relation(fields: [sessionId], references: [id])
@@ -51,6 +54,7 @@ model Session {
   name      String
   target    String?
   location  String?
+  userId    String
   leads     Lead[]
 
   @@map("sessions")

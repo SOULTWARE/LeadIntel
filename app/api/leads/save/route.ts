@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/db";
+import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json();
     const { leads, sessionName, target, location } = body;
 
@@ -17,6 +25,7 @@ export async function POST(request: NextRequest) {
           name: sessionName,
           target: target,
           location: location,
+          userId: user.id,
         },
       });
       sessionId = session.id;
@@ -34,6 +43,7 @@ export async function POST(request: NextRequest) {
           type: lead.type,
           placeId: lead.placeId,
           sessionId: sessionId,
+          userId: user.id,
         };
 
         if (lead.aiAnalysis) {

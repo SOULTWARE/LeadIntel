@@ -15,8 +15,25 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "LeadIntel Pro - AI-Powered Lead Generation",
-  description: "Generate and enhance leads with AI and Google Maps.",
+  title: {
+    default: "LeadIntel Pro - AI-Powered Lead Generation",
+    template: "%s | LeadIntel Pro",
+  },
+  description: "Generate high-precision business leads from Google Maps and enhance them with advanced AI compatibility verification.",
+  keywords: ["lead generation", "google maps scraper", "ai lead verification", "business leads", "sales intelligence"],
+  openGraph: {
+    title: "LeadIntel Pro - AI-Powered Lead Generation",
+    description: "Turn Google Maps into your Growth Engine. Scrape and verify leads automatically.",
+    url: "https://leadintelpro.com",
+    siteName: "LeadIntel Pro",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "LeadIntel Pro - AI-Powered Lead Generation",
+    description: "Generate and enhance leads with AI and Google Maps.",
+  },
 };
 
 export default function RootLayout({
