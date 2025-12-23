@@ -4,10 +4,22 @@ import { prisma } from "@/db";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { leads } = body;
+    const { leads, sessionName, target, location } = body;
 
     if (!leads || !Array.isArray(leads)) {
       return NextResponse.json({ error: "Invalid request. 'leads' array is required." }, { status: 400 });
+    }
+
+    let sessionId: string | undefined;
+    if (sessionName) {
+      const session = await prisma.session.create({
+        data: {
+          name: sessionName,
+          target: target,
+          location: location,
+        },
+      });
+      sessionId = session.id;
     }
 
     const savedLeads = await Promise.all(
@@ -21,6 +33,7 @@ export async function POST(request: NextRequest) {
           reviews: lead.reviews,
           type: lead.type,
           placeId: lead.placeId,
+          sessionId: sessionId,
         };
 
         if (lead.aiAnalysis) {

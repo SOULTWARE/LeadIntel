@@ -1,16 +1,20 @@
 import { prisma } from "@/db";
 import Link from "next/link";
-import LeadsList from "@/components/LeadsList";
-import { Search, Database, BarChart, ChevronLeft } from 'lucide-react';
+import SessionDashboard from "@/components/SessionDashboard";
+import { Search, Database, LayoutGrid, ChevronLeft } from 'lucide-react';
 
-async function getSavedLeads() {
-  return prisma.lead.findMany({
+async function getSessions() {
+  return prisma.session.findMany({
     orderBy: { createdAt: 'desc' },
+    include: {
+      leads: true
+    }
   });
 }
 
 export default async function ResultsPage() {
-  const leads = await getSavedLeads();
+  const sessions = await getSessions();
+  const totalLeads = sessions.reduce((acc, s) => acc + s.leads.length, 0);
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans">
@@ -43,26 +47,22 @@ export default async function ResultsPage() {
            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
               <div className="space-y-2">
                 <h3 className="text-5xl font-black text-slate-900 tracking-tighter uppercase">Intelligence <span className="text-blue-600">Dashboard</span></h3>
-                <p className="text-slate-500 font-medium text-lg">You have {leads.length} high-precision prospects in your pipeline.</p>
+                <p className="text-slate-500 font-medium text-lg">Manage your {sessions.length} scrape sessions and {totalLeads} prospects.</p>
               </div>
               <div className="flex bg-white p-2 rounded-2xl border border-slate-100 shadow-sm">
                  <div className="px-6 py-3 text-center border-r border-slate-100">
-                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Leads</div>
-                    <div className="text-2xl font-black text-slate-900">{leads.length}</div>
+                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Sessions</div>
+                    <div className="text-2xl font-black text-slate-900">{sessions.length}</div>
                  </div>
                  <div className="px-6 py-3 text-center">
-                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Avg Compatibility</div>
-                    <div className="text-2xl font-black text-blue-600">
-                      {leads.length > 0
-                        ? (leads.reduce((acc, curr) => acc + (curr.compatibilityScore || 0), 0) / leads.length).toFixed(0)
-                        : 0}%
-                    </div>
+                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Prospects</div>
+                    <div className="text-2xl font-black text-blue-600">{totalLeads}</div>
                  </div>
               </div>
            </div>
         </div>
 
-        <LeadsList initialLeads={leads} />
+        <SessionDashboard sessions={sessions} />
       </main>
 
       <footer className="mt-20 border-t border-slate-200 py-16 bg-white">

@@ -38,6 +38,7 @@ export default function ScraperPage() {
     taskTags: '',
     columns: [],
     leadPurpose: '',
+    sessionName: '',
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -52,8 +53,7 @@ export default function ScraperPage() {
     setFormData(prev => ({ ...prev, [name]: val }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const startExtraction = async () => {
     setIsLoading(true);
     setResults(null);
 
@@ -132,7 +132,12 @@ export default function ScraperPage() {
     const promise = fetch('/api/leads/save', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ leads: results }),
+      body: JSON.stringify({
+        leads: results,
+        sessionName: formData.sessionName || `${formData.categories || formData.plainQueries} - ${formData.location}`,
+        target: formData.categories || formData.plainQueries,
+        location: formData.location,
+      }),
     });
 
     toast.promise(promise, {
@@ -272,7 +277,16 @@ export default function ScraperPage() {
                   ))}
                 </div>
 
-                <form onSubmit={handleSubmit} className="bg-white border border-slate-200 rounded-[2rem] shadow-xl shadow-slate-100/50 overflow-hidden">
+                <div
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && e.target instanceof HTMLElement && e.target.tagName !== 'TEXTAREA') {
+                      e.preventDefault();
+                      if (currentStep < 3) nextStep();
+                      else startExtraction();
+                    }
+                  }}
+                  className="bg-white border border-slate-200 rounded-[2rem] shadow-xl shadow-slate-100/50 overflow-hidden"
+                >
                   <div className="p-10">
                     <AnimatePresence mode="wait">
                       {/* Step 1: Targets */}
@@ -408,41 +422,59 @@ export default function ScraperPage() {
                             <p className="text-slate-500">How should the AI evaluate these leads for you?</p>
                           </div>
 
-                          <div className="bg-indigo-50/50 border border-indigo-100 p-8 rounded-[1.5rem] space-y-4">
-                             <label className="text-sm font-black text-indigo-900 uppercase tracking-widest">Contact Purpose</label>
-                             <textarea
-                                name="leadPurpose"
-                                value={formData.leadPurpose}
+                          <div className="space-y-6">
+                            <div className="space-y-3">
+                              <label className="text-sm font-black text-slate-700 uppercase tracking-widest block">Session Name (Optional)</label>
+                              <input
+                                name="sessionName"
+                                value={formData.sessionName}
                                 onChange={handleInputChange}
-                                placeholder="Identify if they need SEO services, specifically look for outdated web designs or missing H1 tags..."
-                                rows={4}
-                                className="w-full px-5 py-4 bg-white border border-indigo-100 rounded-2xl focus:ring-4 focus:ring-indigo-100 outline-none transition-all text-sm font-medium resize-none shadow-inner"
-                             />
-                             <div className="flex items-center gap-4 pt-2">
-                                <div className="flex-1 space-y-2">
-                                  <label className="text-xs font-bold text-slate-500 uppercase">Limit Results</label>
-                                  <input
-                                    type="number"
-                                    name="maxResults"
-                                    value={formData.maxResults}
-                                    onChange={handleInputChange}
-                                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold"
-                                  />
-                                </div>
-                                <div className="flex-1 space-y-2">
-                                  <label className="text-xs font-bold text-slate-500 uppercase">Language</label>
-                                  <select
-                                    name="language"
-                                    value={formData.language}
-                                    onChange={handleInputChange}
-                                    className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold"
-                                  >
-                                    <option value="en">English</option>
-                                    <option value="es">Spanish</option>
-                                    <option value="de">German</option>
-                                  </select>
-                                </div>
-                             </div>
+                                placeholder="e.g. Miami Dentists Jan 2025"
+                                className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-100 outline-none transition-all text-sm font-bold placeholder:text-slate-300"
+                              />
+                            </div>
+
+                            <div className="bg-indigo-50/50 border border-indigo-100 p-8 rounded-[1.5rem] space-y-4">
+                               <label className="text-sm font-black text-indigo-900 uppercase tracking-widest">Contact Purpose</label>
+                               <textarea
+                                  name="leadPurpose"
+                                  value={formData.leadPurpose}
+                                  onChange={handleInputChange}
+                                  placeholder="Identify if they need SEO services, specifically look for outdated web designs or missing H1 tags..."
+                                  rows={4}
+                                  className="w-full px-5 py-4 bg-white border border-indigo-100 rounded-2xl focus:ring-4 focus:ring-indigo-100 outline-none transition-all text-sm font-medium resize-none shadow-inner"
+                               />
+                               <div className="flex items-center gap-4 pt-2">
+                                  <div className="flex-1 space-y-2">
+                                    <label className="text-xs font-bold text-slate-500 uppercase">Limit Results</label>
+                                    <select
+                                      name="maxResults"
+                                      value={formData.maxResults}
+                                      onChange={handleInputChange}
+                                      className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-100"
+                                    >
+                                      <option value={10}>10 Leads</option>
+                                      <option value={20}>20 Leads (1 page)</option>
+                                      <option value={40}>40 Leads (2 pages)</option>
+                                      <option value={60}>60 Leads (3 pages)</option>
+                                      <option value={100}>100 Leads (Deep Scrape)</option>
+                                    </select>
+                                  </div>
+                                  <div className="flex-1 space-y-2">
+                                    <label className="text-xs font-bold text-slate-500 uppercase">Language</label>
+                                    <select
+                                      name="language"
+                                      value={formData.language}
+                                      onChange={handleInputChange}
+                                      className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-blue-100"
+                                    >
+                                      <option value="en">English</option>
+                                      <option value="es">Spanish</option>
+                                      <option value="de">German</option>
+                                    </select>
+                                  </div>
+                               </div>
+                            </div>
                           </div>
 
                           <div className="flex flex-wrap gap-8">
@@ -501,7 +533,8 @@ export default function ScraperPage() {
                       </button>
                     ) : (
                       <button
-                        type="submit"
+                        type="button"
+                        onClick={startExtraction}
                         disabled={isLoading}
                         className="px-10 py-4 bg-slate-900 text-white rounded-2xl font-black text-base hover:bg-slate-800 transition-all shadow-2xl shadow-slate-300 disabled:opacity-50 flex items-center gap-3 relative overflow-hidden group"
                       >
@@ -519,9 +552,9 @@ export default function ScraperPage() {
                       </button>
                     )}
                   </div>
-                </form>
+                </div>
               </motion.div>
-            ) : results && (
+            ) : (
               <motion.div
                 key="results-tab"
                 initial={{ opacity: 0, scale: 0.98 }}
@@ -535,7 +568,7 @@ export default function ScraperPage() {
                         <h3 className="text-3xl font-black text-slate-900 tracking-tight">Extracted Leads</h3>
                         <p className="text-slate-500 font-medium flex items-center gap-2">
                            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                           Successfully found {results.length} businesses
+                           Successfully found {results?.length || 0} businesses
                         </p>
                       </div>
                       <div className="flex flex-wrap justify-center gap-3">
@@ -585,7 +618,7 @@ export default function ScraperPage() {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
-                          {results.map((r, i) => (
+                          {(results || []).map((r, i) => (
                             <motion.tr
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}

@@ -35,7 +35,22 @@ model Lead {
   // Status
   isEnhanced Boolean @default(false)
 
+  // Relations
+  sessionId String?  @db.Uuid
+  session   Session? @relation(fields: [sessionId], references: [id])
+
   @@index([placeId])
   @@index([compatibilityScore])
   @@map("leads")
+}
+
+model Session {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now())
+  name      String
+  target    String?
+  location  String?
+  leads     Lead[]
+
+  @@map("sessions")
 }
