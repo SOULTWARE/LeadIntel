@@ -27,6 +27,13 @@ export default function LeadsList({ initialLeads }: { initialLeads: any[] }) {
   const [isGeneratingEmail, setIsGeneratingEmail] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
 
+  // Selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  // Filter state
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
+
   const generateEmail = async (lead: any) => {
     setIsGeneratingEmail(true);
     setEmailDraft(null);
@@ -59,11 +66,68 @@ export default function LeadsList({ initialLeads }: { initialLeads: any[] }) {
     setTimeout(() => setIsCopied(false), 2000);
   };
 
-  const filteredLeads = initialLeads.filter(lead =>
-    lead.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    lead.type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    lead.address?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredLeads = initialLeads.filter(lead => {
+    const matchesSearch = lead.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      lead.type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      lead.address?.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesFilter = filterStatus === 'all' || lead.recommendation === filterStatus;
+
+    return matchesSearch && matchesFilter;
+  });
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filteredLeads.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredLeads.map(l => l.id)));
+    }
+  };
+
+  const toggleSelectLead = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedIds(newSelected);
+  };
+
+  const handleExport = () => {
+    const leadsToExport = initialLeads.filter(l => selectedIds.has(l.id));
+    if (leadsToExport.length === 0) {
+      toast.error("Please select leads to export");
+      return;
+    }
+
+    const headers = ["Name", "Type", "Address", "Phone", "Website", "Recommendation", "Compatibility Score", "Reasoning"];
+    const csvContent = [
+      headers.join(","),
+      ...leadsToExport.map(l => [
+        `"${l.name}"`,
+        `"${l.type || ''}"`,
+        `"${l.address || ''}"`,
+        `"${l.phone || ''}"`,
+        `"${l.website || ''}"`,
+        `"${l.recommendation || ''}"`,
+        `${l.compatibilityScore || 0}%`,
+        `"${l.reasoning?.replace(/"/g, '""') || ''}"`
+      ].join(","))
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `lead-intel-export-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success(`Exported ${leadsToExport.length} leads`);
+  };
 
   return (
     <div className="space-y-8 relative">
@@ -80,12 +144,46 @@ export default function LeadsList({ initialLeads }: { initialLeads: any[] }) {
         </div>
 
         <div className="flex items-center gap-3">
-           <button className="flex items-center gap-2 px-6 py-4 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all shadow-sm">
-             <Filter className="w-4 h-4" />
-             Filters
-           </button>
-           <button className="flex items-center gap-2 px-6 py-4 bg-slate-900 text-white rounded-2xl text-sm font-bold hover:bg-slate-800 transition-all shadow-lg shadow-slate-200">
-             Export Selected
+           <div className="relative">
+             <button
+              onClick={() => setIsFilterMenuOpen(!isFilterMenuOpen)}
+              className={`flex items-center gap-2 px-6 py-4 bg-white border border-slate-200 rounded-2xl text-sm font-bold transition-all shadow-sm ${filterStatus !== 'all' ? 'text-blue-600 border-blue-200 bg-blue-50/50' : 'text-slate-600 hover:bg-slate-50'}`}
+             >
+               <Filter className="w-4 h-4" />
+               {filterStatus === 'all' ? 'Filters' : filterStatus}
+             </button>
+
+             {isFilterMenuOpen && (
+               <>
+                 <div className="fixed inset-0 z-10" onClick={() => setIsFilterMenuOpen(false)} />
+                 <div className="absolute right-0 mt-2 w-64 bg-white border border-slate-200 rounded-2xl shadow-xl z-20 overflow-hidden py-2 animate-in fade-in zoom-in duration-200">
+                    <div className="px-4 py-2 border-b border-slate-100 mb-2">
+                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Filter by Recommendation</span>
+                    </div>
+                    {['all', 'Highly Recommended', 'Recommended', 'Potential'].map((status) => (
+                      <button
+                        key={status}
+                        onClick={() => {
+                          setFilterStatus(status);
+                          setIsFilterMenuOpen(false);
+                        }}
+                        className={`w-full text-left px-5 py-3 text-sm font-bold transition-colors flex items-center justify-between ${filterStatus === status ? 'text-blue-600 bg-blue-50' : 'text-slate-600 hover:bg-slate-50'}`}
+                      >
+                        {status.charAt(0).toUpperCase() + status.slice(1)}
+                        {filterStatus === status && <Check className="w-4 h-4" />}
+                      </button>
+                    ))}
+                 </div>
+               </>
+             )}
+           </div>
+
+           <button
+            onClick={handleExport}
+            disabled={selectedIds.size === 0}
+            className="flex items-center gap-2 px-6 py-4 bg-slate-900 text-white rounded-2xl text-sm font-bold hover:bg-slate-800 transition-all shadow-lg shadow-slate-200 disabled:opacity-50 disabled:shadow-none"
+           >
+             Export {selectedIds.size > 0 ? `(${selectedIds.size})` : 'Selected'}
            </button>
         </div>
       </div>
@@ -95,6 +193,18 @@ export default function LeadsList({ initialLeads }: { initialLeads: any[] }) {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-100">
+                <th className="pl-8 py-6 w-12">
+                  <div
+                    onClick={toggleSelectAll}
+                    className={`w-5 h-5 rounded-md border-2 flex items-center justify-center cursor-pointer transition-all ${
+                      selectedIds.size === filteredLeads.length && filteredLeads.length > 0
+                        ? 'bg-blue-600 border-blue-600'
+                        : 'bg-white border-slate-300 hover:border-blue-400'
+                    }`}
+                  >
+                    {selectedIds.size === filteredLeads.length && filteredLeads.length > 0 && <Check className="w-3.5 h-3.5 text-white stroke-[4]" />}
+                  </div>
+                </th>
                 <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Company</th>
                 <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Analysis</th>
                 <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Score</th>
@@ -110,8 +220,20 @@ export default function LeadsList({ initialLeads }: { initialLeads: any[] }) {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.05 }}
                   key={lead.id}
-                  className="group hover:bg-blue-50/40 cursor-pointer transition-all duration-300"
+                  className={`group hover:bg-blue-50/40 cursor-pointer transition-all duration-300 ${selectedIds.has(lead.id) ? 'bg-blue-50/60' : ''}`}
                 >
+                  <td className="pl-8 py-8 w-12" onClick={(e) => e.stopPropagation()}>
+                    <div
+                      onClick={(e) => toggleSelectLead(e, lead.id)}
+                      className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
+                        selectedIds.has(lead.id)
+                          ? 'bg-blue-600 border-blue-600'
+                          : 'bg-white border-slate-300 group-hover:border-blue-400'
+                      }`}
+                    >
+                      {selectedIds.has(lead.id) && <Check className="w-3.5 h-3.5 text-white stroke-[4]" />}
+                    </div>
+                  </td>
                   <td className="px-8 py-8">
                     <div className="font-extrabold text-slate-900 text-base group-hover:text-blue-600 transition-colors uppercase tracking-tight">{lead.name}</div>
                     <div className="flex items-center gap-3 mt-1.5">
