@@ -20,10 +20,13 @@
     "@prisma/adapter-pg": "^7.1.0",
     "@prisma/client": "^7.1.0",
     "dotenv": "^17.2.3",
+    "framer-motion": "^12.23.26",
+    "lucide-react": "^0.562.0",
     "next": "16.0.10",
     "pg": "^8.16.3",
     "react": "19.2.1",
     "react-dom": "19.2.1",
+    "sonner": "^2.0.7",
     "zod": "^4.2.1"
   },
   "devDependencies": {
