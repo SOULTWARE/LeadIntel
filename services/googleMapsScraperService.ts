@@ -26,29 +26,34 @@ export class GoogleMapsScraperService {
     console.log(`[GoogleMapsScraper] Scraping for: "${q}" (Max: ${maxResults})`);
 
     let allResults: any[] = [];
-    let nextToken: string | null = null;
+    let start = 0;
 
     try {
-      do {
+      while (allResults.length < maxResults) {
         const url = new URL("https://serpapi.com/search");
         url.searchParams.set("engine", "google_maps");
         url.searchParams.set("api_key", this.apiKey);
         url.searchParams.set("hl", language);
+        url.searchParams.set("q", q);
+        url.searchParams.set("start", start.toString());
+        if (country) url.searchParams.set("gl", country.toLowerCase());
 
-        if (nextToken) {
-          url.searchParams.set("next_page_token", nextToken);
-        } else {
-          url.searchParams.set("q", q);
-          if (country) url.searchParams.set("gl", country.toLowerCase());
-        }
+        console.log(`[GoogleMapsScraper] Fetching results starting at ${start}...`);
 
         const response = await fetch(url.toString());
         if (!response.ok) {
-          throw new Error(`SerpApi error: ${response.status} - ${await response.text()}`);
+          const errorText = await response.text();
+          console.error(`[GoogleMapsScraper] SerpApi error: ${response.status}`, errorText);
+          break;
         }
 
         const data = await response.json();
         const results = data.local_results || [];
+
+        if (results.length === 0) {
+          console.log("[GoogleMapsScraper] No more results found.");
+          break;
+        }
 
         const mapped = results.map((item: any) => ({
           name: item.title,
@@ -64,19 +69,20 @@ export class GoogleMapsScraperService {
         }));
 
         allResults = [...allResults, ...mapped];
-
-        // Debug
         console.log(`[GoogleMapsScraper] Fetched ${mapped.length} results. Total: ${allResults.length}`);
 
-        // Check if we need more
-        if (maxResults > 0 && allResults.length >= maxResults) {
+        if (allResults.length >= maxResults) {
           allResults = allResults.slice(0, maxResults);
           break;
         }
 
-        nextToken = data.serpapi_pagination?.next_page_token || null;
+        // If we got fewer than 20 results, it's likely the last page
+        if (results.length < 20) {
+          break;
+        }
 
-      } while (nextToken && (maxResults === 0 || allResults.length < maxResults));
+        start += 20;
+      }
 
       return allResults;
     } catch (error) {

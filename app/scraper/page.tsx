@@ -39,6 +39,7 @@ export default function ScraperPage() {
     columns: [],
     leadPurpose: '',
     sessionName: '',
+    autoEnhance: false,
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -57,36 +58,43 @@ export default function ScraperPage() {
     setIsLoading(true);
     setResults(null);
 
-    const promise = fetch('/api/scraper', {
+    const fetchPromise = fetch('/api/scraper', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData),
     });
 
-    toast.promise(promise, {
+    toast.promise(fetchPromise.then(async (res) => {
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || 'Failed to scrape');
+      return data;
+    }), {
       loading: 'Gathering data from Google Maps...',
-      success: async (response) => {
-        const data = await response.json();
-        if (data.success) {
-          setResults(data.results);
-          setActiveTab('results');
-          return `Successfully found ${data.results.length} leads!`;
+      success: (data) => {
+        setResults(data.results);
+        setActiveTab('results');
+
+        // Handle Auto-Enhance here to ensure it triggers after state update
+        if (formData.autoEnhance) {
+          handleEnhanceAll(data.results);
         }
-        throw new Error(data.error || 'Failed to scrape');
+
+        return `Successfully found ${data.results.length} leads!`;
       },
       error: (err) => `Scrape failed: ${err.message}`,
     });
 
     try {
-      const response = await promise;
-      setIsLoading(false);
-    } catch (error) {
+      await fetchPromise;
+    } finally {
       setIsLoading(false);
     }
   };
 
-  const handleEnhanceAll = async () => {
-    if (!results || results.length === 0) return;
+  const handleEnhanceAll = async (leadsToEnhance?: any[] | React.MouseEvent) => {
+    let currentLeads = Array.isArray(leadsToEnhance) ? [...leadsToEnhance] : (results ? [...results] : []);
+    if (currentLeads.length === 0) return;
+
     if (!formData.leadPurpose) {
       toast.error("Please enter a 'Contact Purpose' in Step 3 first.");
       setCurrentStep(3);
@@ -95,32 +103,56 @@ export default function ScraperPage() {
     }
 
     setIsEnhancing(true);
-    const promise = fetch('/api/enhance/batch', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        leads: results,
-        leadPurpose: formData.leadPurpose
-      }),
-    });
-
-    toast.promise(promise, {
-      loading: 'AI is analyzing leads for compatibility...',
-      success: async (response) => {
-        const data = await response.json();
-        if (data.success) {
-          setResults(data.results);
-          return `AI Enhancement complete for ${data.totalProcessed} leads!`;
-        }
-        throw new Error(data.error);
-      },
-      error: (err) => `Enhancement failed: ${err.message}`,
-    });
 
     try {
-      await promise;
-      setIsEnhancing(false);
+      while (true) {
+        // Find unenhanced leads from the local tracking variable
+        const unenhancedLeads = currentLeads.filter(l => !l.aiAnalysis);
+
+        if (unenhancedLeads.length === 0) {
+          toast.success("All leads have been successfully analyzed!");
+          break;
+        }
+
+        const batchSize = 10;
+        const totalToProcess = unenhancedLeads.length;
+        const currentBatch = unenhancedLeads.slice(0, batchSize);
+
+        const toastId = toast.loading(`Analyzing batch of ${currentBatch.length} leads... (${totalToProcess} remaining)`);
+
+        const response = await fetch('/api/enhance/batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            leads: currentBatch,
+            leadPurpose: formData.leadPurpose
+          }),
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          const enhancedMap = new Map(data.results.map((r: any) => [r.placeId, r]));
+
+          // Update the local variable so the next loop iteration sees the new data
+          currentLeads = currentLeads.map(oldLead => enhancedMap.get(oldLead.placeId) || oldLead);
+
+          // Update React state for the UI
+          setResults([...currentLeads]);
+
+          toast.success(`Processed batch of ${data.totalProcessed} leads!`, { id: toastId });
+
+          // Delay to prevent rate limiting and allow UI updates
+          await new Promise(resolve => setTimeout(resolve, 800));
+        } else {
+          toast.error(data.error || "Enhancement failed", { id: toastId });
+          break;
+        }
+      }
     } catch (error) {
+      console.error("[EnhanceBatch] Error:", error);
+      toast.error("An error occurred during AI enhancement.");
+    } finally {
       setIsEnhancing(false);
     }
   };
@@ -504,6 +536,25 @@ export default function ScraperPage() {
                                 </div>
                                 <span className="text-sm font-bold text-slate-600 group-hover:text-slate-900 transition-colors">Use Postal Codes</span>
                              </label>
+                             <label className="flex items-center gap-3 cursor-pointer group bg-indigo-50/50 px-4 py-2 rounded-xl border border-indigo-100">
+                                <div className="relative">
+                                  <input
+                                    type="checkbox"
+                                    name="autoEnhance"
+                                    checked={formData.autoEnhance}
+                                    onChange={handleInputChange}
+                                    className="peer sr-only"
+                                  />
+                                  <div className="w-10 h-6 bg-slate-200 rounded-full peer peer-checked:bg-indigo-600 transition-colors after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4" />
+                                </div>
+                                <div className="flex flex-col">
+                                  <span className="text-sm font-black text-indigo-600 group-hover:text-indigo-700 transition-colors flex items-center gap-1.5">
+                                    <Sparkles className="w-3.5 h-3.5" />
+                                    Auto-Enhance
+                                  </span>
+                                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter uppercase whitespace-nowrap">AI Evaluation</span>
+                                </div>
+                             </label>
                           </div>
                         </motion.div>
                       )}
@@ -580,7 +631,7 @@ export default function ScraperPage() {
                           Export CSV
                         </button>
                         <button
-                          onClick={handleEnhanceAll}
+                          onClick={() => handleEnhanceAll()}
                           disabled={isEnhancing}
                           className="px-8 py-3 text-sm font-black bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 shadow-xl shadow-indigo-100 transition-all disabled:opacity-50 flex items-center gap-2 group"
                         >

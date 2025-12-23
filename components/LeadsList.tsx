@@ -12,12 +12,52 @@ import {
   AlertCircle,
   BarChart3,
   Search,
-  Filter
+  Filter,
+  Mail,
+  Copy,
+  Check,
+  Send
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function LeadsList({ initialLeads }: { initialLeads: any[] }) {
   const [selectedLead, setSelectedLead] = useState<any | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [emailDraft, setEmailDraft] = useState<{ subject: string; body: string } | null>(null);
+  const [isGeneratingEmail, setIsGeneratingEmail] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+
+  const generateEmail = async (lead: any) => {
+    setIsGeneratingEmail(true);
+    setEmailDraft(null);
+    try {
+      const response = await fetch('/api/generate/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lead, leadPurpose: lead.searchQuery || '' }),
+      });
+      const data = await response.json();
+      if (data.subject && data.body) {
+        setEmailDraft(data);
+        toast.success("Personalized draft ready!");
+      } else {
+        toast.error("Failed to generate draft.");
+      }
+    } catch (error) {
+      toast.error("Error generating email.");
+    } finally {
+      setIsGeneratingEmail(false);
+    }
+  };
+
+  const copyToClipboard = () => {
+    if (!emailDraft) return;
+    const text = `Subject: ${emailDraft.subject}\n\n${emailDraft.body}`;
+    navigator.clipboard.writeText(text);
+    setIsCopied(true);
+    toast.success("Copied to clipboard!");
+    setTimeout(() => setIsCopied(false), 2000);
+  };
 
   const filteredLeads = initialLeads.filter(lead =>
     lead.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -236,6 +276,73 @@ export default function LeadsList({ initialLeads }: { initialLeads: any[] }) {
                         </div>
                      </div>
                   </div>
+                </div>
+
+                {/* Email Generator Section */}
+                <div className="space-y-6 pt-10 border-t border-slate-100">
+                   <div className="flex items-center justify-between">
+                     <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-3">
+                        <Mail className="w-4 h-4 text-indigo-600" />
+                        Personalized Outreach
+                     </h3>
+                     {!emailDraft && (
+                       <button
+                        onClick={() => generateEmail(selectedLead)}
+                        disabled={isGeneratingEmail}
+                        className="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-[10px] font-black uppercase hover:bg-indigo-100 transition-colors disabled:opacity-50"
+                       >
+                         {isGeneratingEmail ? 'Crafting...' : 'Generate AI Draft'}
+                       </button>
+                     )}
+                   </div>
+
+                   {emailDraft ? (
+                     <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="bg-slate-50 rounded-[1.5rem] border border-slate-200 overflow-hidden"
+                     >
+                        <div className="px-6 py-4 bg-white border-b border-slate-100 flex items-center justify-between">
+                           <div className="flex flex-col">
+                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Subject Line</span>
+                             <span className="text-sm font-bold text-slate-900">{emailDraft.subject}</span>
+                           </div>
+                           <div className="flex items-center gap-2">
+                              <button
+                                onClick={copyToClipboard}
+                                className="p-2.5 bg-slate-50 text-slate-500 rounded-lg hover:bg-slate-100 transition-colors"
+                              >
+                                {isCopied ? <Check size={16} className="text-green-600" /> : <Copy size={16} />}
+                              </button>
+                              <a
+                                href={`mailto:?subject=${encodeURIComponent(emailDraft.subject)}&body=${encodeURIComponent(emailDraft.body)}`}
+                                className="p-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                              >
+                                <Send size={16} />
+                              </a>
+                           </div>
+                        </div>
+                        <textarea
+                          value={emailDraft.body}
+                          readOnly
+                          className="w-full h-48 p-6 bg-transparent text-sm text-slate-600 font-medium leading-relaxed resize-none outline-none"
+                        />
+                        <div className="px-6 py-3 bg-indigo-50/50 flex items-center gap-2 border-t border-indigo-100">
+                           <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
+                           <span className="text-[10px] font-black text-indigo-600 uppercase">Drafted by GPT-5-NANO</span>
+                        </div>
+                     </motion.div>
+                   ) : (
+                     <div className="bg-slate-50 border-2 border-dashed border-slate-200 rounded-[1.5rem] p-10 text-center space-y-3">
+                        <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto shadow-sm border border-slate-100 text-slate-300">
+                          <Mail size={24} />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-sm font-bold text-slate-600">No draft generated yet</p>
+                          <p className="text-[10px] font-medium text-slate-400 max-w-[200px] mx-auto uppercase">Click the button above to create a custom outreach message.</p>
+                        </div>
+                     </div>
+                   )}
                 </div>
 
                 <div className="space-y-6 pt-10 border-t border-slate-100">

@@ -43,5 +43,5 @@ npm run dev
 
 - **Frontend**: Next.js 16, React 19, Tailwind CSS 4
 - **Backend**: Next.js API Routes, Prisma ORM
-- **Intelligence**: OpenAI GPT-4o
+- **Intelligence**: OpenAI GPT-5-Nano
 - **Scraping**: SerpApi (Google Maps Engine)

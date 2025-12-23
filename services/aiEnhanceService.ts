@@ -11,7 +11,7 @@ export class AIEnhanceService {
 
   constructor() {
     this.apiKey = process.env.OPENAI_API_KEY || "";
-    this.model = process.env.AI_MODEL || "gpt-4o";
+    this.model = process.env.AI_MODEL || "gpt-5-nano";
   }
 
   async enhanceLead(options: EnhanceOptions) {
