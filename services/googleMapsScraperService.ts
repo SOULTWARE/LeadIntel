@@ -1,5 +1,3 @@
-import { DiscoveryResult } from "@/src/types/pipeline";
-
 export interface ScraperOptions {
   categories?: string;
   plainQueries?: string;
@@ -14,12 +12,12 @@ export class GoogleMapsScraperService {
 
   constructor() {
     this.apiKey = process.env.SEARCH_API_KEY || "";
-    if (!this.apiKey) {
-      throw new Error("SEARCH_API_KEY is missing in environment variables");
-    }
   }
 
   async scrape(options: ScraperOptions): Promise<any[]> {
+    if (!this.apiKey) {
+      throw new Error("SEARCH_API_KEY is missing in environment variables");
+    }
     const { categories, plainQueries, location, country, maxResults = 20, language = 'en' } = options;
 
     // Construct query
