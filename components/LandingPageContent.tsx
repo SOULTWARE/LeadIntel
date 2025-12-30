@@ -285,10 +285,10 @@ export default function LandingPageContent({ user }: LandingPageContentProps) {
                             </div>
                           </div>
 
-                          <div className="p-8">
+                          <div className="pt-8 px-8">
                             <div className="relative left-1/2 -translate-x-1/2 origin-top scale-[0.72] w-[138.89%]">
                               <div className="w-full">
-                                <div className="flex gap-2 bg-slate-200/50 p-1.5 rounded-2xl mb-10 w-fit mx-auto border border-slate-200 shadow-inner">
+                                <div className="flex gap-2 bg-slate-200/50 p-1.5 rounded-2xl mb-8 w-fit mx-auto border border-slate-200 shadow-inner">
                                 <div className="flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-bold text-slate-500">
                                   <Settings2 className="w-4 h-4" />
                                   Configure Scrape
@@ -300,8 +300,8 @@ export default function LandingPageContent({ user }: LandingPageContentProps) {
                                 </div>
 
                                 <div className="bg-white border border-slate-200 rounded-[2rem] shadow-xl shadow-slate-100/50 overflow-hidden">
-                                  <div className="p-10">
-                                    <div className="flex flex-col lg:flex-row items-center justify-between gap-6 mb-10">
+                                  <div className="p-8">
+                                    <div className="flex flex-col lg:flex-row items-center justify-between gap-6 mb-8">
                                       <div className="space-y-2 text-center lg:text-left">
                                         <h3 className="text-3xl font-black text-slate-900 tracking-tight">Extraction Results</h3>
                                         <p className="text-slate-500 font-medium flex items-center gap-2 justify-center lg:justify-start">
@@ -329,10 +329,10 @@ export default function LandingPageContent({ user }: LandingPageContentProps) {
                                       <table className="w-full text-left border-collapse">
                                         <thead>
                                           <tr className="bg-slate-50/80">
-                                            <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Business Name</th>
-                                            <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Contact Details</th>
-                                            <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">AI Intelligence</th>
-                                            <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Compatibility</th>
+                                            <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Business Name</th>
+                                            <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Contact Details</th>
+                                            <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">AI Intelligence</th>
+                                            <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Compatibility</th>
                                           </tr>
                                         </thead>
                                         <tbody className="divide-y divide-slate-100">
@@ -366,18 +366,18 @@ export default function LandingPageContent({ user }: LandingPageContentProps) {
                                             },
                                           ].map((r) => (
                                             <tr key={r.name} className="group hover:bg-blue-50/30 transition-all duration-300">
-                                              <td className="px-8 py-8">
+                                              <td className="px-8 py-6">
                                                 <div className="font-bold text-slate-800 text-base group-hover:text-blue-600 transition-colors">{r.name}</div>
                                                 <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1 bg-slate-100 px-2 py-0.5 rounded w-fit">{r.type}</div>
                                               </td>
-                                              <td className="px-8 py-8">
+                                              <td className="px-8 py-6">
                                                 <div className="text-sm text-slate-500 font-medium truncate max-w-[220px] mb-1">{r.address}</div>
                                                 <div className="flex gap-4 items-center">
                                                   <span className="text-xs text-blue-500 font-bold">{r.website}</span>
                                                   <span className="text-[10px] text-slate-400 font-bold">(212) 555-0199</span>
                                                 </div>
                                               </td>
-                                              <td className="px-8 py-8 max-w-[300px]">
+                                              <td className="px-8 py-6 max-w-[300px]">
                                                 <div className="space-y-2">
                                                   <div className={`text-[10px] font-black uppercase px-2 py-1 rounded-lg w-fit shadow-sm border ${
                                                     r.recommendation === 'Highly Recommended' ? 'bg-green-50 text-green-700 border-green-100' :
@@ -391,7 +391,7 @@ export default function LandingPageContent({ user }: LandingPageContentProps) {
                                                   </div>
                                                 </div>
                                               </td>
-                                              <td className="px-8 py-8">
+                                              <td className="px-8 py-6">
                                                 <div className="flex flex-col items-center gap-1">
                                                   <div className={`text-2xl font-black ${r.score >= 80 ? 'text-green-600' : r.score >= 50 ? 'text-blue-600' : 'text-slate-300'}`}>{r.score}%</div>
                                                   <div className="w-16 h-1 bg-slate-100 rounded-full overflow-hidden">
