@@ -1,12 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/db';
-import { contactDiscoveryService } from '@/services/contactDiscoveryService';
+import { createClient } from '@/lib/supabase/server';
+import { jobQueueService } from '@/services/jobQueueService';
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { id } = await params;
 
     const lead = await prisma.lead.findUnique({
@@ -17,24 +25,20 @@ export async function POST(
       return NextResponse.json({ error: 'Lead not found' }, { status: 404 });
     }
 
-    const emails = await contactDiscoveryService.findEmails(lead.website, {
-      name: lead.name,
-      address: lead.address || undefined
-    });
-
-    if (emails.length > 0) {
-      // Use the first found email
-      const email = emails[0];
-
-      const updatedLead = await prisma.lead.update({
-        where: { id },
-        data: { email },
-      });
-
-      return NextResponse.json({ success: true, email, lead: updatedLead });
+    if (lead.userId !== user.id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    return NextResponse.json({ success: false, message: 'No emails found' });
+    await jobQueueService.enqueue({
+      type: 'EMAIL_DISCOVER',
+      idempotencyKey: `discover:lead:${id}`,
+      payload: { leadId: id },
+    });
+
+    return NextResponse.json({
+      success: true,
+      queued: true,
+    });
   } catch (error) {
     console.error('[API FindEmail] Error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

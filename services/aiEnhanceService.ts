@@ -1,5 +1,3 @@
-import { prisma } from "@/db";
-
 export interface EnhanceOptions {
   placeData: any;
   leadPurpose: string;

@@ -1,9 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/db';
-import { contactDiscoveryService } from '@/services/contactDiscoveryService';
+import { createClient } from '@/lib/supabase/server';
+import { jobQueueService } from '@/services/jobQueueService';
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { leadIds } = await request.json();
 
     if (!Array.isArray(leadIds) || leadIds.length === 0) {
@@ -12,36 +20,26 @@ export async function POST(request: NextRequest) {
 
     console.log(`[Batch Email Discovery] Starting for ${leadIds.length} leads...`);
 
-    const results = [];
+    const leads = await prisma.lead.findMany({
+      where: {
+        id: { in: leadIds },
+        userId: user.id,
+      },
+      select: { id: true },
+    });
 
-    // Process leads (using a small concurrency limit or sequential for now to avoid being blocked)
-    for (const id of leadIds) {
-      try {
-        const lead = await prisma.lead.findUnique({ where: { id } });
-        if (!lead) continue;
-
-        const emails = await contactDiscoveryService.findEmails(lead.website, {
-          name: lead.name,
-          address: lead.address || undefined
-        });
-
-        if (emails.length > 0) {
-          const email = emails[0];
-          const updatedLead = await prisma.lead.update({
-            where: { id },
-            data: { email },
-          });
-          results.push({ id, success: true, email, lead: updatedLead });
-        } else {
-          results.push({ id, success: false, message: 'No emails found' });
-        }
-      } catch (err) {
-        console.error(`[Batch Email Discovery] Error for lead ${id}:`, err);
-        results.push({ id, success: false, error: 'Internal Error' });
-      }
+    for (const lead of leads) {
+      await jobQueueService.enqueue({
+        type: 'EMAIL_DISCOVER',
+        idempotencyKey: `discover:lead:${lead.id}`,
+        payload: { leadId: lead.id },
+      });
     }
 
-    return NextResponse.json({ success: true, results });
+    return NextResponse.json({
+      success: true,
+      queuedCount: leads.length,
+    });
   } catch (error) {
     console.error('[API BatchFindEmails] Error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

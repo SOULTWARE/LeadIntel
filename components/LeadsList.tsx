@@ -56,9 +56,9 @@ export default function LeadsList({ initialLeads }: { initialLeads: any[] }) {
       const data = await response.json();
 
       if (data.success) {
-        const foundCount = data.results.filter((r: any) => r.success).length;
-        toast.success(`Discovery finished: Found ${foundCount} emails.`);
-        toast.info("Refresh to see updated contacts.");
+        const queuedCount = typeof data.queuedCount === 'number' ? data.queuedCount : 0;
+        toast.success(`Email discovery queued for ${queuedCount} leads.`);
+        toast.info("Refresh in a moment to see updated contacts.");
       } else {
         toast.error(data.error || "Batch discovery failed.");
       }
