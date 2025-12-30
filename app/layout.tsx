@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "sonner";
 import PageTransition from "@/components/PageTransition";
+import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -21,6 +22,7 @@ export const metadata: Metadata = {
   },
   description: "Generate high-precision business leads from Google Maps and enhance them with advanced AI compatibility verification.",
   keywords: ["lead generation", "google maps scraper", "ai lead verification", "business leads", "sales intelligence"],
+  manifest: "/manifest.webmanifest",
   openGraph: {
     title: "LeadIntel Pro - AI-Powered Lead Generation",
     description: "Turn Google Maps into your Growth Engine. Scrape and verify leads automatically.",
@@ -36,6 +38,10 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  themeColor: "#0f172a",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -46,6 +52,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <ServiceWorkerRegister />
         <Toaster position="top-right" richColors closeButton />
         <PageTransition>
           {children}

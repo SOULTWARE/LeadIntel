@@ -59,7 +59,7 @@ export class KickboxService {
     });
 
     if (existing) {
-      const raw = (existing.rawResponseJson || {}) as KickboxVerifyResponse;
+      const raw = (existing.rawResponseJson || {}) as unknown as KickboxVerifyResponse;
       return {
         status: existing.status as EmailVerificationStatus,
         normalizedEmail: raw.email || input,
