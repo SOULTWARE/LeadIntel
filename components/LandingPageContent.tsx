@@ -387,7 +387,7 @@ export default function LandingPageContent({ user }: LandingPageContentProps) {
                                                     {r.recommendation}
                                                   </div>
                                                   <div className="text-xs text-slate-600 line-clamp-3 leading-relaxed italic border-l-2 border-slate-200 pl-3">
-                                                    "{r.reasoning}"
+                                                    &quot;{r.reasoning}&quot;
                                                   </div>
                                                 </div>
                                               </td>
@@ -524,7 +524,7 @@ export default function LandingPageContent({ user }: LandingPageContentProps) {
                                     <div className="absolute top-0 right-0 p-4 opacity-10">
                                       <Sparkles size={100} />
                                     </div>
-                                    <p className="text-slate-700 leading-relaxed font-medium italic relative z-10">"Strong demand signals, but conversion path looks outdated."</p>
+                                    <p className="text-slate-700 leading-relaxed font-medium italic relative z-10">&quot;Strong demand signals, but conversion path looks outdated.&quot;</p>
                                   </div>
                                 </div>
 
