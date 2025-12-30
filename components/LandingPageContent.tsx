@@ -449,8 +449,8 @@ export default function LandingPageContent({ user }: LandingPageContentProps) {
                             </div>
                           </div>
 
-                          <div className="p-8 relative h-full">
-                            <div className="relative left-1/2 -translate-x-1/2 origin-top scale-[0.72] w-[138.89%]">
+                          <div className="px-8 relative h-full">
+                            <div className="relative left-1/2 -translate-x-1/2 origin-top scale-[0.72] w-[149.89%] h-[148.89%]">
                               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 opacity-90">
                               {[
                                 { name: 'Dental Clinics - New York', date: '12/30/2025', leads: 184 },
