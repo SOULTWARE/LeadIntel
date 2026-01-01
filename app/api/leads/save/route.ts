@@ -1,6 +1,39 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/db";
 import { createClient } from "@/lib/supabase/server";
+import { z } from "zod";
+
+const SaveLeadsRequestSchema = z.object({
+  leads: z
+    .array(
+      z
+        .object({
+          name: z.string().min(1),
+          address: z.string().nullable().optional(),
+          phone: z.string().nullable().optional(),
+          website: z.string().nullable().optional(),
+          rating: z.coerce.number().nullable().optional(),
+          reviews: z.coerce.number().nullable().optional(),
+          type: z.string().nullable().optional(),
+          placeId: z.string().nullable().optional(),
+          aiAnalysis: z
+            .object({
+              compatibilityScore: z.number().optional(),
+              recommendation: z.string().optional(),
+              reasoning: z.string().optional(),
+              identifiedProblems: z.unknown().optional(),
+              compatibilityHooks: z.unknown().optional(),
+            })
+            .passthrough()
+            .optional(),
+        })
+        .passthrough()
+    )
+    .default([]),
+  sessionName: z.string().optional(),
+  target: z.string().optional(),
+  location: z.string().optional(),
+});
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,12 +44,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { leads, sessionName, target, location } = body;
-
-    if (!leads || !Array.isArray(leads)) {
-      return NextResponse.json({ error: "Invalid request. 'leads' array is required." }, { status: 400 });
+    const parsed = SaveLeadsRequestSchema.safeParse(await request.json());
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid request. 'leads' array is required." },
+        { status: 400 }
+      );
     }
+
+    const { leads, sessionName, target, location } = parsed.data;
 
     let sessionId: string | undefined;
     if (sessionName) {

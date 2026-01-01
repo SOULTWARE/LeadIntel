@@ -1,24 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
 import { googleMapsScraperService } from "@/services/googleMapsScraperService";
+import { z } from "zod";
+
+const ScraperRequestSchema = z.object({
+  categories: z.string().optional(),
+  plainQueries: z.string().optional(),
+  location: z.string().optional(),
+  country: z.string().optional(),
+  maxResults: z.coerce.number().int().positive().optional(),
+  language: z.string().optional(),
+});
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const {
-      categories,
-      plainQueries,
-      location,
-      country,
-      maxResults,
-      language
-    } = body;
+    const parsed = ScraperRequestSchema.safeParse(await request.json());
+    if (!parsed.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Invalid request body",
+        },
+        { status: 400 }
+      );
+    }
+
+    const { categories, plainQueries, location, country, maxResults, language } = parsed.data;
 
     const results = await googleMapsScraperService.scrape({
       categories,
       plainQueries,
       location,
       country,
-      maxResults: parseInt(maxResults) || 20,
+      maxResults: maxResults ?? 20,
       language
     });
 

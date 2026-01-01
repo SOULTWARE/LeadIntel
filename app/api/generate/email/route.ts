@@ -1,12 +1,28 @@
 import { NextResponse } from 'next/server';
+import { z } from 'zod';
+
+const GenerateEmailRequestSchema = z.object({
+  lead: z
+    .object({
+      name: z.string().min(1),
+      type: z.string().optional(),
+      reasoning: z.string().optional(),
+      compatibilityHooks: z.array(z.string()).optional(),
+      identifiedProblems: z.array(z.string()).optional(),
+      searchQuery: z.string().optional(),
+    })
+    .passthrough(),
+  leadPurpose: z.string().optional(),
+});
 
 export async function POST(req: Request) {
   try {
-    const { lead, leadPurpose } = await req.json();
-
-    if (!lead) {
+    const parsed = GenerateEmailRequestSchema.safeParse(await req.json());
+    if (!parsed.success) {
       return NextResponse.json({ error: 'Lead data is required' }, { status: 400 });
     }
+
+    const { lead, leadPurpose } = parsed.data;
 
     const prompt = `
 You are a master of personalized outreach.

@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/db';
 import { createClient } from '@/lib/supabase/server';
 import { jobQueueService } from '@/services/jobQueueService';
+import { z } from 'zod';
+
+const ParamsSchema = z.object({
+  id: z.string().min(1),
+});
 
 export async function POST(
   request: NextRequest,
@@ -15,7 +20,12 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id } = await params;
+    const parsedParams = ParamsSchema.safeParse(await params);
+    if (!parsedParams.success) {
+      return NextResponse.json({ error: 'Invalid lead id' }, { status: 400 });
+    }
+
+    const { id } = parsedParams.data;
 
     const lead = await prisma.lead.findUnique({
       where: { id },

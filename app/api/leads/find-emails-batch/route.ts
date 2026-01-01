@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/db';
 import { createClient } from '@/lib/supabase/server';
 import { jobQueueService } from '@/services/jobQueueService';
+import { z } from 'zod';
+
+const FindEmailsBatchRequestSchema = z.object({
+  leadIds: z.array(z.string().min(1)).min(1),
+});
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,11 +17,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { leadIds } = await request.json();
-
-    if (!Array.isArray(leadIds) || leadIds.length === 0) {
+    const parsed = FindEmailsBatchRequestSchema.safeParse(await request.json());
+    if (!parsed.success) {
       return NextResponse.json({ error: 'No lead IDs provided' }, { status: 400 });
     }
+
+    const { leadIds } = parsed.data;
 
     console.log(`[Batch Email Discovery] Starting for ${leadIds.length} leads...`);
 

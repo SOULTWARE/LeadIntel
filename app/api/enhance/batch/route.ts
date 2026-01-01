@@ -1,14 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { aiEnhanceService } from "@/services/aiEnhanceService";
+import { z } from "zod";
+
+const EnhanceBatchRequestSchema = z.object({
+  leads: z.array(z.unknown()),
+  leadPurpose: z.string().min(1),
+});
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { leads, leadPurpose } = body;
-
-    if (!leads || !Array.isArray(leads) || !leadPurpose) {
-      return NextResponse.json({ error: "Invalid request. 'leads' (array) and 'leadPurpose' (string) are required." }, { status: 400 });
+    const parsed = EnhanceBatchRequestSchema.safeParse(await request.json());
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid request. 'leads' (array) and 'leadPurpose' (string) are required." },
+        { status: 400 }
+      );
     }
+
+    const { leads, leadPurpose } = parsed.data;
 
     // Limit batch size to 10 for now to avoid timeouts
     const batch = leads.slice(0, 10);
@@ -39,7 +48,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       results: results.map((res, i) => ({
-        ...batchForAi[i],
+        ...(typeof batchForAi[i] === "object" && batchForAi[i] !== null ? (batchForAi[i] as object) : {}),
         aiAnalysis: res
       })),
       totalProcessed: batch.length

@@ -68,7 +68,7 @@ async function processEmailDiscoverJob(job: any): Promise<void> {
     await prisma.lead.update({
       where: { id: leadId },
       data: {
-        processingState: "FAILED" as any,
+        processingState: "EMAIL_NOT_FOUND" as any,
       },
     });
     return;
