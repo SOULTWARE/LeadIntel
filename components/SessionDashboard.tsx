@@ -1,20 +1,22 @@
 'use client';
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   ChevronRight,
   MapPin,
   Hash,
   Calendar,
   FileText,
-  ArrowLeft,
   ChevronLeft
 } from 'lucide-react';
 import LeadsList from './LeadsList';
+import type { Prisma } from '@prisma/client';
 
-export default function SessionDashboard({ sessions }: { sessions: any[] }) {
-  const [selectedSession, setSelectedSession] = useState<any | null>(null);
+type SessionWithLeads = Prisma.SessionGetPayload<{ include: { leads: true } }>;
+
+export default function SessionDashboard({ sessions }: { sessions: SessionWithLeads[] }) {
+  const [selectedSession, setSelectedSession] = useState<SessionWithLeads | null>(null);
 
   if (selectedSession) {
     return (

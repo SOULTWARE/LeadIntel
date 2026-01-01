@@ -3,9 +3,10 @@
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface HeroActionsProps {
-  user: any;
+  user: SupabaseUser | null;
 }
 
 export default function HeroActions({ user }: HeroActionsProps) {

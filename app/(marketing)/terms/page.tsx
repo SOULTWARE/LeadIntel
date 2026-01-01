@@ -122,7 +122,7 @@ export default function TermsOfServicePage() {
           <h2 className="text-xl font-black mb-4">Changes to Terms</h2>
           <p className="text-slate-300 leading-relaxed">
             We reserve the right to modify these Terms at any time. We will provide notice of material changes by
-            posting the new Terms on this page and updating the "Effective Date" above. Your continued use of the
+            posting the new Terms on this page and updating the &quot;Effective Date&quot; above. Your continued use of the
             Service after any such changes constitutes your acceptance of the new Terms. We encourage you to review
             these Terms periodically.
           </p>

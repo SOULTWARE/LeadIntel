@@ -7,10 +7,12 @@ process.env.AI_MODEL = 'test-model';
 
 describe('AIEnhanceService', () => {
   let service: AIEnhanceService;
+  let fetchMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     service = new AIEnhanceService();
-    vi.stubGlobal('fetch', vi.fn());
+    fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
   });
 
   it('should successfully enhance a lead', async () => {
@@ -30,7 +32,7 @@ describe('AIEnhanceService', () => {
       ]
     };
 
-    (fetch as any).mockResolvedValueOnce({
+    fetchMock.mockResolvedValueOnce({
       ok: true,
       json: async () => mockResponse,
     });
@@ -42,7 +44,7 @@ describe('AIEnhanceService', () => {
 
     expect(result.compatibilityScore).toBe(85);
     expect(result.recommendation).toBe('Highly Recommended');
-    expect(fetch).toHaveBeenCalledWith(
+    expect(fetchMock).toHaveBeenCalledWith(
       'https://api.openai.com/v1/chat/completions',
       expect.objectContaining({
         method: 'POST',
@@ -54,7 +56,7 @@ describe('AIEnhanceService', () => {
   });
 
   it('should return default values when OpenAI call fails', async () => {
-    (fetch as any).mockResolvedValueOnce({
+    fetchMock.mockResolvedValueOnce({
       ok: false,
       status: 500,
     });
@@ -73,7 +75,7 @@ describe('AIEnhanceService', () => {
       choices: [{ message: { content: JSON.stringify({ compatibilityScore: 50 }) } }]
     };
 
-    (fetch as any).mockResolvedValue({
+    fetchMock.mockResolvedValue({
       ok: true,
       json: async () => mockResponse,
     });

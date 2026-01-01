@@ -1,4 +1,5 @@
 import { prisma } from "../db";
+import { EmailVerificationStatus, type Prisma } from "@prisma/client";
 
 export interface KickboxVerifyResponse {
   result: "deliverable" | "undeliverable" | "risky" | "unknown";
@@ -16,18 +17,11 @@ export interface KickboxVerifyResponse {
   message: string | null;
 }
 
-export type EmailVerificationStatus =
-  | "UNVERIFIED"
-  | "VALID"
-  | "INVALID"
-  | "RISKY"
-  | "UNKNOWN";
-
 function mapKickboxResultToStatus(result: KickboxVerifyResponse["result"]): EmailVerificationStatus {
-  if (result === "deliverable") return "VALID";
-  if (result === "undeliverable") return "INVALID";
-  if (result === "risky") return "RISKY";
-  return "UNKNOWN";
+  if (result === "deliverable") return EmailVerificationStatus.VALID;
+  if (result === "undeliverable") return EmailVerificationStatus.INVALID;
+  if (result === "risky") return EmailVerificationStatus.RISKY;
+  return EmailVerificationStatus.UNKNOWN;
 }
 
 export class KickboxService {
@@ -61,7 +55,7 @@ export class KickboxService {
     if (existing) {
       const raw = (existing.rawResponseJson || {}) as unknown as KickboxVerifyResponse;
       return {
-        status: existing.status as EmailVerificationStatus,
+        status: existing.status,
         normalizedEmail: raw.email || input,
         raw,
       };
@@ -84,8 +78,8 @@ export class KickboxService {
       data: {
         email: input,
         provider,
-        status: status as any,
-        rawResponseJson: json as any,
+        status,
+        rawResponseJson: json as unknown as Prisma.InputJsonValue,
       },
     });
 

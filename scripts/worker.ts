@@ -6,6 +6,7 @@ import { contactDiscoveryService } from "../services/contactDiscoveryService";
 import { kickboxService } from "../services/kickboxService";
 import { websiteDiscoveryService } from "../services/websiteDiscoveryService";
 import { sleep } from "../lib/utils";
+import { EmailVerificationStatus, LeadProcessingState, type Job, type Prisma } from "@prisma/client";
 
 function requireEnv(name: string): string {
   const v = process.env[name];
@@ -13,15 +14,28 @@ function requireEnv(name: string): string {
   return v;
 }
 
-async function processEmailDiscoverJob(job: any): Promise<void> {
-  const leadId = job.payload?.leadId as string | undefined;
+function getPayloadObject(job: Job): Record<string, unknown> {
+  const payload = job.payload as Prisma.JsonValue | null;
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    return {};
+  }
+  return payload as Record<string, unknown>;
+}
+
+async function processEmailDiscoverJob(job: Job): Promise<void> {
+  const payload = getPayloadObject(job);
+  const leadId = payload.leadId;
   if (!leadId) {
     throw new Error("EMAIL_DISCOVER job missing payload.leadId");
   }
 
+  if (typeof leadId !== "string") {
+    throw new Error("EMAIL_DISCOVER job payload.leadId must be a string");
+  }
+
   console.log(`[worker] EMAIL_DISCOVER start leadId=${leadId}`);
 
-  const lead = await prisma.lead.findUnique({ where: { id: leadId } });
+  let lead = await prisma.lead.findUnique({ where: { id: leadId } });
   if (!lead) {
     console.log(`[worker] EMAIL_DISCOVER lead not found leadId=${leadId}`);
     return;
@@ -43,7 +57,7 @@ async function processEmailDiscoverJob(job: any): Promise<void> {
           website: hostname,
         },
       });
-      lead.website = hostname;
+      lead = { ...lead, website: hostname };
     } else {
       console.log(`[worker] EMAIL_DISCOVER website discovery returned null leadId=${leadId}`);
     }
@@ -52,7 +66,7 @@ async function processEmailDiscoverJob(job: any): Promise<void> {
   await prisma.lead.update({
     where: { id: leadId },
     data: {
-      processingState: "EMAIL_DISCOVERING" as any,
+      processingState: LeadProcessingState.EMAIL_DISCOVERING,
     },
   });
 
@@ -68,7 +82,7 @@ async function processEmailDiscoverJob(job: any): Promise<void> {
     await prisma.lead.update({
       where: { id: leadId },
       data: {
-        processingState: "EMAIL_NOT_FOUND" as any,
+        processingState: "EMAIL_NOT_FOUND" as unknown as LeadProcessingState,
       },
     });
     return;
@@ -80,7 +94,7 @@ async function processEmailDiscoverJob(job: any): Promise<void> {
     where: { id: leadId },
     data: {
       email,
-      processingState: "EMAIL_DISCOVERED" as any,
+      processingState: LeadProcessingState.EMAIL_DISCOVERED,
     },
   });
 
@@ -91,12 +105,17 @@ async function processEmailDiscoverJob(job: any): Promise<void> {
   });
 }
 
-async function processEmailVerifyJob(job: any): Promise<void> {
-  const leadId = job.payload?.leadId as string | undefined;
-  const email = job.payload?.email as string | undefined;
+async function processEmailVerifyJob(job: Job): Promise<void> {
+  const payload = getPayloadObject(job);
+  const leadId = payload.leadId;
+  const email = payload.email;
 
   if (!leadId || !email) {
     throw new Error("EMAIL_VERIFY job missing payload.leadId or payload.email");
+  }
+
+  if (typeof leadId !== "string" || typeof email !== "string") {
+    throw new Error("EMAIL_VERIFY job payload.leadId and payload.email must be strings");
   }
 
   console.log(`[worker] EMAIL_VERIFY start leadId=${leadId} email=${email}`);
@@ -104,7 +123,7 @@ async function processEmailVerifyJob(job: any): Promise<void> {
   await prisma.lead.update({
     where: { id: leadId },
     data: {
-      processingState: "VERIFYING" as any,
+      processingState: LeadProcessingState.VERIFYING,
     },
   });
 
@@ -116,15 +135,15 @@ async function processEmailVerifyJob(job: any): Promise<void> {
     where: { id: leadId },
     data: {
       email: result.normalizedEmail,
-      emailVerificationStatus: result.status as any,
+      emailVerificationStatus: result.status as EmailVerificationStatus,
       emailVerifiedAt: new Date(),
       emailVerificationProvider: "kickbox",
-      processingState: "VERIFIED" as any,
+      processingState: LeadProcessingState.VERIFIED,
     },
   });
 }
 
-async function processJob(job: any): Promise<void> {
+async function processJob(job: Job): Promise<void> {
   if (job.type === "EMAIL_DISCOVER") {
     await processEmailDiscoverJob(job);
     return;

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import type { Lead } from '@prisma/client';
 import {
   ChevronRight,
   ExternalLink,
@@ -21,8 +22,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-export default function LeadsList({ initialLeads }: { initialLeads: any[] }) {
-  const [selectedLead, setSelectedLead] = useState<any | null>(null);
+export default function LeadsList({ initialLeads }: { initialLeads: Lead[] }) {
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [emailDraft, setEmailDraft] = useState<{ subject: string; body: string } | null>(null);
   const [isGeneratingEmail, setIsGeneratingEmail] = useState(false);
@@ -62,14 +63,14 @@ export default function LeadsList({ initialLeads }: { initialLeads: any[] }) {
       } else {
         toast.error(data.error || "Batch discovery failed.");
       }
-    } catch (error) {
+    } catch {
       toast.error("Error during batch discovery.");
     } finally {
       setIsFindingBatch(false);
     }
   };
 
-  const generateEmail = async (lead: any) => {
+  const generateEmail = async (lead: Lead) => {
     setIsGeneratingEmail(true);
     setEmailDraft(null);
     try {
@@ -85,7 +86,7 @@ export default function LeadsList({ initialLeads }: { initialLeads: any[] }) {
       } else {
         toast.error("Failed to generate draft.");
       }
-    } catch (error) {
+    } catch {
       toast.error("Error generating email.");
     } finally {
       setIsGeneratingEmail(false);
@@ -297,11 +298,12 @@ export default function LeadsList({ initialLeads }: { initialLeads: any[] }) {
                             lead.recommendation === 'Highly Recommended' ? 'bg-green-50 text-green-700 border-green-100' :
                             lead.recommendation === 'Recommended' ? 'bg-blue-50 text-blue-700 border-blue-100' :
                             'bg-slate-50 text-slate-600 border-slate-100'
-                          }`}>
-                            {lead.recommendation}
+                          }`}
+                        >
+                           {lead.recommendation}
                          </div>
                          <p className="text-xs text-slate-500 italic line-clamp-1 border-l border-slate-200 pl-4">
-                           "{lead.reasoning}"
+                           &quot;{lead.reasoning}&quot;
                          </p>
                        </div>
                     ) : (
@@ -394,8 +396,8 @@ export default function LeadsList({ initialLeads }: { initialLeads: any[] }) {
                      </div>
                      <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 space-y-1">
                         <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Comp. Score</div>
-                        <div className={`text-2xl font-black ${selectedLead.compatibilityScore >= 80 ? 'text-green-600' : 'text-blue-600'}`}>
-                          {selectedLead.compatibilityScore}%
+                        <div className={`text-2xl font-black ${(selectedLead.compatibilityScore ?? 0) >= 80 ? 'text-green-600' : 'text-blue-600'}`}>
+                          {selectedLead.compatibilityScore ?? 0}%
                         </div>
                      </div>
                   </div>
@@ -412,7 +414,7 @@ export default function LeadsList({ initialLeads }: { initialLeads: any[] }) {
                          <Sparkles size={120} />
                        </div>
                        <p className="text-slate-700 leading-relaxed font-medium italic relative z-10">
-                         "{selectedLead.reasoning}"
+                         &quot;{selectedLead.reasoning}&quot;
                        </p>
                     </div>
                   </div>
@@ -570,13 +572,15 @@ export default function LeadsList({ initialLeads }: { initialLeads: any[] }) {
                      <button className="flex-1 py-5 bg-slate-900 text-white rounded-2xl font-black uppercase text-sm tracking-widest hover:bg-slate-800 transition-all shadow-xl shadow-slate-200">
                        Start Outreach
                      </button>
-                     <a
-                      href={selectedLead.website}
-                      target="_blank"
-                      className="w-16 h-16 bg-white border border-slate-200 rounded-2xl flex items-center justify-center text-slate-400 hover:text-blue-600 hover:border-blue-100 transition-all shadow-sm"
-                     >
-                       <ExternalLink size={24} />
-                     </a>
+                     {selectedLead.website && (
+                       <a
+                        href={selectedLead.website}
+                        target="_blank"
+                        className="w-16 h-16 bg-white border border-slate-200 rounded-2xl flex items-center justify-center text-slate-400 hover:text-blue-600 hover:border-blue-100 transition-all shadow-sm"
+                       >
+                         <ExternalLink size={24} />
+                       </a>
+                     )}
                   </div>
                 </div>
               </div>

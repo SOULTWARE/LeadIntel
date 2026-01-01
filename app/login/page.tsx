@@ -7,6 +7,16 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'string') return error;
+  if (typeof error === 'object' && error !== null && 'message' in error) {
+    const msg = (error as Record<string, unknown>).message;
+    if (typeof msg === 'string') return msg;
+  }
+  return 'Unknown error';
+}
+
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -40,8 +50,8 @@ export default function LoginPage() {
         router.push('/scraper');
         router.refresh();
       }
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error));
     } finally {
       setIsLoading(false);
     }
@@ -62,8 +72,8 @@ export default function LoginPage() {
       });
       if (error) throw error;
       toast.success('Check your email for the magic link!');
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error));
     } finally {
       setIsLoading(false);
     }

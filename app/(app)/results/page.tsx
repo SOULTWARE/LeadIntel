@@ -1,7 +1,7 @@
 import { prisma } from "@/db";
 import Link from "next/link";
 import SessionDashboard from "@/components/SessionDashboard";
-import { Search, Database, LayoutGrid, ChevronLeft } from 'lucide-react';
+import { Search, Database, ChevronLeft } from 'lucide-react';
 
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";

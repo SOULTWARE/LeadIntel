@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Mail, MessageSquare, HelpCircle, Clock, Send, MapPin, Building } from 'lucide-react';
+import { Mail, MessageSquare, HelpCircle, Clock, Send, Building } from 'lucide-react';
 import { useState } from 'react';
 
 export default function ContactPage() {
@@ -82,14 +82,14 @@ export default function ContactPage() {
             variants={itemVariants}
             className="text-4xl md:text-5xl font-black text-slate-900 leading-tight tracking-tight"
           >
-            Let's{' '}
+            Let&apos;s{' '}
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600">
               talk.
             </span>
           </motion.h1>
 
           <motion.p variants={itemVariants} className="text-lg text-slate-500 leading-relaxed">
-            Have questions about Lead Intel Pro? We'd love to hear from you. Our team typically responds within 24
+            Have questions about Lead Intel Pro? We&apos;d love to hear from you. Our team typically responds within 24
             hours.
           </motion.p>
         </section>
@@ -123,7 +123,7 @@ export default function ContactPage() {
                 </div>
                 <h3 className="text-2xl font-black text-slate-900 mb-3">Message Sent!</h3>
                 <p className="text-slate-500">
-                  Thanks for reaching out. We'll get back to you within 24 hours.
+                  Thanks for reaching out. We&apos;ll get back to you within 24 hours.
                 </p>
               </div>
             ) : (

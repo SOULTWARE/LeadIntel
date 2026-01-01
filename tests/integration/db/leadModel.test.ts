@@ -29,21 +29,25 @@ describe('Lead Model Operations', () => {
 
   it('should create a lead', async () => {
     const mockLead = { id: 'uuid-1', name: 'Test Lead' };
-    (prisma.lead.create as any).mockResolvedValue(mockLead);
+    vi.mocked(prisma.lead.create).mockResolvedValue(
+      mockLead as unknown as Awaited<ReturnType<typeof prisma.lead.create>>
+    );
 
     const result = await prisma.lead.create({
-      data: { name: 'Test Lead', address: '123 St' }
+      data: { name: 'Test Lead', address: '123 St', userId: 'user-1' }
     });
 
     expect(result).toEqual(mockLead);
     expect(prisma.lead.create).toHaveBeenCalledWith({
-      data: { name: 'Test Lead', address: '123 St' }
+      data: { name: 'Test Lead', address: '123 St', userId: 'user-1' }
     });
   });
 
   it('should find leads', async () => {
     const mockLeads = [{ id: 'uuid-1', name: 'Lead 1' }];
-    (prisma.lead.findMany as any).mockResolvedValue(mockLeads);
+    vi.mocked(prisma.lead.findMany).mockResolvedValue(
+      mockLeads as unknown as Awaited<ReturnType<typeof prisma.lead.findMany>>
+    );
 
     const results = await prisma.lead.findMany();
 
@@ -53,7 +57,9 @@ describe('Lead Model Operations', () => {
 
   it('should update a lead', async () => {
     const mockUpdatedLead = { id: 'uuid-1', name: 'Updated Lead' };
-    (prisma.lead.update as any).mockResolvedValue(mockUpdatedLead);
+    vi.mocked(prisma.lead.update).mockResolvedValue(
+      mockUpdatedLead as unknown as Awaited<ReturnType<typeof prisma.lead.update>>
+    );
 
     const result = await prisma.lead.update({
       where: { id: 'uuid-1' },

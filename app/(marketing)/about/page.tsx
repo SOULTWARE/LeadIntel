@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Zap, Target, Sparkles, Users, TrendingUp, Heart, ArrowRight, Globe, Rocket } from 'lucide-react';
+import { Zap, Target, Sparkles, TrendingUp, Heart, ArrowRight, Globe, Rocket } from 'lucide-react';
 
 export default function AboutPage() {
   const containerVariants = {
@@ -78,7 +78,7 @@ export default function AboutPage() {
 
           <motion.p variants={itemVariants} className="text-xl text-slate-500 leading-relaxed">
             Lead Intel Pro was born from a simple frustration: traditional lead generation is broken. Too much time
-            wasted on unqualified prospects, too little insight into who's actually a fit.
+            wasted on unqualified prospects, too little insight into who&apos;s actually a fit.
           </motion.p>
         </section>
 
@@ -92,12 +92,12 @@ export default function AboutPage() {
                 companies, trying to figure out which businesses might actually benefit from reaching out.
               </p>
               <p>
-                The problem wasn't finding leads—it was finding the <strong>right</strong> leads. The ones who would
+                The problem wasn&apos;t finding leads—it was finding the <strong>right</strong> leads. The ones who would
                 actually respond. The ones with genuine business problems we could solve.
               </p>
               <p>
                 So we built Lead Intel Pro: a platform that combines the power of data scraping with AI-driven analysis
-                to surface leads that aren't just contact information, but genuine opportunities.
+                to surface leads that aren&apos;t just contact information, but genuine opportunities.
               </p>
             </div>
           </div>
@@ -105,8 +105,8 @@ export default function AboutPage() {
             <div className="space-y-8">
               <Globe size={48} className="text-green-600" />
               <blockquote className="text-2xl font-bold text-slate-900 leading-snug">
-                "We believe every business deserves access to intelligent lead discovery—not just enterprises with
-                massive research teams."
+                &quot;We believe every business deserves access to intelligent lead discovery—not just enterprises with
+                massive research teams.&quot;
               </blockquote>
               <div className="text-slate-500 font-medium">— The Lead Intel Pro Team</div>
             </div>

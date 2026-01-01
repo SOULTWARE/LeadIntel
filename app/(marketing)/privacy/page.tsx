@@ -122,8 +122,8 @@ export default function PrivacyPolicyPage() {
         {/* Introduction */}
         <motion.section variants={itemVariants} className="bg-slate-50 rounded-3xl p-8 border border-slate-100">
           <p className="text-slate-600 leading-relaxed">
-            This Privacy Policy describes how Lead Intel Pro ("we", "us", or "our") collects, uses, and shares
-            information about you when you use our website, applications, and services (collectively, the "Services").
+            This Privacy Policy describes how Lead Intel Pro (&quot;we&quot;, &quot;us&quot;, or &quot;our&quot;) collects, uses, and shares
+            information about you when you use our website, applications, and services (collectively, the &quot;Services&quot;).
             By using our Services, you agree to the collection and use of information in accordance with this policy.
           </p>
         </motion.section>

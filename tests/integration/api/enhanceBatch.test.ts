@@ -30,7 +30,9 @@ describe('/api/enhance/batch', () => {
 
   it('should successfully process leads', async () => {
     const mockResults = [{ compatibilityScore: 90 }];
-    (aiEnhanceService.enhanceBatch as any).mockResolvedValue(mockResults);
+    vi.mocked(aiEnhanceService.enhanceBatch).mockResolvedValue(
+      mockResults as unknown as Awaited<ReturnType<typeof aiEnhanceService.enhanceBatch>>
+    );
 
     const body = {
       leads: [{ name: 'Lead 1' }],
@@ -55,7 +57,7 @@ describe('/api/enhance/batch', () => {
   });
 
   it('should return 500 on service error', async () => {
-    (aiEnhanceService.enhanceBatch as any).mockRejectedValue(new Error('Test Error'));
+    vi.mocked(aiEnhanceService.enhanceBatch).mockRejectedValue(new Error('Test Error'));
 
     const body = {
       leads: [{ name: 'Lead 1' }],

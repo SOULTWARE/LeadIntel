@@ -2,13 +2,14 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Zap, LogOut, User } from 'lucide-react';
+import { Zap, LogOut } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface NavbarProps {
-  user: any; // Using any for simplicity with Supabase user type, typically import User from @supabase/supabase-js
+  user: SupabaseUser | null; // Using any for simplicity with Supabase user type, typically import User from @supabase/supabase-js
 }
 
 export default function Navbar({ user }: NavbarProps) {
@@ -22,7 +23,7 @@ export default function Navbar({ user }: NavbarProps) {
       toast.success('Logged out successfully');
       router.refresh();
       setIsMenuOpen(false);
-    } catch (error) {
+    } catch {
       toast.error('Error logging out');
     }
   };
@@ -54,14 +55,14 @@ export default function Navbar({ user }: NavbarProps) {
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
                   className="w-10 h-10 bg-slate-900 text-white rounded-full flex items-center justify-center font-bold text-sm hover:ring-4 hover:ring-slate-100 transition-all shadow-xl shadow-slate-200"
                 >
-                  {getInitials(user.email)}
+                  {getInitials(user.email ?? '')}
                 </button>
 
                 {isMenuOpen && (
                   <div className="absolute right-0 top-14 w-48 bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden py-1">
                     <div className="px-4 py-3 border-b border-slate-50">
                       <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Signed in as</p>
-                      <p className="text-sm font-bold text-slate-900 truncate">{user.email}</p>
+                      <p className="text-sm font-bold text-slate-900 truncate">{user.email ?? ''}</p>
                     </div>
                     <button
                       onClick={handleLogout}

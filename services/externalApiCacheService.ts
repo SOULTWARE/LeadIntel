@@ -1,4 +1,5 @@
 import { prisma } from "../db";
+import type { Prisma } from "@prisma/client";
 
 export interface FetchJsonWithCacheOptions<T> {
   provider: string;
@@ -47,7 +48,7 @@ export class ExternalApiCacheService {
       update: {
         expiresAt,
         statusCode,
-        responseJson: json as any,
+        responseJson: json as unknown as Prisma.InputJsonValue,
         costUnits,
       },
       create: {
@@ -55,7 +56,7 @@ export class ExternalApiCacheService {
         cacheKey,
         expiresAt,
         statusCode,
-        responseJson: json as any,
+        responseJson: json as unknown as Prisma.InputJsonValue,
         costUnits,
       },
     });

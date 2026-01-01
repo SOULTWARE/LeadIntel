@@ -1,19 +1,15 @@
 import { prisma } from "../db";
+import type { Job, JobStatus as PrismaJobStatus, JobType as PrismaJobType, Prisma } from "@prisma/client";
 
-export type JobType =
-  | "SEARCH_FETCH_CANDIDATES"
-  | "LEAD_ENRICH"
-  | "EMAIL_DISCOVER"
-  | "EMAIL_VERIFY"
-  | "AI_ANALYZE";
+export type JobType = PrismaJobType;
 
-export type JobStatus = "QUEUED" | "RUNNING" | "SUCCEEDED" | "FAILED" | "DEAD";
+export type JobStatus = PrismaJobStatus;
 
 export interface EnqueueJobOptions {
   type: JobType;
   idempotencyKey: string;
   runAt?: Date;
-  payload?: any;
+  payload?: Prisma.InputJsonValue;
   maxAttempts?: number;
 }
 
@@ -26,7 +22,7 @@ export class JobQueueService {
         payload: options.payload,
       },
       create: {
-        type: options.type as any,
+        type: options.type,
         idempotencyKey: options.idempotencyKey,
         runAt: options.runAt || new Date(),
         payload: options.payload,
@@ -35,14 +31,14 @@ export class JobQueueService {
     });
   }
 
-  async claimNext(workerId: string): Promise<any | null> {
+  async claimNext(workerId: string): Promise<Job | null> {
     const now = new Date();
     const lockExpiry = new Date(Date.now() - 5 * 60 * 1000);
 
     return prisma.$transaction(async (tx) => {
       const candidate = await tx.job.findFirst({
         where: {
-          status: "QUEUED" as any,
+          status: "QUEUED",
           runAt: { lte: now },
           OR: [{ lockedAt: null }, { lockedAt: { lt: lockExpiry } }],
         },
@@ -54,10 +50,10 @@ export class JobQueueService {
       const updated = await tx.job.updateMany({
         where: {
           id: candidate.id,
-          status: "QUEUED" as any,
+          status: "QUEUED",
         },
         data: {
-          status: "RUNNING" as any,
+          status: "RUNNING",
           lockedAt: now,
           lockedBy: workerId,
           attempts: { increment: 1 },
@@ -74,7 +70,7 @@ export class JobQueueService {
     await prisma.job.update({
       where: { id: jobId },
       data: {
-        status: "SUCCEEDED" as any,
+        status: "SUCCEEDED",
         lockedAt: null,
         lockedBy: null,
         lastError: null,
@@ -94,7 +90,7 @@ export class JobQueueService {
     await prisma.job.update({
       where: { id: jobId },
       data: {
-        status: (shouldDeadLetter ? "DEAD" : "QUEUED") as any,
+        status: shouldDeadLetter ? "DEAD" : "QUEUED",
         lockedAt: null,
         lockedBy: null,
         lastError: errorMessage,
@@ -107,7 +103,7 @@ export class JobQueueService {
     await prisma.job.update({
       where: { id: jobId },
       data: {
-        status: "QUEUED" as any,
+        status: "QUEUED",
         lockedAt: null,
         lockedBy: null,
         runAt: new Date(),

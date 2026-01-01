@@ -2,8 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { aiEnhanceService } from "@/services/aiEnhanceService";
 import { z } from "zod";
 
+const LeadPlaceDataSchema = z
+  .object({
+    name: z.string().min(1),
+  })
+  .passthrough();
+
 const EnhanceBatchRequestSchema = z.object({
-  leads: z.array(z.unknown()),
+  leads: z.array(LeadPlaceDataSchema),
   leadPurpose: z.string().min(1),
 });
 

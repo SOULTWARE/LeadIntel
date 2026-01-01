@@ -7,6 +7,36 @@ export interface ScraperOptions {
   language?: string;
 }
 
+export interface GoogleMapsLead {
+  name: string;
+  address?: string;
+  phone?: string;
+  website?: string;
+  rating?: number;
+  reviews?: number;
+  type?: string;
+  placeId?: string;
+  gps?: unknown;
+  thumbnail?: string;
+}
+
+type SerpApiLocalResult = {
+  title?: string;
+  address?: string;
+  phone?: string;
+  website?: string;
+  rating?: number;
+  reviews?: number;
+  type?: string;
+  place_id?: string;
+  gps_coordinates?: unknown;
+  thumbnail?: string;
+};
+
+type SerpApiMapsResponse = {
+  local_results?: SerpApiLocalResult[];
+};
+
 export class GoogleMapsScraperService {
   private apiKey: string;
 
@@ -14,7 +44,7 @@ export class GoogleMapsScraperService {
     this.apiKey = process.env.SEARCH_API_KEY || "";
   }
 
-  async scrape(options: ScraperOptions): Promise<any[]> {
+  async scrape(options: ScraperOptions): Promise<GoogleMapsLead[]> {
     if (!this.apiKey) {
       throw new Error("SEARCH_API_KEY is missing in environment variables");
     }
@@ -25,7 +55,7 @@ export class GoogleMapsScraperService {
 
     console.log(`[GoogleMapsScraper] Scraping for: "${q}" (Max: ${maxResults})`);
 
-    let allResults: any[] = [];
+    let allResults: GoogleMapsLead[] = [];
     let start = 0;
 
     try {
@@ -47,7 +77,7 @@ export class GoogleMapsScraperService {
           break;
         }
 
-        const data = await response.json();
+        const data = (await response.json()) as SerpApiMapsResponse;
         const results = data.local_results || [];
 
         if (results.length === 0) {
@@ -55,8 +85,8 @@ export class GoogleMapsScraperService {
           break;
         }
 
-        const mapped = results.map((item: any) => ({
-          name: item.title,
+        const mapped = results.map((item) => ({
+          name: item.title || "",
           address: item.address,
           phone: item.phone,
           website: item.website,

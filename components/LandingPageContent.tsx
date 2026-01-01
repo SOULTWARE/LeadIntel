@@ -3,9 +3,10 @@
 import { motion } from 'framer-motion';
 import { Sparkles, Zap, Search, Target, Database, Mail, Settings2, MapPin, FileDown, Calendar, FileText, X, AlertCircle, BarChart3 } from 'lucide-react';
 import HeroActions from './HeroActions';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface LandingPageContentProps {
-  user: any;
+  user: SupabaseUser | null;
 }
 
 export default function LandingPageContent({ user }: LandingPageContentProps) {

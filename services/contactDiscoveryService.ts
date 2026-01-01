@@ -1,8 +1,10 @@
 import { hunterService } from './hunterService';
 
 export class ContactDiscoveryService {
-  async findEmails(url: string | null, context?: { name: string; address?: string }): Promise<string[]> {
+  async findEmails(url: string | null, _context?: { name: string; address?: string }): Promise<string[]> {
     if (!url) return [];
+
+    void _context;
 
     let hostname: string;
     try {

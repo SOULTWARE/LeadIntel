@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import type { AIAnalysisResult, LeadPlaceData } from '@/services/aiEnhanceService';
 import {
   Target,
   MapPin,
@@ -16,6 +17,17 @@ import {
   FileDown,
   ChevronRight
 } from 'lucide-react';
+
+type ScrapeResultLead = LeadPlaceData & {
+  address?: string | null;
+  phone?: string | null;
+  website?: string | null;
+  rating?: number | null;
+  reviews?: number | null;
+  type?: string | null;
+  placeId?: string | null;
+  aiAnalysis?: AIAnalysisResult | null;
+};
 
 export default function ScraperPage() {
   const [activeTab, setActiveTab] = useState('input');
@@ -45,12 +57,13 @@ export default function ScraperPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [results, setResults] = useState<any[] | null>(null);
+  const [results, setResults] = useState<ScrapeResultLead[] | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
-    // @ts-ignore
-    const val = type === 'checkbox' ? e.target.checked : value;
+
+    const target = e.target;
+    const val = target instanceof HTMLInputElement && type === 'checkbox' ? target.checked : value;
     setFormData(prev => ({ ...prev, [name]: val }));
   };
 
@@ -91,7 +104,7 @@ export default function ScraperPage() {
     }
   };
 
-  const handleEnhanceAll = async (leadsToEnhance?: any[] | React.MouseEvent) => {
+  const handleEnhanceAll = async (leadsToEnhance?: ScrapeResultLead[] | React.MouseEvent) => {
     let currentLeads = Array.isArray(leadsToEnhance) ? [...leadsToEnhance] : (results ? [...results] : []);
     if (currentLeads.length === 0) return;
 
@@ -132,10 +145,14 @@ export default function ScraperPage() {
         const data = await response.json();
 
         if (data.success) {
-          const enhancedMap = new Map(data.data.results.map((r: any) => [r.placeId, r]));
+          const enhancedMap = new Map(
+            (data.data.results as ScrapeResultLead[])
+              .filter((r): r is ScrapeResultLead & { placeId: string } => typeof r.placeId === 'string' && r.placeId.length > 0)
+              .map((r) => [r.placeId, r] as const)
+          );
 
           // Update the local variable so the next loop iteration sees the new data
-          currentLeads = currentLeads.map(oldLead => enhancedMap.get(oldLead.placeId) || oldLead);
+          currentLeads = currentLeads.map(oldLead => (oldLead.placeId ? enhancedMap.get(oldLead.placeId) : undefined) || oldLead);
 
           // Update React state for the UI
           setResults([...currentLeads]);
@@ -188,7 +205,7 @@ export default function ScraperPage() {
     try {
       await promise;
       setIsSaving(false);
-    } catch (error) {
+    } catch {
       setIsSaving(false);
     }
   };
@@ -701,7 +718,7 @@ export default function ScraperPage() {
                                         {r.aiAnalysis.recommendation}
                                       </div>
                                       <div className="text-xs text-slate-600 line-clamp-3 leading-relaxed italic border-l-2 border-slate-200 pl-3">
-                                        "{r.aiAnalysis.reasoning}"
+                                        &quot;{r.aiAnalysis.reasoning}&quot;
                                       </div>
                                     </div>
                                   ) : (

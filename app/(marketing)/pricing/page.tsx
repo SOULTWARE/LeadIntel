@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Check, Sparkles, Zap, Mail, Search, ArrowRight, Info } from 'lucide-react';
+import { Check, Sparkles, Zap, Mail, Search, Info } from 'lucide-react';
 
 export default function PricingPage() {
   const containerVariants = {
