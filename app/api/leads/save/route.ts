@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/db";
 import { createClient } from "@/lib/supabase/server";
 import { z } from "zod";
+import type { Prisma } from "@prisma/client";
 
 const SaveLeadsRequestSchema = z.object({
   leads: z
@@ -41,13 +42,13 @@ export async function POST(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
     const parsed = SaveLeadsRequestSchema.safeParse(await request.json());
     if (!parsed.success) {
       return NextResponse.json(
-        { error: "Invalid request. 'leads' array is required." },
+        { success: false, error: "Invalid request. 'leads' array is required." },
         { status: 400 }
       );
     }
@@ -69,7 +70,20 @@ export async function POST(request: NextRequest) {
 
     const savedLeads = await Promise.all(
       leads.map(async (lead) => {
-        const data: any = {
+        const createData: Prisma.LeadUncheckedCreateInput = {
+          name: lead.name,
+          address: lead.address,
+          phone: lead.phone,
+          website: lead.website,
+          rating: lead.rating,
+          reviews: lead.reviews,
+          type: lead.type,
+          placeId: lead.placeId,
+          sessionId: sessionId,
+          userId: user.id,
+        };
+
+        const updateData: Prisma.LeadUncheckedUpdateInput = {
           name: lead.name,
           address: lead.address,
           phone: lead.phone,
@@ -83,25 +97,34 @@ export async function POST(request: NextRequest) {
         };
 
         if (lead.aiAnalysis) {
-          data.isEnhanced = true;
-          data.compatibilityScore = lead.aiAnalysis.compatibilityScore;
-          data.recommendation = lead.aiAnalysis.recommendation;
-          data.reasoning = lead.aiAnalysis.reasoning;
-          data.identifiedProblems = lead.aiAnalysis.identifiedProblems;
-          data.compatibilityHooks = lead.aiAnalysis.compatibilityHooks;
+          createData.isEnhanced = true;
+          createData.compatibilityScore = lead.aiAnalysis.compatibilityScore;
+          createData.recommendation = lead.aiAnalysis.recommendation;
+          createData.reasoning = lead.aiAnalysis.reasoning;
+          createData.identifiedProblems = lead.aiAnalysis.identifiedProblems as Prisma.InputJsonValue;
+          createData.compatibilityHooks = lead.aiAnalysis.compatibilityHooks as Prisma.InputJsonValue;
+
+          updateData.isEnhanced = true;
+          updateData.compatibilityScore = lead.aiAnalysis.compatibilityScore;
+          updateData.recommendation = lead.aiAnalysis.recommendation;
+          updateData.reasoning = lead.aiAnalysis.reasoning;
+          updateData.identifiedProblems = lead.aiAnalysis.identifiedProblems as Prisma.InputJsonValue;
+          updateData.compatibilityHooks = lead.aiAnalysis.compatibilityHooks as Prisma.InputJsonValue;
         }
 
         return prisma.lead.upsert({
           where: { placeId: lead.placeId || lead.name },
-          update: data,
-          create: data,
+          update: updateData,
+          create: createData,
         });
       })
     );
 
     return NextResponse.json({
       success: true,
-      count: savedLeads.length,
+      data: {
+        count: savedLeads.length,
+      },
     });
   } catch (error) {
     console.error("[API /api/leads/save] Error:", error);

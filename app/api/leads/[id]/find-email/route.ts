@@ -17,12 +17,12 @@ export async function POST(
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
     const parsedParams = ParamsSchema.safeParse(await params);
     if (!parsedParams.success) {
-      return NextResponse.json({ error: 'Invalid lead id' }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'Invalid lead id' }, { status: 400 });
     }
 
     const { id } = parsedParams.data;
@@ -32,11 +32,11 @@ export async function POST(
     });
 
     if (!lead) {
-      return NextResponse.json({ error: 'Lead not found' }, { status: 404 });
+      return NextResponse.json({ success: false, error: 'Lead not found' }, { status: 404 });
     }
 
     if (lead.userId !== user.id) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
     }
 
     await jobQueueService.enqueue({
@@ -47,10 +47,10 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      queued: true,
+      data: { queued: true },
     });
   } catch (error) {
     console.error('[API FindEmail] Error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
   }
 }

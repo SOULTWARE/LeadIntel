@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      results,
+      data: { results },
     });
   } catch (error) {
     console.error("[API /api/scraper] Error:", error);

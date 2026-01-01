@@ -24,6 +24,7 @@ describe('/api/enhance/batch', () => {
     const data = await res.json();
 
     expect(res.status).toBe(400);
+    expect(data.success).toBe(false);
     expect(data.error).toContain('required');
   });
 
@@ -46,7 +47,7 @@ describe('/api/enhance/batch', () => {
 
     expect(res.status).toBe(200);
     expect(data.success).toBe(true);
-    expect(data.results[0].aiAnalysis).toEqual(mockResults[0]);
+    expect(data.data.results[0].aiAnalysis).toEqual(mockResults[0]);
     expect(aiEnhanceService.enhanceBatch).toHaveBeenCalledWith(
       expect.arrayContaining([expect.objectContaining({ name: 'Lead 1' })]),
       'Test'

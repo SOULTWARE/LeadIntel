@@ -7,12 +7,18 @@ const EnhanceBatchRequestSchema = z.object({
   leadPurpose: z.string().min(1),
 });
 
+function getLeadId(value: unknown): string | null {
+  if (typeof value !== "object" || value === null) return null;
+  const v = value as Record<string, unknown>;
+  return typeof v.id === "string" && v.id.length > 0 ? v.id : null;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const parsed = EnhanceBatchRequestSchema.safeParse(await request.json());
     if (!parsed.success) {
       return NextResponse.json(
-        { error: "Invalid request. 'leads' (array) and 'leadPurpose' (string) are required." },
+        { success: false, error: "Invalid request. 'leads' (array) and 'leadPurpose' (string) are required." },
         { status: 400 }
       );
     }
@@ -23,8 +29,8 @@ export async function POST(request: NextRequest) {
     const batch = leads.slice(0, 10);
 
     const ids = batch
-      .map((l: any) => l?.id)
-      .filter((id: any) => typeof id === "string" && id.length > 0) as string[];
+      .map((l) => getLeadId(l))
+      .filter((id): id is string => typeof id === "string" && id.length > 0);
 
     let batchForAi = batch;
     if (ids.length > 0) {
@@ -37,8 +43,8 @@ export async function POST(request: NextRequest) {
       });
 
       const byId = new Map(dbLeads.map((l) => [l.id, l] as const));
-      batchForAi = batch.map((l: any) => {
-        const id = typeof l?.id === "string" ? l.id : null;
+      batchForAi = batch.map((l) => {
+        const id = getLeadId(l);
         return (id && byId.get(id)) || l;
       });
     }
@@ -47,11 +53,13 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      results: results.map((res, i) => ({
-        ...(typeof batchForAi[i] === "object" && batchForAi[i] !== null ? (batchForAi[i] as object) : {}),
-        aiAnalysis: res
-      })),
-      totalProcessed: batch.length
+      data: {
+        results: results.map((res, i) => ({
+          ...(typeof batchForAi[i] === "object" && batchForAi[i] !== null ? (batchForAi[i] as object) : {}),
+          aiAnalysis: res
+        })),
+        totalProcessed: batch.length,
+      },
     });
   } catch (error) {
     console.error("[API /api/enhance/batch] Error:", error);

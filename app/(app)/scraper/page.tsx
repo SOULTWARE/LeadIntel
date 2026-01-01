@@ -71,15 +71,15 @@ export default function ScraperPage() {
     }), {
       loading: 'Gathering data from Google Maps...',
       success: (data) => {
-        setResults(data.results);
+        setResults(data.data.results);
         setActiveTab('results');
 
         // Handle Auto-Enhance here to ensure it triggers after state update
         if (formData.autoEnhance) {
-          handleEnhanceAll(data.results);
+          handleEnhanceAll(data.data.results);
         }
 
-        return `Successfully found ${data.results.length} leads!`;
+        return `Successfully found ${data.data.results.length} leads!`;
       },
       error: (err) => `Scrape failed: ${err.message}`,
     });
@@ -132,7 +132,7 @@ export default function ScraperPage() {
         const data = await response.json();
 
         if (data.success) {
-          const enhancedMap = new Map(data.results.map((r: any) => [r.placeId, r]));
+          const enhancedMap = new Map(data.data.results.map((r: any) => [r.placeId, r]));
 
           // Update the local variable so the next loop iteration sees the new data
           currentLeads = currentLeads.map(oldLead => enhancedMap.get(oldLead.placeId) || oldLead);
@@ -140,7 +140,7 @@ export default function ScraperPage() {
           // Update React state for the UI
           setResults([...currentLeads]);
 
-          toast.success(`Processed batch of ${data.totalProcessed} leads!`, { id: toastId });
+          toast.success(`Processed batch of ${data.data.totalProcessed} leads!`, { id: toastId });
 
           // Delay to prevent rate limiting and allow UI updates
           await new Promise(resolve => setTimeout(resolve, 800));
@@ -178,7 +178,7 @@ export default function ScraperPage() {
         const data = await response.json();
         if (data.success) {
           setTimeout(() => window.location.href = '/results', 1500);
-          return `Saved ${data.count} leads successfully!`;
+          return `Saved ${data.data.count} leads successfully!`;
         }
         throw new Error(data.error);
       },

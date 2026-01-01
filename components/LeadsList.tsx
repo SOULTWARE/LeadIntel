@@ -56,7 +56,7 @@ export default function LeadsList({ initialLeads }: { initialLeads: any[] }) {
       const data = await response.json();
 
       if (data.success) {
-        const queuedCount = typeof data.queuedCount === 'number' ? data.queuedCount : 0;
+        const queuedCount = typeof data?.data?.queuedCount === 'number' ? data.data.queuedCount : 0;
         toast.success(`Email discovery queued for ${queuedCount} leads.`);
         toast.info("Refresh in a moment to see updated contacts.");
       } else {
@@ -79,8 +79,8 @@ export default function LeadsList({ initialLeads }: { initialLeads: any[] }) {
         body: JSON.stringify({ lead, leadPurpose: lead.searchQuery || '' }),
       });
       const data = await response.json();
-      if (data.subject && data.body) {
-        setEmailDraft(data);
+      if (data.success && data.data?.subject && data.data?.body) {
+        setEmailDraft(data.data);
         toast.success("Personalized draft ready!");
       } else {
         toast.error("Failed to generate draft.");

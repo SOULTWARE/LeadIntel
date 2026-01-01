@@ -14,12 +14,12 @@ export async function POST(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
     const parsed = FindEmailsBatchRequestSchema.safeParse(await request.json());
     if (!parsed.success) {
-      return NextResponse.json({ error: 'No lead IDs provided' }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'No lead IDs provided' }, { status: 400 });
     }
 
     const { leadIds } = parsed.data;
@@ -44,10 +44,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      queuedCount: leads.length,
+      data: {
+        queuedCount: leads.length,
+      },
     });
   } catch (error) {
     console.error('[API BatchFindEmails] Error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
   }
 }

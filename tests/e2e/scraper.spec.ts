@@ -9,9 +9,11 @@ test.describe('Scraper Flow', () => {
         contentType: 'application/json',
         body: JSON.stringify({
           success: true,
-          results: [
-            { name: 'Dr. Smith', address: 'Berlin, Germany', type: 'Doctor', website: 'drsmith.de' }
-          ]
+          data: {
+            results: [
+              { name: 'Dr. Smith', address: 'Berlin, Germany', type: 'Doctor', website: 'drsmith.de' }
+            ]
+          }
         })
       });
     });
@@ -23,19 +25,22 @@ test.describe('Scraper Flow', () => {
         contentType: 'application/json',
         body: JSON.stringify({
           success: true,
-          results: [
-            {
-              name: 'Dr. Smith',
-              address: 'Berlin, Germany',
-              type: 'Doctor',
-              website: 'drsmith.de',
-              aiAnalysis: {
-                compatibilityScore: 95,
-                recommendation: 'Highly Recommended',
-                reasoning: 'Great fit for SEO services.'
+          data: {
+            results: [
+              {
+                name: 'Dr. Smith',
+                address: 'Berlin, Germany',
+                type: 'Doctor',
+                website: 'drsmith.de',
+                aiAnalysis: {
+                  compatibilityScore: 95,
+                  recommendation: 'Highly Recommended',
+                  reasoning: 'Great fit for SEO services.'
+                }
               }
-            }
-          ]
+            ],
+            totalProcessed: 1,
+          }
         })
       });
     });

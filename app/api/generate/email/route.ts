@@ -19,7 +19,7 @@ export async function POST(req: Request) {
   try {
     const parsed = GenerateEmailRequestSchema.safeParse(await req.json());
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Lead data is required' }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'Lead data is required' }, { status: 400 });
     }
 
     const { lead, leadPurpose } = parsed.data;
@@ -71,15 +71,18 @@ Return ONLY a valid JSON object:
     if (!response.ok) {
       const errorData = await response.json();
       console.error("[EmailGen] OpenAI Error:", errorData);
-      return NextResponse.json({ error: 'Failed to generate email' }, { status: 500 });
+      return NextResponse.json({ success: false, error: 'Failed to generate email' }, { status: 500 });
     }
 
     const data = await response.json();
     const content = JSON.parse(data.choices[0].message.content);
 
-    return NextResponse.json(content);
+    return NextResponse.json({
+      success: true,
+      data: content,
+    });
   } catch (error) {
     console.error("[EmailGen] Error:", error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
   }
 }
