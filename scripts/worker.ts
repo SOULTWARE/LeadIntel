@@ -5,6 +5,8 @@ import { jobQueueService } from "../services/jobQueueService";
 import { contactDiscoveryService } from "../services/contactDiscoveryService";
 import { kickboxService } from "../services/kickboxService";
 import { websiteDiscoveryService } from "../services/websiteDiscoveryService";
+import { creditsService } from "../services/creditsService";
+import { CreditAction, getCreditCost } from "../lib/credits/costs";
 import { sleep } from "../lib/utils";
 import { EmailVerificationStatus, LeadProcessingState, type Job, type Prisma } from "@prisma/client";
 
@@ -85,6 +87,15 @@ async function processEmailDiscoverJob(job: Job): Promise<void> {
         processingState: "EMAIL_NOT_FOUND" as unknown as LeadProcessingState,
       },
     });
+
+    try {
+      await creditsService.releaseHold({
+        userId: lead.userId,
+        action: CreditAction.EMAIL_DISCOVER,
+        idempotencyKey: job.idempotencyKey,
+      });
+    } catch {}
+
     return;
   }
 
@@ -97,6 +108,14 @@ async function processEmailDiscoverJob(job: Job): Promise<void> {
       processingState: LeadProcessingState.EMAIL_DISCOVERED,
     },
   });
+
+  try {
+    await creditsService.captureHold({
+      userId: lead.userId,
+      action: CreditAction.EMAIL_DISCOVER,
+      idempotencyKey: job.idempotencyKey,
+    });
+  } catch {}
 
   await jobQueueService.enqueue({
     type: "EMAIL_VERIFY",
@@ -116,6 +135,23 @@ async function processEmailVerifyJob(job: Job): Promise<void> {
 
   if (typeof leadId !== "string" || typeof email !== "string") {
     throw new Error("EMAIL_VERIFY job payload.leadId and payload.email must be strings");
+  }
+
+  const lead = await prisma.lead.findUnique({ where: { id: leadId } });
+  if (!lead) {
+    console.log(`[worker] EMAIL_VERIFY lead not found leadId=${leadId}`);
+    return;
+  }
+
+  const holdAmount = getCreditCost(CreditAction.EMAIL_VERIFY);
+  if (holdAmount > 0) {
+    await creditsService.createHold({
+      userId: lead.userId,
+      action: CreditAction.EMAIL_VERIFY,
+      amount: holdAmount,
+      idempotencyKey: job.idempotencyKey,
+      meta: { leadId, email },
+    });
   }
 
   console.log(`[worker] EMAIL_VERIFY start leadId=${leadId} email=${email}`);
@@ -141,6 +177,16 @@ async function processEmailVerifyJob(job: Job): Promise<void> {
       processingState: LeadProcessingState.VERIFIED,
     },
   });
+
+  if (holdAmount > 0) {
+    try {
+      await creditsService.captureHold({
+        userId: lead.userId,
+        action: CreditAction.EMAIL_VERIFY,
+        idempotencyKey: job.idempotencyKey,
+      });
+    } catch {}
+  }
 }
 
 async function processJob(job: Job): Promise<void> {
@@ -182,6 +228,34 @@ async function main() {
       console.log(`[worker] succeeded job id=${job.id} type=${job.type}`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Unknown error";
+
+      const shouldDeadLetter = job.attempts >= job.maxAttempts;
+      if (shouldDeadLetter) {
+        try {
+          const payload = getPayloadObject(job);
+          const leadId = payload.leadId;
+          if (typeof leadId === "string" && leadId.length > 0) {
+            const lead = await prisma.lead.findUnique({ where: { id: leadId } });
+            if (lead) {
+              if (job.type === "EMAIL_DISCOVER") {
+                await creditsService.releaseHold({
+                  userId: lead.userId,
+                  action: CreditAction.EMAIL_DISCOVER,
+                  idempotencyKey: job.idempotencyKey,
+                });
+              }
+              if (job.type === "EMAIL_VERIFY") {
+                await creditsService.releaseHold({
+                  userId: lead.userId,
+                  action: CreditAction.EMAIL_VERIFY,
+                  idempotencyKey: job.idempotencyKey,
+                });
+              }
+            }
+          }
+        } catch {}
+      }
+
       await jobQueueService.fail(job.id, msg);
       console.log(`[worker] failed job id=${job.id} type=${job.type} error=${msg}`);
     }

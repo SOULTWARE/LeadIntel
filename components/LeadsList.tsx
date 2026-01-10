@@ -62,7 +62,7 @@ export default function LeadsList({ initialLeads }: { initialLeads: Lead[] }) {
     try {
       const response = await fetch('/api/generate/email', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() },
         body: JSON.stringify({ lead, leadPurpose: lead.searchQuery || '' }),
       });
       const data = await response.json();

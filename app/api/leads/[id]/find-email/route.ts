@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/db';
 import { createClient } from '@/lib/supabase/server';
 import { jobQueueService } from '@/services/jobQueueService';
+import { creditsService, InsufficientCreditsError } from '@/services/creditsService';
+import { CreditAction, getCreditCost } from '@/lib/credits/costs';
 import { z } from 'zod';
 
 const ParamsSchema = z.object({
@@ -39,11 +41,40 @@ export async function POST(
       return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
     }
 
-    await jobQueueService.enqueue({
-      type: 'EMAIL_DISCOVER',
-      idempotencyKey: `discover:lead:${id}`,
-      payload: { leadId: id },
-    });
+    const jobIdempotencyKey = `discover:lead:${id}`;
+    const holdAmount = getCreditCost(CreditAction.EMAIL_DISCOVER);
+
+    try {
+      await creditsService.createHold({
+        userId: user.id,
+        action: CreditAction.EMAIL_DISCOVER,
+        amount: holdAmount,
+        idempotencyKey: jobIdempotencyKey,
+        meta: { leadId: id },
+      });
+    } catch (err) {
+      if (err instanceof InsufficientCreditsError) {
+        return NextResponse.json({ success: false, error: 'Insufficient credits' }, { status: 402 });
+      }
+      throw err;
+    }
+
+    try {
+      await jobQueueService.enqueue({
+        type: 'EMAIL_DISCOVER',
+        idempotencyKey: jobIdempotencyKey,
+        payload: { leadId: id },
+      });
+    } catch (err) {
+      try {
+        await creditsService.releaseHold({
+          userId: user.id,
+          action: CreditAction.EMAIL_DISCOVER,
+          idempotencyKey: jobIdempotencyKey,
+        });
+      } catch {}
+      throw err;
+    }
 
     return NextResponse.json({
       success: true,

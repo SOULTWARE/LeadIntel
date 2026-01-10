@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { aiEnhanceService } from "@/services/aiEnhanceService";
+import { createClient } from "@/lib/supabase/server";
+import { creditsService, InsufficientCreditsError } from "@/services/creditsService";
+import { CreditAction, getCreditCost } from "@/lib/credits/costs";
 import { z } from "zod";
 
 const LeadPlaceDataSchema = z
@@ -21,6 +24,15 @@ function getLeadId(value: unknown): string | null {
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
     const parsed = EnhanceBatchRequestSchema.safeParse(await request.json());
     if (!parsed.success) {
       return NextResponse.json(
@@ -33,6 +45,31 @@ export async function POST(request: NextRequest) {
 
     // Limit batch size to 10 for now to avoid timeouts
     const batch = leads.slice(0, 10);
+
+    const idempotencyKey = request.headers.get("Idempotency-Key");
+    if (!idempotencyKey) {
+      return NextResponse.json({ success: false, error: "Missing Idempotency-Key header" }, { status: 400 });
+    }
+
+    const holdAmount = getCreditCost(CreditAction.AI_ENHANCE, { leadsCount: batch.length });
+    const shouldCharge = holdAmount > 0;
+
+    if (shouldCharge) {
+      try {
+        await creditsService.createHold({
+          userId: user.id,
+          action: CreditAction.AI_ENHANCE,
+          amount: holdAmount,
+          idempotencyKey,
+          meta: { leadsCount: batch.length },
+        });
+      } catch (err) {
+        if (err instanceof InsufficientCreditsError) {
+          return NextResponse.json({ success: false, error: "Insufficient credits" }, { status: 402 });
+        }
+        throw err;
+      }
+    }
 
     const ids = batch
       .map((l) => getLeadId(l))
@@ -57,6 +94,14 @@ export async function POST(request: NextRequest) {
 
     const results = await aiEnhanceService.enhanceBatch(batchForAi, leadPurpose);
 
+    if (shouldCharge) {
+      await creditsService.captureHold({
+        userId: user.id,
+        action: CreditAction.AI_ENHANCE,
+        idempotencyKey,
+      });
+    }
+
     return NextResponse.json({
       success: true,
       data: {
@@ -69,6 +114,22 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("[API /api/enhance/batch] Error:", error);
+
+    try {
+      const idempotencyKey = request.headers.get("Idempotency-Key");
+      const supabase = await createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user && idempotencyKey) {
+        await creditsService.releaseHold({
+          userId: user.id,
+          action: CreditAction.AI_ENHANCE,
+          idempotencyKey,
+        });
+      }
+    } catch {}
+
     return NextResponse.json(
       {
         success: false,

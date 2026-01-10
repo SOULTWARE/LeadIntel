@@ -3,6 +3,27 @@ import { POST } from '@/app/api/enhance/batch/route';
 import { aiEnhanceService } from '@/services/aiEnhanceService';
 import { NextRequest } from 'next/server';
 
+vi.mock('@/lib/supabase/server', () => ({
+  createClient: async () => ({
+    auth: {
+      getUser: async () => ({
+        data: {
+          user: { id: 'test-user' }
+        }
+      })
+    }
+  })
+}));
+
+vi.mock('@/services/creditsService', () => ({
+  creditsService: {
+    createHold: vi.fn(),
+    captureHold: vi.fn(),
+    releaseHold: vi.fn(),
+  },
+  InsufficientCreditsError: class InsufficientCreditsError extends Error {},
+}));
+
 vi.mock('@/services/aiEnhanceService', () => ({
   aiEnhanceService: {
     enhanceBatch: vi.fn()
@@ -17,6 +38,7 @@ describe('/api/enhance/batch', () => {
   it('should return 400 if leads or leadPurpose are missing', async () => {
     const req = new NextRequest('http://localhost:3000/api/enhance/batch', {
       method: 'POST',
+      headers: { 'Idempotency-Key': 'test-key' },
       body: JSON.stringify({})
     });
 
@@ -41,6 +63,7 @@ describe('/api/enhance/batch', () => {
 
     const req = new NextRequest('http://localhost:3000/api/enhance/batch', {
       method: 'POST',
+      headers: { 'Idempotency-Key': 'test-key' },
       body: JSON.stringify(body)
     });
 
@@ -66,6 +89,7 @@ describe('/api/enhance/batch', () => {
 
     const req = new NextRequest('http://localhost:3000/api/enhance/batch', {
       method: 'POST',
+      headers: { 'Idempotency-Key': 'test-key' },
       body: JSON.stringify(body)
     });
 

@@ -71,9 +71,11 @@ export default function ScraperPage() {
     setIsLoading(true);
     setResults(null);
 
+    const idempotencyKey = crypto.randomUUID();
+
     const fetchPromise = fetch('/api/scraper', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey },
       body: JSON.stringify(formData),
     });
 
@@ -135,7 +137,7 @@ export default function ScraperPage() {
 
         const response = await fetch('/api/enhance/batch', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'Idempotency-Key': crypto.randomUUID() },
           body: JSON.stringify({
             leads: currentBatch,
             leadPurpose: formData.leadPurpose

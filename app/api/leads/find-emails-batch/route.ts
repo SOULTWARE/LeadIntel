@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/db';
 import { createClient } from '@/lib/supabase/server';
 import { jobQueueService } from '@/services/jobQueueService';
+import { creditsService, InsufficientCreditsError } from '@/services/creditsService';
+import { CreditAction, getCreditCost } from '@/lib/credits/costs';
 import { z } from 'zod';
 
 const FindEmailsBatchRequestSchema = z.object({
@@ -34,12 +36,51 @@ export async function POST(request: NextRequest) {
       select: { id: true },
     });
 
-    for (const lead of leads) {
-      await jobQueueService.enqueue({
-        type: 'EMAIL_DISCOVER',
-        idempotencyKey: `discover:lead:${lead.id}`,
-        payload: { leadId: lead.id },
-      });
+    const costPer = getCreditCost(CreditAction.EMAIL_DISCOVER);
+    const balance = await creditsService.getBalance(user.id);
+    if (balance < leads.length * costPer) {
+      return NextResponse.json({ success: false, error: 'Insufficient credits' }, { status: 402 });
+    }
+
+    const heldKeys: string[] = [];
+
+    try {
+      for (const lead of leads) {
+        const jobIdempotencyKey = `discover:lead:${lead.id}`;
+        await creditsService.createHold({
+          userId: user.id,
+          action: CreditAction.EMAIL_DISCOVER,
+          amount: costPer,
+          idempotencyKey: jobIdempotencyKey,
+          meta: { leadId: lead.id },
+        });
+        heldKeys.push(jobIdempotencyKey);
+
+        await jobQueueService.enqueue({
+          type: 'EMAIL_DISCOVER',
+          idempotencyKey: jobIdempotencyKey,
+          payload: { leadId: lead.id },
+        });
+      }
+    } catch (err) {
+      if (err instanceof InsufficientCreditsError) {
+        for (const key of heldKeys) {
+          await creditsService.releaseHold({
+            userId: user.id,
+            action: CreditAction.EMAIL_DISCOVER,
+            idempotencyKey: key,
+          });
+        }
+        return NextResponse.json({ success: false, error: 'Insufficient credits' }, { status: 402 });
+      }
+      for (const key of heldKeys) {
+        await creditsService.releaseHold({
+          userId: user.id,
+          action: CreditAction.EMAIL_DISCOVER,
+          idempotencyKey: key,
+        });
+      }
+      throw err;
     }
 
     return NextResponse.json({
