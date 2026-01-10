@@ -263,3 +263,54 @@ model UsageCounter {
   @@index([userId, periodEnd])
   @@map("usage_counters")
 }
+
+enum CreditAction {
+  EMAIL_DISCOVER
+  EMAIL_VERIFY
+  AI_ENHANCE
+  GENERATE_EMAIL
+  SCRAPE
+  TOPUP
+}
+
+enum CreditLedgerEntryType {
+  CREDIT
+  DEBIT
+}
+
+enum CreditLedgerEntryStatus {
+  HOLD
+  CAPTURED
+  RELEASED
+}
+
+model CreditBalance {
+  userId String @id
+
+  balance   Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("credit_balances")
+}
+
+model CreditLedgerEntry {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+
+  type   CreditLedgerEntryType
+  status CreditLedgerEntryStatus
+  action CreditAction?
+
+  amount Int
+
+  idempotencyKey String @unique
+  metaJson       Json?
+
+  @@index([userId, createdAt])
+  @@index([userId, status])
+  @@map("credit_ledger_entries")
+}
