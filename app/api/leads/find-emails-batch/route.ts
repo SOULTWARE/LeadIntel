@@ -37,8 +37,12 @@ export async function POST(request: NextRequest) {
     });
 
     const costPer = getCreditCost(CreditAction.EMAIL_DISCOVER);
-    const balance = await creditsService.getBalance(user.id);
-    if (balance < leads.length * costPer) {
+    const [balance, addonBalance] = await Promise.all([
+      creditsService.getBalance(user.id),
+      creditsService.getAddonBalance(user.id),
+    ]);
+    const totalCredits = balance + addonBalance.remaining;
+    if (totalCredits < leads.length * costPer) {
       return NextResponse.json({ success: false, error: 'Insufficient credits' }, { status: 402 });
     }
 

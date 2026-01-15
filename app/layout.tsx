@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "sonner";
 import PageTransition from "@/components/PageTransition";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
+import CreditBalanceBanner from "@/components/CreditBalanceBanner";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -54,6 +55,7 @@ export default function RootLayout({
       >
         <ServiceWorkerRegister />
         <Toaster position="top-right" richColors closeButton />
+        <CreditBalanceBanner />
         <PageTransition>
           {children}
         </PageTransition>

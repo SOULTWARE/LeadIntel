@@ -49,6 +49,7 @@ export default function Navbar({ user }: NavbarProps) {
             <>
               <Link href="/scraper" className="text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors">Scraper</Link>
               <Link href="/results" className="text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors">Dashboard</Link>
+              <Link href="/profile" className="text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors">Profile</Link>
 
               <div className="relative">
                 <button
@@ -64,6 +65,13 @@ export default function Navbar({ user }: NavbarProps) {
                       <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Signed in as</p>
                       <p className="text-sm font-bold text-slate-900 truncate">{user.email ?? ''}</p>
                     </div>
+                    <Link
+                      href="/profile"
+                      onClick={() => setIsMenuOpen(false)}
+                      className="w-full px-4 py-3 text-left text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2 cursor-pointer"
+                    >
+                      Profile
+                    </Link>
                     <button
                       onClick={handleLogout}
                       className="w-full px-4 py-3 text-left text-sm font-bold text-red-500 hover:bg-red-50 transition-colors flex items-center gap-2 cursor-pointer"

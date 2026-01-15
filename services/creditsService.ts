@@ -31,6 +31,12 @@ type CreateHoldResult = {
   idempotencyKey: string;
 };
 
+type AddonBalanceRecord = {
+  userId: string;
+  remaining: number;
+  expiresAt: Date | null;
+};
+
 const CreditLedgerEntryStatus: Record<Uppercase<CreditLedgerEntryStatusType>, CreditLedgerEntryStatusType> = {
   HOLD: "HOLD",
   CAPTURED: "CAPTURED",
@@ -55,10 +61,37 @@ async function getInitialCreditsForUser(tx: any, userId: string): Promise<number
   return STARTER_INITIAL_CREDITS;
 }
 
+async function getAddonBalance(tx: any, userId: string): Promise<AddonBalanceRecord | null> {
+  const addonCreditBalance = (tx as any).addonCreditBalance;
+  const existing = await addonCreditBalance.findUnique({ where: { userId } });
+  if (!existing) return null;
+
+  if (existing.expiresAt && existing.expiresAt.getTime() <= Date.now()) {
+    if (existing.remaining !== 0 || existing.expiresAt !== null) {
+      await addonCreditBalance.update({
+        where: { userId },
+        data: { remaining: 0, expiresAt: null },
+      });
+    }
+    return {
+      userId,
+      remaining: 0,
+      expiresAt: null,
+    };
+  }
+
+  return {
+    userId: existing.userId,
+    remaining: existing.remaining,
+    expiresAt: existing.expiresAt,
+  };
+}
+
 export class CreditsService {
   async ensureInitialized(userId: string): Promise<{ userId: string; balance: number }> {
     return prisma.$transaction(async (tx) => {
       const creditBalance = (tx as any).creditBalance;
+      const addonCreditBalance = (tx as any).addonCreditBalance;
       const creditLedgerEntry = (tx as any).creditLedgerEntry;
 
       const initial = await getInitialCreditsForUser(tx, userId);
@@ -111,6 +144,30 @@ export class CreditsService {
     return balance.balance;
   }
 
+  async getAddonBalance(userId: string): Promise<AddonBalanceRecord> {
+    return prisma.$transaction(async (tx) => {
+      const existing = await getAddonBalance(tx, userId);
+      if (existing) return existing;
+
+      const addonCreditBalance = (tx as any).addonCreditBalance;
+      const created = await addonCreditBalance.upsert({
+        where: { userId },
+        update: {},
+        create: {
+          userId,
+          remaining: 0,
+          expiresAt: null,
+        },
+      });
+
+      return {
+        userId: created.userId,
+        remaining: created.remaining,
+        expiresAt: created.expiresAt,
+      };
+    });
+  }
+
   async createHold(input: {
     userId: string;
     action: CreditActionType;
@@ -130,6 +187,7 @@ export class CreditsService {
 
     return prisma.$transaction(async (tx) => {
       const creditBalance = (tx as any).creditBalance;
+      const addonCreditBalance = (tx as any).addonCreditBalance;
       const creditLedgerEntry = (tx as any).creditLedgerEntry;
 
       const initial = await getInitialCreditsForUser(tx, input.userId);
@@ -174,23 +232,60 @@ export class CreditsService {
         return existing;
       }
 
-      const updated = await creditBalance.updateMany({
-        where: {
-          userId: input.userId,
-          balance: {
-            gte: input.amount,
+      const base = await creditBalance.findUnique({ where: { userId: input.userId } });
+      const baseBalance = base?.balance ?? 0;
+
+      if (baseBalance >= input.amount) {
+        const updated = await creditBalance.updateMany({
+          where: {
+            userId: input.userId,
+            balance: {
+              gte: input.amount,
+            },
           },
-        },
+          data: {
+            balance: {
+              decrement: input.amount,
+            },
+          },
+        });
+
+        if (updated.count !== 1) {
+          throw new InsufficientCreditsError("Insufficient credits");
+        }
+
+        return creditLedgerEntry.create({
+          data: {
+            userId: input.userId,
+            type: CreditLedgerEntryType.DEBIT,
+            status: CreditLedgerEntryStatus.HOLD,
+            action: input.action,
+            amount: input.amount,
+            idempotencyKey: ledgerKey,
+            metaJson: { ...(input.meta ?? {}), source: "base" },
+          },
+        });
+      }
+
+      if (baseBalance > 0) {
+        throw new InsufficientCreditsError("Insufficient credits");
+      }
+
+      const addon = await getAddonBalance(tx, input.userId);
+      const addonRemaining = addon?.remaining ?? 0;
+
+      if (addonRemaining < input.amount) {
+        throw new InsufficientCreditsError("Insufficient credits");
+      }
+
+      await addonCreditBalance.update({
+        where: { userId: input.userId },
         data: {
-          balance: {
+          remaining: {
             decrement: input.amount,
           },
         },
       });
-
-      if (updated.count !== 1) {
-        throw new InsufficientCreditsError("Insufficient credits");
-      }
 
       return creditLedgerEntry.create({
         data: {
@@ -200,7 +295,7 @@ export class CreditsService {
           action: input.action,
           amount: input.amount,
           idempotencyKey: ledgerKey,
-          metaJson: input.meta,
+          metaJson: { ...(input.meta ?? {}), source: "addon" },
         },
       });
     });
@@ -220,6 +315,7 @@ export class CreditsService {
 
     await prisma.$transaction(async (tx) => {
       const creditBalance = (tx as any).creditBalance;
+      const addonCreditBalance = (tx as any).addonCreditBalance;
       const creditLedgerEntry = (tx as any).creditLedgerEntry;
 
       const entry = await creditLedgerEntry.findUnique({ where: { idempotencyKey: ledgerKey } });
@@ -245,15 +341,31 @@ export class CreditsService {
       }
 
       const refund = entry.amount - finalAmount;
+      const source =
+        entry.metaJson && typeof entry.metaJson === "object" && !Array.isArray(entry.metaJson)
+          ? (entry.metaJson as Record<string, unknown>).source
+          : null;
+
       if (refund > 0) {
-        await creditBalance.update({
-          where: { userId: input.userId },
-          data: {
-            balance: {
-              increment: refund,
+        if (source === "addon") {
+          await addonCreditBalance.update({
+            where: { userId: input.userId },
+            data: {
+              remaining: {
+                increment: refund,
+              },
             },
-          },
-        });
+          });
+        } else {
+          await creditBalance.update({
+            where: { userId: input.userId },
+            data: {
+              balance: {
+                increment: refund,
+              },
+            },
+          });
+        }
       }
 
       await creditLedgerEntry.update({
@@ -279,6 +391,7 @@ export class CreditsService {
 
     await prisma.$transaction(async (tx) => {
       const creditBalance = (tx as any).creditBalance;
+      const addonCreditBalance = (tx as any).addonCreditBalance;
       const creditLedgerEntry = (tx as any).creditLedgerEntry;
 
       const entry = await creditLedgerEntry.findUnique({ where: { idempotencyKey: ledgerKey } });
@@ -301,14 +414,111 @@ export class CreditsService {
         },
       });
 
-      await creditBalance.update({
+      const source =
+        entry.metaJson && typeof entry.metaJson === "object" && !Array.isArray(entry.metaJson)
+          ? (entry.metaJson as Record<string, unknown>).source
+          : null;
+
+      if (source === "addon") {
+        await addonCreditBalance.update({
+          where: { userId: input.userId },
+          data: {
+            remaining: {
+              increment: entry.amount,
+            },
+          },
+        });
+      } else {
+        await creditBalance.update({
+          where: { userId: input.userId },
+          data: {
+            balance: {
+              increment: entry.amount,
+            },
+          },
+        });
+      }
+    });
+  }
+
+  async addAddonCredits(input: {
+    userId: string;
+    amount: number;
+    monthsToExtend: number;
+    idempotencyKey: string;
+  }): Promise<AddonBalanceRecord> {
+    if (input.amount <= 0) {
+      throw new Error("Credit amount must be > 0");
+    }
+
+    if (input.monthsToExtend <= 0) {
+      throw new Error("monthsToExtend must be > 0");
+    }
+
+    if (!input.idempotencyKey) {
+      throw new Error("idempotencyKey is required");
+    }
+
+    return prisma.$transaction(async (tx) => {
+      const creditLedgerEntry = (tx as any).creditLedgerEntry;
+      const addonCreditBalance = (tx as any).addonCreditBalance;
+      const existing = await getAddonBalance(tx, input.userId);
+
+      const ledgerKey = buildLedgerIdempotencyKey({
+        userId: input.userId,
+        action: CreditAction.TOPUP,
+        idempotencyKey: input.idempotencyKey,
+      });
+
+      const prior = await creditLedgerEntry.findUnique({ where: { idempotencyKey: ledgerKey } });
+      if (prior) {
+        return existing ?? {
+          userId: input.userId,
+          remaining: 0,
+          expiresAt: null,
+        };
+      }
+
+      const now = new Date();
+      const baseDate = existing?.expiresAt && existing.expiresAt.getTime() > now.getTime()
+        ? existing.expiresAt
+        : now;
+      const newExpiresAt = new Date(baseDate);
+      newExpiresAt.setMonth(newExpiresAt.getMonth() + input.monthsToExtend);
+
+      const updated = await addonCreditBalance.upsert({
         where: { userId: input.userId },
+        update: {
+          remaining: { increment: input.amount },
+          expiresAt: newExpiresAt,
+        },
+        create: {
+          userId: input.userId,
+          remaining: input.amount,
+          expiresAt: newExpiresAt,
+        },
+      });
+
+      await creditLedgerEntry.create({
         data: {
-          balance: {
-            increment: entry.amount,
+          userId: input.userId,
+          type: CreditLedgerEntryType.CREDIT,
+          status: CreditLedgerEntryStatus.CAPTURED,
+          action: CreditAction.TOPUP,
+          amount: input.amount,
+          idempotencyKey: ledgerKey,
+          metaJson: {
+            source: "addon",
+            expiresAt: newExpiresAt,
           },
         },
       });
+
+      return {
+        userId: updated.userId,
+        remaining: updated.remaining,
+        expiresAt: updated.expiresAt,
+      };
     });
   }
 

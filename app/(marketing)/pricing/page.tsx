@@ -132,7 +132,7 @@ export default function PricingPage() {
               </div>
 
               <Link
-                href="/login"
+                href="/login?plan=starter"
                 className="block w-full py-4 rounded-2xl bg-slate-100 text-slate-900 font-bold text-center hover:bg-slate-200 transition-colors group-hover:bg-blue-600 group-hover:text-white"
               >
                 Get Started
@@ -192,7 +192,7 @@ export default function PricingPage() {
               </div>
 
               <Link
-                href="/login"
+                href="/login?plan=pro"
                 className="block w-full py-4 rounded-2xl bg-blue-600 text-white font-bold text-center hover:bg-blue-500 transition-colors"
               >
                 Get Started

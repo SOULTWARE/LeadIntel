@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Loader2, Zap, ArrowRight, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 function getErrorMessage(error: unknown): string {
@@ -23,6 +23,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
 
   const handleAuth = async (e: React.FormEvent) => {
@@ -31,11 +32,13 @@ export default function LoginPage() {
 
     try {
       if (isSignUp) {
+        const plan = searchParams.get('plan');
+        const redirectPath = plan ? `/profile?plan=${plan}` : '/scraper';
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: `${location.origin}/auth/callback`,
+            emailRedirectTo: `${location.origin}/auth/callback?next=${encodeURIComponent(redirectPath)}`,
           },
         });
         if (error) throw error;
@@ -46,8 +49,10 @@ export default function LoginPage() {
           password,
         });
         if (error) throw error;
+        const plan = searchParams.get('plan');
+        const nextPath = plan ? `/profile?plan=${plan}` : '/scraper';
         toast.success('Successfully logged in!');
-        router.push('/scraper');
+        router.push(nextPath);
         router.refresh();
       }
     } catch (error: unknown) {

@@ -28,6 +28,10 @@ export function getCreditCost(
     return 0;
   }
 
+  if (action === CreditAction.EMAIL_VERIFY) {
+    return 2;
+  }
+
   return 1;
 }
 
