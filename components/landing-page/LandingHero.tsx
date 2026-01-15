@@ -113,9 +113,9 @@ export function LandingHero({ user }: { user: SupabaseUser | null }) {
                       { title: 'Clinic - New Mexico', date: '12/27/2025', loc: 'new mexico', leads: 20 },
                       { title: 'Clinic - New Mexico', date: '12/27/2025', loc: 'new mexico', leads: 9 },
                       { title: 'Restaurants - New Mexico', date: '12/23/2025', loc: 'New Mexico', leads: 58 },
-                    ].map((s) => (
+                    ].map((s, i) => (
                       <div
-                        key={`${s.title}-${s.date}`}
+                        key={`${s.title}-${s.date}-${i}`}
                         className="bg-white border border-slate-200 rounded-[2rem] shadow-xl shadow-slate-100/50 overflow-hidden"
                       >
                         <div className="p-7">

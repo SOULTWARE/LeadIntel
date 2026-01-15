@@ -95,6 +95,14 @@ async function handleCheckoutCompleted(session: any) {
       idempotencyKey: session.id,
     });
   }
+
+  if (session.mode === "subscription") {
+    const subscriptionId = session.subscription as string | null;
+    if (!subscriptionId) return;
+
+    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+    await handleSubscriptionUpdated(subscription);
+  }
 }
 
 async function handleSubscriptionUpdated(subscription: any) {

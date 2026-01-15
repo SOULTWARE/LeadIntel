@@ -33,7 +33,7 @@ export default function LoginPage() {
     try {
       if (isSignUp) {
         const plan = searchParams.get('plan');
-        const redirectPath = plan ? `/profile?plan=${plan}` : '/scraper';
+        const redirectPath = plan ? `/profile?plan=${plan}` : '/profile';
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -50,7 +50,7 @@ export default function LoginPage() {
         });
         if (error) throw error;
         const plan = searchParams.get('plan');
-        const nextPath = plan ? `/profile?plan=${plan}` : '/scraper';
+        const nextPath = plan ? `/profile?plan=${plan}` : '/profile';
         toast.success('Successfully logged in!');
         router.push(nextPath);
         router.refresh();

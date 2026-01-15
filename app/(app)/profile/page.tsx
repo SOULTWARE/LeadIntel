@@ -36,12 +36,33 @@ async function getProfileData() {
 export default async function ProfilePage({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+  const resolvedSearchParams = await searchParams;
   const { user, plan, subscription, baseBalance, addonBalance } = await getProfileData();
-  const checkoutStatus = typeof searchParams.checkout === "string" ? searchParams.checkout : null;
+  const checkoutStatus = typeof resolvedSearchParams.checkout === "string" ? resolvedSearchParams.checkout : null;
+  const selectedPlan = typeof resolvedSearchParams.plan === "string" ? resolvedSearchParams.plan : null;
   const totalCredits = baseBalance + addonBalance.remaining;
   const hasPlan = Boolean(plan);
+
+  if (selectedPlan && !checkoutStatus) {
+    return (
+      <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans">
+        <main className="max-w-2xl mx-auto px-6 py-20">
+          <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+            <div className="text-xs font-black uppercase tracking-widest text-slate-400">Redirecting</div>
+            <h1 className="mt-3 text-2xl font-black">Opening Stripe Checkout...</h1>
+            <p className="mt-3 text-sm text-slate-500">
+              If you are not redirected automatically, wait a few seconds or refresh the page.
+            </p>
+          </div>
+          <div className="sr-only">
+            <ProfileBillingActions hasPlan={hasPlan} />
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans">

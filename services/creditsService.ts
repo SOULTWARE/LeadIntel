@@ -58,7 +58,11 @@ async function getInitialCreditsForUser(tx: any, userId: string): Promise<number
     return PRO_INITIAL_CREDITS;
   }
 
-  return STARTER_INITIAL_CREDITS;
+  if (plan?.plan === PlanType.STARTER) {
+    return STARTER_INITIAL_CREDITS;
+  }
+
+  return 0;
 }
 
 async function getAddonBalance(tx: any, userId: string): Promise<AddonBalanceRecord | null> {
