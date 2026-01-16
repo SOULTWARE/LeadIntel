@@ -6,17 +6,28 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import type { AIAnalysisResult, LeadPlaceData } from '@/services/aiEnhanceService';
 import {
-  Target,
-  MapPin,
-  Settings2,
-  Sparkles,
-  ArrowRight,
-  ArrowLeft,
   Search,
+  UploadCloud,
+  Sparkles,
+  Wand2,
+  Target,
+  Play,
+  Mail,
+  ShieldCheck,
+  CheckCircle2,
+  Loader2,
+  XCircle,
+  Clock3,
+  AlertTriangle,
+  Settings2,
   Database,
-  FileDown,
-  ChevronRight
+  MapPin,
+  ArrowLeft,
+  ArrowRight,
+  ChevronRight,
+  FileDown
 } from 'lucide-react';
+import InternalNavbar from '@/components/InternalNavbar';
 
 type ScrapeResultLead = LeadPlaceData & {
   address?: string | null;
@@ -249,36 +260,27 @@ export default function ScraperPage() {
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-blue-100 selection:text-blue-900">
-      {/* Premium Navigation */}
-      <nav className="border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <Link href="/" className="font-extrabold text-2xl tracking-tighter text-blue-600 hover:opacity-80 transition-opacity">
-              LeadIntel<span className="text-slate-900">Pro</span>
+      <InternalNavbar
+        title="Intelligence Scraper"
+        icon={<Search className="w-4 h-4" />}
+        rightSlot={(
+          <div className="flex items-center gap-3">
+            <Link href="/results" className="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors px-3 py-2 rounded-lg hover:bg-slate-50">
+              Dashboard
             </Link>
-            <div className="h-6 w-px bg-slate-200" />
-            <h2 className="text-slate-500 font-medium text-sm tracking-tight flex items-center gap-2">
-              <Search className="w-4 h-4" />
-              Intelligence Scraper
-            </h2>
-          </div>
-          <div className="flex items-center gap-4">
-             <Link href="/results" className="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors px-3 py-2 rounded-lg hover:bg-slate-50">
-               Dashboard
-             </Link>
-             <button
+            <button
               onClick={() => {
                 setResults(null);
                 setActiveTab('input');
                 setCurrentStep(1);
               }}
               className="bg-slate-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-800 transition-all shadow-lg shadow-slate-200 flex items-center gap-2"
-             >
-               Clear Session
-             </button>
+            >
+              Clear Session
+            </button>
           </div>
-        </div>
-      </nav>
+        )}
+      />
 
       <main className="max-w-7xl mx-auto px-6 py-12">
         <div className="max-w-4xl mx-auto">

@@ -49,7 +49,6 @@ export default function Navbar({ user }: NavbarProps) {
             <>
               <Link href="/scraper" className="text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors">Scraper</Link>
               <Link href="/results" className="text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors">Dashboard</Link>
-              <Link href="/profile" className="text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors">Profile</Link>
 
               <div className="relative">
                 <button

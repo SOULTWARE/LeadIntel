@@ -2,6 +2,7 @@ import { prisma } from "@/db";
 import Link from "next/link";
 import SessionDashboard from "@/components/SessionDashboard";
 import { Search, Database, ChevronLeft } from 'lucide-react';
+import InternalNavbar from "@/components/InternalNavbar";
 
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
@@ -31,25 +32,16 @@ export default async function ResultsPage() {
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans">
-      {/* Premium Navigation */}
-      <nav className="border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <Link href="/" className="font-extrabold text-2xl tracking-tighter text-blue-600 hover:opacity-80 transition-opacity">
-              LeadIntel<span className="text-slate-900">Pro</span>
-            </Link>
-            <div className="h-6 w-px bg-slate-200" />
-            <h2 className="text-slate-500 font-medium text-sm tracking-tight flex items-center gap-2">
-              <Database className="w-4 h-4" />
-              Qualified Leads Intelligence
-            </h2>
-          </div>
+      <InternalNavbar
+        title="Qualified Leads Intelligence"
+        icon={<Database className="w-4 h-4" />}
+        rightSlot={(
           <Link href="/scraper" className="bg-slate-900 text-white px-5 py-2.5 rounded-xl text-sm font-black hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 flex items-center gap-2">
             <Search className="w-4 h-4" />
             New Scrape
           </Link>
-        </div>
-      </nav>
+        )}
+      />
 
       <main className="max-w-7xl mx-auto px-6 py-12">
         <div className="mb-12">
