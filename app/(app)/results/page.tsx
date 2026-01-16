@@ -2,7 +2,7 @@ import { prisma } from "@/db";
 import Link from "next/link";
 import SessionDashboard from "@/components/SessionDashboard";
 import { Search, Database, ChevronLeft } from 'lucide-react';
-import InternalNavbar from "@/components/InternalNavbar";
+import InternalLayoutSetter from "@/components/InternalLayoutSetter";
 
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
@@ -32,7 +32,7 @@ export default async function ResultsPage() {
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans">
-      <InternalNavbar
+      <InternalLayoutSetter
         title="Qualified Leads Intelligence"
         icon={<Database className="w-4 h-4" />}
         rightSlot={(

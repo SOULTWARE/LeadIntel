@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/db";
 import { creditsService } from "@/services/creditsService";
 import ProfileBillingActions from "@/components/ProfileBillingActions";
-import InternalNavbar from "@/components/InternalNavbar";
+import InternalLayoutSetter from "@/components/InternalLayoutSetter";
 import { User as UserIcon } from "lucide-react";
 
 async function getProfileData() {
@@ -49,8 +49,8 @@ export default async function ProfilePage({
 
   if (selectedPlan && !checkoutStatus) {
     return (
-      <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans">
-        <InternalNavbar title="Profile" icon={<UserIcon className="w-4 h-4" />} />
+      <>
+        <InternalLayoutSetter title="Profile" icon={<UserIcon className="w-4 h-4" />} />
         <main className="max-w-2xl mx-auto px-6 py-20">
           <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
             <div className="text-xs font-black uppercase tracking-widest text-slate-400">Redirecting</div>
@@ -63,13 +63,13 @@ export default async function ProfilePage({
             <ProfileBillingActions hasPlan={hasPlan} />
           </div>
         </main>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans">
-      <InternalNavbar title="Profile" icon={<UserIcon className="w-4 h-4" />} />
+    <>
+      <InternalLayoutSetter title="Profile" icon={<UserIcon className="w-4 h-4" />} />
       <main className="max-w-6xl mx-auto px-6 py-12 space-y-10">
         <div className="flex flex-col gap-4">
           <h1 className="text-4xl font-black tracking-tight">Profile</h1>
@@ -139,6 +139,6 @@ export default async function ProfilePage({
           </div>
         </section>
       </main>
-    </div>
+    </>
   );
 }

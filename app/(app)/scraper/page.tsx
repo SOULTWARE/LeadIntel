@@ -27,7 +27,7 @@ import {
   ChevronRight,
   FileDown
 } from 'lucide-react';
-import InternalNavbar from '@/components/InternalNavbar';
+import InternalLayoutSetter from '@/components/InternalLayoutSetter';
 
 type ScrapeResultLead = LeadPlaceData & {
   address?: string | null;
@@ -259,8 +259,8 @@ export default function ScraperPage() {
   const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1));
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-blue-100 selection:text-blue-900">
-      <InternalNavbar
+    <>
+      <InternalLayoutSetter
         title="Intelligence Scraper"
         icon={<Search className="w-4 h-4" />}
         rightSlot={(
@@ -281,7 +281,6 @@ export default function ScraperPage() {
           </div>
         )}
       />
-
       <main className="max-w-7xl mx-auto px-6 py-12">
         <div className="max-w-4xl mx-auto">
           {/* Main Tab Controls */}
@@ -765,20 +764,19 @@ export default function ScraperPage() {
             )}
           </AnimatePresence>
         </div>
-      </main>
-
-      <footer className="mt-20 border-t border-slate-200 py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-8">
-           <div className="bg-slate-50 px-4 py-2 rounded-full text-slate-400 text-xs font-bold tracking-widest uppercase">
-             Generated Intelligence Engine 2025
-           </div>
-           <div className="flex gap-10 text-slate-400 text-xs font-black uppercase tracking-widest">
+        <footer className="mt-20 border-t border-slate-200 py-16 bg-white">
+          <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-8">
+            <div className="bg-slate-50 px-4 py-2 rounded-full text-slate-400 text-xs font-bold tracking-widest uppercase">
+              Generated Intelligence Engine 2025
+            </div>
+            <div className="flex gap-10 text-slate-400 text-xs font-black uppercase tracking-widest">
               <a href="#" className="hover:text-blue-600 transition-colors">Documentation</a>
+              <a href="#" className="hover:text-blue-600 transition-colors">Support</a>
               <a href="#" className="hover:text-blue-600 transition-colors">Privacy</a>
-              <a href="#" className="hover:text-blue-600 transition-colors">Status</a>
-           </div>
-        </div>
-      </footer>
-    </div>
+            </div>
+          </div>
+        </footer>
+      </main>
+    </>
   );
 }
