@@ -1,8 +1,25 @@
-import { prisma } from "@/db";
-
 export interface EnhanceOptions {
-  placeData: any;
+  placeData: LeadPlaceData;
   leadPurpose: string;
+}
+
+export interface LeadPlaceData {
+  name: string;
+  type?: string | null;
+  description?: string | null;
+  reviews?: number | null;
+  rating?: number | null;
+  website?: string | null;
+  address?: string | null;
+  [key: string]: unknown;
+}
+
+export interface AIAnalysisResult {
+  compatibilityScore: number;
+  compatibilityHooks: string[];
+  identifiedProblems: string[];
+  recommendation: "Highly Recommended" | "Recommended" | "Neutral" | "Not Recommended";
+  reasoning: string;
 }
 
 export class AIEnhanceService {
@@ -11,10 +28,10 @@ export class AIEnhanceService {
 
   constructor() {
     this.apiKey = process.env.OPENAI_API_KEY || "";
-    this.model = process.env.AI_MODEL || "gpt-4o";
+    this.model = process.env.AI_MODEL || "gpt-5-nano";
   }
 
-  async enhanceLead(options: EnhanceOptions) {
+  async enhanceLead(options: EnhanceOptions): Promise<AIAnalysisResult> {
     const { placeData, leadPurpose } = options;
 
     const prompt = `
@@ -70,9 +87,9 @@ Return ONLY a valid JSON object with:
       }
 
       const data = await response.json();
-      const content = JSON.parse(data.choices[0].message.content);
+      const content = JSON.parse(data.choices[0].message.content) as unknown;
 
-      return content;
+      return content as AIAnalysisResult;
     } catch (error) {
       console.error("[AIEnhanceService] Error:", error);
       return {
@@ -85,7 +102,7 @@ Return ONLY a valid JSON object with:
     }
   }
 
-  async enhanceBatch(leads: any[], leadPurpose: string) {
+  async enhanceBatch(leads: LeadPlaceData[], leadPurpose: string): Promise<AIAnalysisResult[]> {
     const results = await Promise.all(
       leads.map(lead => this.enhanceLead({ placeData: lead, leadPurpose }))
     );

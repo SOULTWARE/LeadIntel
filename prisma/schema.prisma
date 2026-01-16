@@ -15,6 +15,7 @@ model Lead {
   name      String
   address   String?
   phone     String?
+  email     String?
   website   String?
   rating    Float?
   reviews   Int?
@@ -35,7 +36,318 @@ model Lead {
   // Status
   isEnhanced Boolean @default(false)
 
+  processingState        LeadProcessingState   @default(NEW)
+  emailVerificationStatus EmailVerificationStatus @default(UNVERIFIED)
+  emailVerifiedAt        DateTime?
+  emailVerificationProvider String?
+
+  companyId String? @db.Uuid
+  company   Company? @relation(fields: [companyId], references: [id])
+
+  searchId String? @db.Uuid
+  search   Search? @relation(fields: [searchId], references: [id])
+
+  // Ownership
+  userId    String
+
+  // Relations
+  sessionId String?  @db.Uuid
+  session   Session? @relation(fields: [sessionId], references: [id])
+
   @@index([placeId])
+  @@index([searchId])
   @@index([compatibilityScore])
   @@map("leads")
+}
+
+model Session {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now())
+  name      String
+  target    String?
+  location  String?
+  userId    String
+  leads     Lead[]
+
+  @@map("sessions")
+}
+
+enum LeadProcessingState {
+  NEW
+  ENRICHING
+  ENRICHED
+  EMAIL_DISCOVERING
+  EMAIL_DISCOVERED
+  EMAIL_NOT_FOUND
+  VERIFYING
+  VERIFIED
+  AI_SCORING
+  COMPLETE
+  FAILED
+}
+
+enum EmailVerificationStatus {
+  UNVERIFIED
+  VALID
+  INVALID
+  RISKY
+  UNKNOWN
+}
+
+enum SearchStatus {
+  PENDING
+  RUNNING
+  COMPLETE
+  FAILED
+  CANCELED
+}
+
+enum JobStatus {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+  DEAD
+}
+
+enum JobType {
+  SEARCH_FETCH_CANDIDATES
+  LEAD_ENRICH
+  EMAIL_DISCOVER
+  EMAIL_VERIFY
+  AI_ANALYZE
+}
+
+enum PlanType {
+  STARTER
+  PRO
+}
+
+model Search {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+  status SearchStatus @default(PENDING)
+
+  industry String
+  location String
+  employeeRangeMin Int?
+  employeeRangeMax Int?
+  keywords Json? @default("[]")
+
+  rawInput Json?
+
+  leads Lead[]
+
+  @@index([userId, createdAt])
+  @@map("searches")
+}
+
+model Company {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name           String
+  normalizedName String
+  domain         String? @unique
+  websiteUrl     String?
+
+  hqLocation String?
+  employeeCountEstimate Int?
+  industry String?
+  industryConfidence Int?
+
+  sourceJson Json?
+
+  leads Lead[]
+
+  @@index([normalizedName])
+  @@map("companies")
+}
+
+model Job {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  type   JobType
+  status JobStatus @default(QUEUED)
+
+  runAt DateTime @default(now())
+
+  attempts    Int @default(0)
+  maxAttempts Int @default(5)
+
+  lockedAt DateTime?
+  lockedBy String?
+
+  idempotencyKey String @unique
+
+  payload Json?
+  lastError String?
+
+  @@index([status, runAt])
+  @@index([lockedAt])
+  @@map("jobs")
+}
+
+model ExternalApiCache {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  provider String
+  cacheKey String
+
+  fetchedAt DateTime @default(now())
+  expiresAt DateTime
+
+  statusCode Int?
+  responseJson Json
+  costUnits Int?
+
+  @@unique([provider, cacheKey])
+  @@index([provider, expiresAt])
+  @@map("external_api_cache")
+}
+
+model EmailVerification {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now())
+
+  email    String
+  provider String
+
+  status EmailVerificationStatus
+  checkedAt DateTime @default(now())
+  rawResponseJson Json?
+
+  @@unique([email, provider])
+  @@index([email])
+  @@map("email_verifications")
+}
+
+model UserPlan {
+  userId String @id
+
+  plan PlanType
+
+  periodStart DateTime
+  periodEnd   DateTime
+
+  maxLeadsPerSearch Int
+  maxEnhancedLeadsPerMonth Int
+  maxEmailDiscoveriesPerMonth Int
+  maxEmailVerificationsPerMonth Int
+
+  @@map("user_plans")
+}
+
+model UsageCounter {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+  periodStart DateTime
+  periodEnd   DateTime
+
+  enhancedLeadsUsed Int @default(0)
+  emailDiscoveriesUsed Int @default(0)
+  emailVerificationsUsed Int @default(0)
+
+  @@unique([userId, periodStart, periodEnd])
+  @@index([userId, periodEnd])
+  @@map("usage_counters")
+}
+
+enum CreditAction {
+  EMAIL_DISCOVER
+  EMAIL_VERIFY
+  AI_ENHANCE
+  GENERATE_EMAIL
+  SCRAPE
+  TOPUP
+}
+
+enum CreditLedgerEntryType {
+  CREDIT
+  DEBIT
+}
+
+enum CreditLedgerEntryStatus {
+  HOLD
+  CAPTURED
+  RELEASED
+}
+
+model CreditBalance {
+  userId String @id
+
+  balance   Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("credit_balances")
+}
+
+model AddonCreditBalance {
+  userId String @id
+
+  remaining Int @default(0)
+  expiresAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("addon_credit_balances")
+}
+
+model StripeCustomer {
+  userId String @id
+
+  customerId String @unique
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("stripe_customers")
+}
+
+model StripeSubscription {
+  id String @id @default(uuid()) @db.Uuid
+
+  userId String
+  subscriptionId String @unique
+  priceId String
+  status String
+  currentPeriodStart DateTime
+  currentPeriodEnd DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("stripe_subscriptions")
+}
+
+model CreditLedgerEntry {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+
+  type   CreditLedgerEntryType
+  status CreditLedgerEntryStatus
+  action CreditAction?
+
+  amount Int
+
+  idempotencyKey String @unique
+  metaJson       Json?
+
+  @@index([userId, createdAt])
+  @@index([userId, status])
+  @@map("credit_ledger_entries")
 }

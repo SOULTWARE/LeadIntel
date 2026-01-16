@@ -13,6 +13,7 @@ function createPrismaClient(): PrismaClient {
     throw new Error('DATABASE_URL environment variable is not set');
   }
 
+  // Use the standard Postgres driver with Prisma 7 adapter
   const pool = new Pool({ connectionString });
   const adapter = new PrismaPg(pool);
 
