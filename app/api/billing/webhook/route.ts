@@ -6,6 +6,7 @@ import { stripe } from "@/lib/stripe/server";
 import { getUserIdByStripeCustomerId } from "@/lib/stripe/customers";
 import { PLAN_LIMITS, ADDON_CREDITS_AMOUNT, ADDON_CREDITS_MONTHS } from "@/lib/stripe/plans";
 import { getPlanTypeByPriceId, isAddonPriceId } from "@/lib/stripe/prices";
+import { STARTER_INITIAL_CREDITS, PRO_INITIAL_CREDITS } from "@/lib/credits/costs";
 import { creditsService } from "@/services/creditsService";
 
 function requireEnv(name: string): string {
@@ -45,6 +46,24 @@ async function upsertUserPlan(input: {
       maxEmailDiscoveriesPerMonth: limits.maxEmailDiscoveriesPerMonth,
       maxEmailVerificationsPerMonth: limits.maxEmailVerificationsPerMonth,
     },
+  });
+}
+
+async function ensurePlanCredits(userId: string, plan: PlanType) {
+  const initial = plan === PlanType.PRO ? PRO_INITIAL_CREDITS : STARTER_INITIAL_CREDITS;
+
+  await prisma.$transaction(async (tx) => {
+    const creditBalance = (tx as any).creditBalance;
+    const existing = await creditBalance.findUnique({ where: { userId } });
+
+    if (!existing) {
+      await creditBalance.create({ data: { userId, balance: initial } });
+      return;
+    }
+
+    if (existing.balance < initial) {
+      await creditBalance.update({ where: { userId }, data: { balance: initial } });
+    }
   });
 }
 
@@ -136,6 +155,8 @@ async function handleSubscriptionUpdated(subscription: any) {
     periodStart,
     periodEnd,
   });
+
+  await ensurePlanCredits(userId, plan);
 }
 
 async function handleSubscriptionDeleted(subscription: any) {
