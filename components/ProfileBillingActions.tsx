@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
@@ -44,7 +44,7 @@ async function openPortal() {
 export default function ProfileBillingActions({ hasPlan }: { hasPlan: boolean }) {
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState<null | "starter" | "pro" | "addon" | "portal">(null);
-  const [autoStarted, setAutoStarted] = useState(false);
+  const autoStartedRef = useRef(false);
 
   const handleCheckout = async (plan: PlanName) => {
     setLoading(plan);
@@ -57,13 +57,14 @@ export default function ProfileBillingActions({ hasPlan }: { hasPlan: boolean })
   };
 
   useEffect(() => {
-    if (autoStarted || loading) return;
+    if (autoStartedRef.current || loading) return;
     const plan = searchParams.get("plan");
     if (plan === "starter" || plan === "pro") {
-      setAutoStarted(true);
-      handleCheckout(plan);
+      autoStartedRef.current = true;
+      // Defer to avoid synchronous state updates directly inside the effect
+      setTimeout(() => handleCheckout(plan), 0);
     }
-  }, [autoStarted, loading, searchParams]);
+  }, [loading, searchParams]);
 
   const handleAddon = async () => {
     setLoading("addon");

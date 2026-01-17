@@ -88,9 +88,6 @@ export default function InternalNavbar() {
     };
   }, [layout, navConfig]);
 
-  const showScraperLink = !pathname?.startsWith('/scraper');
-  const showDashboardLink = !pathname?.startsWith('/results');
-
   return (
     <nav className="border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">

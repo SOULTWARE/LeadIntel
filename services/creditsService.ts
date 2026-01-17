@@ -1,4 +1,4 @@
-import { PlanType } from "@prisma/client";
+import { PlanType, type Prisma } from "@prisma/client";
 
 import { prisma } from "../db";
 import {
@@ -48,7 +48,7 @@ const CreditLedgerEntryType: Record<Uppercase<CreditLedgerEntryTypeType>, Credit
   DEBIT: "DEBIT",
 };
 
-async function getInitialCreditsForUser(tx: any, userId: string): Promise<number> {
+async function getInitialCreditsForUser(tx: Prisma.TransactionClient, userId: string): Promise<number> {
   const plan = await tx.userPlan.findUnique({
     where: { userId },
     select: { plan: true },
@@ -65,14 +65,13 @@ async function getInitialCreditsForUser(tx: any, userId: string): Promise<number
   return 0;
 }
 
-async function getAddonBalance(tx: any, userId: string): Promise<AddonBalanceRecord | null> {
-  const addonCreditBalance = (tx as any).addonCreditBalance;
-  const existing = await addonCreditBalance.findUnique({ where: { userId } });
+async function getAddonBalance(tx: Prisma.TransactionClient, userId: string): Promise<AddonBalanceRecord | null> {
+  const existing = await tx.addonCreditBalance.findUnique({ where: { userId } });
   if (!existing) return null;
 
   if (existing.expiresAt && existing.expiresAt.getTime() <= Date.now()) {
     if (existing.remaining !== 0 || existing.expiresAt !== null) {
-      await addonCreditBalance.update({
+      await tx.addonCreditBalance.update({
         where: { userId },
         data: { remaining: 0, expiresAt: null },
       });
@@ -93,14 +92,10 @@ async function getAddonBalance(tx: any, userId: string): Promise<AddonBalanceRec
 
 export class CreditsService {
   async ensureInitialized(userId: string): Promise<{ userId: string; balance: number }> {
-    return prisma.$transaction(async (tx) => {
-      const creditBalance = (tx as any).creditBalance;
-      const addonCreditBalance = (tx as any).addonCreditBalance;
-      const creditLedgerEntry = (tx as any).creditLedgerEntry;
-
+    return prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const initial = await getInitialCreditsForUser(tx, userId);
 
-      const balance = await creditBalance.upsert({
+      const balance = await tx.creditBalance.upsert({
         where: { userId },
         update: {},
         create: {
@@ -109,7 +104,7 @@ export class CreditsService {
         },
       });
 
-      await creditLedgerEntry.upsert({
+      await tx.creditLedgerEntry.upsert({
         where: {
           idempotencyKey: buildLedgerIdempotencyKey({
             userId,
@@ -140,7 +135,7 @@ export class CreditsService {
   }
 
   async getBalance(userId: string): Promise<number> {
-    const balance = await (prisma as any).creditBalance.findUnique({ where: { userId } });
+    const balance = await prisma.creditBalance.findUnique({ where: { userId } });
     if (!balance) {
       const created = await this.ensureInitialized(userId);
       return created.balance;
@@ -149,12 +144,11 @@ export class CreditsService {
   }
 
   async getAddonBalance(userId: string): Promise<AddonBalanceRecord> {
-    return prisma.$transaction(async (tx) => {
+    return prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const existing = await getAddonBalance(tx, userId);
       if (existing) return existing;
 
-      const addonCreditBalance = (tx as any).addonCreditBalance;
-      const created = await addonCreditBalance.upsert({
+      const created = await tx.addonCreditBalance.upsert({
         where: { userId },
         update: {},
         create: {
@@ -189,11 +183,10 @@ export class CreditsService {
       idempotencyKey: input.idempotencyKey,
     });
 
-    return prisma.$transaction(async (tx) => {
-      const creditBalance = (tx as any).creditBalance;
-      const addonCreditBalance = (tx as any).addonCreditBalance;
-      const creditLedgerEntry = (tx as any).creditLedgerEntry;
-
+    return prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      const creditBalance = tx.creditBalance;
+      const creditLedgerEntry = tx.creditLedgerEntry;
+      const addonCreditBalance = tx.addonCreditBalance;
       const initial = await getInitialCreditsForUser(tx, input.userId);
 
       await creditBalance.upsert({
@@ -266,7 +259,7 @@ export class CreditsService {
             action: input.action,
             amount: input.amount,
             idempotencyKey: ledgerKey,
-            metaJson: { ...(input.meta ?? {}), source: "base" },
+            metaJson: { ...(input.meta ?? {}), source: "base" } as Prisma.InputJsonValue,
           },
         });
       }
@@ -299,7 +292,7 @@ export class CreditsService {
           action: input.action,
           amount: input.amount,
           idempotencyKey: ledgerKey,
-          metaJson: { ...(input.meta ?? {}), source: "addon" },
+          metaJson: { ...(input.meta ?? {}), source: "addon" } as Prisma.InputJsonValue,
         },
       });
     });
@@ -317,10 +310,10 @@ export class CreditsService {
       idempotencyKey: input.idempotencyKey,
     });
 
-    await prisma.$transaction(async (tx) => {
-      const creditBalance = (tx as any).creditBalance;
-      const addonCreditBalance = (tx as any).addonCreditBalance;
-      const creditLedgerEntry = (tx as any).creditLedgerEntry;
+    await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      const creditBalance = tx.creditBalance;
+      const creditLedgerEntry = tx.creditLedgerEntry;
+      const addonCreditBalance = tx.addonCreditBalance;
 
       const entry = await creditLedgerEntry.findUnique({ where: { idempotencyKey: ledgerKey } });
       if (!entry) {
@@ -393,10 +386,10 @@ export class CreditsService {
       idempotencyKey: input.idempotencyKey,
     });
 
-    await prisma.$transaction(async (tx) => {
-      const creditBalance = (tx as any).creditBalance;
-      const addonCreditBalance = (tx as any).addonCreditBalance;
-      const creditLedgerEntry = (tx as any).creditLedgerEntry;
+    await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      const creditBalance = tx.creditBalance;
+      const addonCreditBalance = tx.addonCreditBalance;
+      const creditLedgerEntry = tx.creditLedgerEntry;
 
       const entry = await creditLedgerEntry.findUnique({ where: { idempotencyKey: ledgerKey } });
       if (!entry) {
@@ -463,9 +456,9 @@ export class CreditsService {
       throw new Error("idempotencyKey is required");
     }
 
-    return prisma.$transaction(async (tx) => {
-      const creditLedgerEntry = (tx as any).creditLedgerEntry;
-      const addonCreditBalance = (tx as any).addonCreditBalance;
+    return prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      const creditLedgerEntry = tx.creditLedgerEntry;
+      const addonCreditBalance = tx.addonCreditBalance;
       const existing = await getAddonBalance(tx, input.userId);
 
       const ledgerKey = buildLedgerIdempotencyKey({
@@ -493,7 +486,9 @@ export class CreditsService {
       const updated = await addonCreditBalance.upsert({
         where: { userId: input.userId },
         update: {
-          remaining: { increment: input.amount },
+          remaining: {
+            increment: input.amount,
+          },
           expiresAt: newExpiresAt,
         },
         create: {
@@ -542,9 +537,9 @@ export class CreditsService {
       idempotencyKey: input.idempotencyKey,
     });
 
-    await prisma.$transaction(async (tx) => {
-      const creditBalance = (tx as any).creditBalance;
-      const creditLedgerEntry = (tx as any).creditLedgerEntry;
+    await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      const creditBalance = tx.creditBalance;
+      const creditLedgerEntry = tx.creditLedgerEntry;
 
       const existing = await creditLedgerEntry.findUnique({ where: { idempotencyKey: ledgerKey } });
       if (existing) return;
@@ -593,7 +588,7 @@ export class CreditsService {
           action: CreditAction.TOPUP,
           amount: input.amount,
           idempotencyKey: ledgerKey,
-          metaJson: input.meta,
+          metaJson: input.meta as Prisma.InputJsonValue | undefined,
         },
       });
 

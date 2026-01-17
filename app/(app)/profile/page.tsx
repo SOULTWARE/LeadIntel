@@ -18,8 +18,8 @@ async function getProfileData() {
   }
 
   const [plan, subscription, baseBalance, addonBalance] = await Promise.all([
-    (prisma as any).userPlan.findUnique({ where: { userId: user.id } }),
-    (prisma as any).stripeSubscription.findFirst({
+    prisma.userPlan.findUnique({ where: { userId: user.id } }),
+    prisma.stripeSubscription.findFirst({
       where: { userId: user.id },
       orderBy: { createdAt: "desc" },
     }),

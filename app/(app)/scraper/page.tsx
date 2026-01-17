@@ -7,18 +7,8 @@ import { toast } from 'sonner';
 import type { AIAnalysisResult, LeadPlaceData } from '@/services/aiEnhanceService';
 import {
   Search,
-  UploadCloud,
   Sparkles,
-  Wand2,
   Target,
-  Play,
-  Mail,
-  ShieldCheck,
-  CheckCircle2,
-  Loader2,
-  XCircle,
-  Clock3,
-  AlertTriangle,
   Settings2,
   Database,
   MapPin,

@@ -5,7 +5,7 @@ export async function getOrCreateStripeCustomer(input: {
   userId: string;
   email?: string | null;
 }): Promise<string> {
-  const existing = await (prisma as any).stripeCustomer.findUnique({
+  const existing = await prisma.stripeCustomer.findUnique({
     where: { userId: input.userId },
   });
 
@@ -16,7 +16,7 @@ export async function getOrCreateStripeCustomer(input: {
     metadata: { userId: input.userId },
   });
 
-  await (prisma as any).stripeCustomer.create({
+  await prisma.stripeCustomer.create({
     data: {
       userId: input.userId,
       customerId: customer.id,
@@ -27,11 +27,11 @@ export async function getOrCreateStripeCustomer(input: {
 }
 
 export async function getStripeCustomerIdByUserId(userId: string): Promise<string | null> {
-  const existing = await (prisma as any).stripeCustomer.findUnique({ where: { userId } });
+  const existing = await prisma.stripeCustomer.findUnique({ where: { userId } });
   return existing?.customerId ?? null;
 }
 
 export async function getUserIdByStripeCustomerId(customerId: string): Promise<string | null> {
-  const existing = await (prisma as any).stripeCustomer.findUnique({ where: { customerId } });
+  const existing = await prisma.stripeCustomer.findUnique({ where: { customerId } });
   return existing?.userId ?? null;
 }
