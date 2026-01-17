@@ -28,12 +28,6 @@ export type ProfileTabsProps = {
   hasPlan: boolean;
 };
 
-const tabs = [
-  { id: "overview", label: "Overview" },
-  { id: "usage", label: "Usage" },
-  { id: "billing", label: "Billing" },
-];
-
 function formatDate(value?: string | null) {
   if (!value) return null;
   const date = new Date(value);
@@ -74,37 +68,37 @@ export default function ProfileTabs(props: ProfileTabsProps) {
           <div className="text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Account</div>
           <nav className="space-y-1">
             <a
-              href="#overview"
+              href="#profile"
               onClick={(e) => {
                 e.preventDefault();
-                setActive("overview");
+                setActive("profile");
               }}
               className={`block rounded-xl px-3 py-2 text-sm font-semibold transition ${
-                active === "overview" ? "bg-slate-900 text-white shadow-sm" : "text-slate-700 hover:bg-slate-50"
+                active === "profile" ? "bg-slate-900 text-white shadow-sm" : "text-slate-700 hover:bg-slate-50"
               }`}
             >
               Profile
             </a>
             <a
-              href="#overview"
+              href="#notifications"
               onClick={(e) => {
                 e.preventDefault();
-                setActive("overview");
+                setActive("notifications");
               }}
               className={`block rounded-xl px-3 py-2 text-sm font-semibold transition ${
-                active === "overview" ? "bg-slate-900 text-white shadow-sm" : "text-slate-700 hover:bg-slate-50"
+                active === "notifications" ? "bg-slate-900 text-white shadow-sm" : "text-slate-700 hover:bg-slate-50"
               }`}
             >
               Notifications
             </a>
             <a
-              href="#overview"
+              href="#settings"
               onClick={(e) => {
                 e.preventDefault();
-                setActive("overview");
+                setActive("settings");
               }}
               className={`block rounded-xl px-3 py-2 text-sm font-semibold transition ${
-                active === "overview" ? "bg-slate-900 text-white shadow-sm" : "text-slate-700 hover:bg-slate-50"
+                active === "settings" ? "bg-slate-900 text-white shadow-sm" : "text-slate-700 hover:bg-slate-50"
               }`}
             >
               Settings
@@ -179,6 +173,19 @@ export default function ProfileTabs(props: ProfileTabsProps) {
                   </div>
                 </div>
               ) : null}
+            </div>
+          </section>
+        )}
+
+        {active === "notifications" && (
+          <section className="grid gap-6 md:grid-cols-1">
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-3">
+              <div className="text-xs font-black uppercase tracking-widest text-slate-400">Notifications</div>
+              <h2 className="text-xl font-black text-slate-900">Notifications</h2>
+              <p className="text-sm text-slate-600">Your current alerts, important updates, and account notifications.</p>
+              <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-500 text-center">
+                You currently have no notifications.
+              </div>
             </div>
           </section>
         )}
