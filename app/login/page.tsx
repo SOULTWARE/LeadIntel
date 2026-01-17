@@ -1,11 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Loader2, Zap, ArrowRight, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+
+export const dynamic = 'force-dynamic';
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
@@ -18,6 +20,14 @@ function getErrorMessage(error: unknown): string {
 }
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginPageContent />
+    </Suspense>
+  );
+}
+
+function LoginPageContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -90,7 +100,7 @@ export default function LoginPage() {
       <div className="hidden md:flex flex-1 relative bg-slate-900 text-white p-12 flex-col justify-between overflow-hidden">
         <div className="absolute inset-0 z-0">
           <div className="absolute top-[-20%] right-[-20%] w-[80%] h-[80%] bg-blue-600 rounded-full blur-[150px] opacity-20" />
-          <div className="absolute bottom-[-10%] left-[-10%] w-[60%] h-[60%] bg-indigo-600 rounded-full blur-[150px] opacity-20" />
+          <div className="absolute bottom-[-10%] left-[-10%] w-[60%] h/[60%] bg-indigo-600 rounded-full blur-[150px] opacity-20" />
         </div>
 
         <div className="relative z-10">
