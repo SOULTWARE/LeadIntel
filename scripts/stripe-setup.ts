@@ -25,7 +25,7 @@ async function main() {
 
   const addonProduct = await stripe.products.create({
     name: "LeadIntel Add-on Credits",
-    description: "One-time add-on credits (50 credits, 3-month expiry)",
+    description: "One-time add-on credits (500 credits, 3-month expiry)",
   });
 
   const starterPrice = await stripe.prices.create({
@@ -45,7 +45,7 @@ async function main() {
   const addonPrice = await stripe.prices.create({
     product: addonProduct.id,
     currency: "usd",
-    unit_amount: 500,
+    unit_amount: 1000,
   });
 
   console.log("Stripe products and prices created:");

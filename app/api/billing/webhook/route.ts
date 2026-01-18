@@ -103,9 +103,16 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   if (!userId) return;
 
   if (session.mode === "payment") {
-    const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { limit: 1 });
-    const priceId = lineItems.data[0]?.price?.id;
-    if (!priceId || !isAddonPriceId(priceId)) return;
+    const isAddonSession = session.metadata?.type === "addon";
+    let isAddonPrice = false;
+
+    if (!isAddonSession) {
+      const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { limit: 1 });
+      const priceId = lineItems.data[0]?.price?.id;
+      isAddonPrice = Boolean(priceId && isAddonPriceId(priceId));
+    }
+
+    if (!isAddonSession && !isAddonPrice) return;
 
     await creditsService.addAddonCredits({
       userId,

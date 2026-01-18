@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { ADDON_CREDITS_AMOUNT } from "@/lib/stripe/plans";
 
 import ProfileBillingActions from "@/components/ProfileBillingActions";
 
@@ -39,6 +40,17 @@ function planPriceLabel(plan: string | null) {
   if (plan === "PRO") return "$79/month";
   if (plan === "STARTER") return "$29/month";
   return null;
+}
+
+function getUsagePercent(remaining: number, total: number) {
+  if (total <= 0) return 0;
+  return Math.min(100, Math.max(0, (remaining / total) * 100));
+}
+
+function getUsageColorClass(percent: number) {
+  if (percent >= 60) return "bg-emerald-500";
+  if (percent >= 30) return "bg-amber-500";
+  return "bg-red-500";
 }
 
 export default function ProfileTabs(props: ProfileTabsProps) {
@@ -160,16 +172,21 @@ export default function ProfileTabs(props: ProfileTabsProps) {
                 <div className="mt-4 space-y-2">
                   <div className="flex items-center justify-between text-xs font-semibold text-slate-500">
                     <span>Available</span>
-                    <span>
-                      {totalCredits} / {plan.maxEnhancedLeadsPerMonth}
-                    </span>
+                    <span>{totalCredits} remaining</span>
                   </div>
                   <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
-                    <div
-                      className="h-full rounded-full bg-blue-600 transition-[width]"
-                      style={{ width: `${Math.min(100, (totalCredits / plan.maxEnhancedLeadsPerMonth) * 100)}%` }}
-                      aria-label="Credits remaining"
-                    />
+                    {(() => {
+                      const remainingPercent = getUsagePercent(totalCredits, plan.maxEnhancedLeadsPerMonth);
+                      const usedPercent = 100 - remainingPercent;
+                      const color = getUsageColorClass(remainingPercent);
+                      return (
+                        <div
+                          className={`h-full rounded-full transition-[width] ${color}`}
+                          style={{ width: `${usedPercent}%` }}
+                          aria-label="Credits used"
+                        />
+                      );
+                    })()}
                   </div>
                 </div>
               ) : null}
@@ -214,16 +231,23 @@ export default function ProfileTabs(props: ProfileTabsProps) {
                   <div className="flex items-center justify-between text-sm font-semibold text-slate-700">
                     <span>{baseBalance} available</span>
                     <span className="text-slate-500">
-                      {plan?.maxEnhancedLeadsPerMonth ? `${plan.maxEnhancedLeadsPerMonth} monthly` : "No limit set"}
+                      {plan?.maxEnhancedLeadsPerMonth ? `${baseBalance} remaining` : "No limit set"}
                     </span>
                   </div>
                   {plan?.maxEnhancedLeadsPerMonth ? (
                     <div className="h-2.5 w-full overflow-hidden rounded-full bg-white">
-                      <div
-                        className="h-full rounded-full bg-blue-600"
-                        style={{ width: `${Math.min(100, (baseBalance / plan.maxEnhancedLeadsPerMonth) * 100)}%` }}
-                        aria-label="Plan credits remaining"
-                      />
+                      {(() => {
+                        const remainingPercent = getUsagePercent(baseBalance, plan.maxEnhancedLeadsPerMonth);
+                        const usedPercent = 100 - remainingPercent;
+                        const color = getUsageColorClass(remainingPercent);
+                        return (
+                          <div
+                            className={`h-full rounded-full transition-[width] ${color}`}
+                            style={{ width: `${usedPercent}%` }}
+                            aria-label="Plan credits used"
+                          />
+                        );
+                      })()}
                     </div>
                   ) : null}
                 </div>
@@ -240,16 +264,21 @@ export default function ProfileTabs(props: ProfileTabsProps) {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm font-semibold text-slate-700">
                     <span>{addonBalance.remaining} remaining</span>
-                    <span className="text-slate-500">
-                      {addonBalance.expiresAt ? `Expires ${new Date(addonBalance.expiresAt).toLocaleDateString()}` : "No expiry"}
-                    </span>
+                    <span className="text-slate-500">{addonBalance.remaining} remaining</span>
                   </div>
                   <div className="h-2.5 w-full overflow-hidden rounded-full bg-white">
-                    <div
-                      className="h-full rounded-full bg-emerald-500"
-                      style={{ width: addonBalance.remaining > 0 ? "100%" : "0%" }}
-                      aria-label="Add-on credits remaining"
-                    />
+                    {(() => {
+                      const remainingPercent = getUsagePercent(addonBalance.remaining, ADDON_CREDITS_AMOUNT);
+                      const usedPercent = 100 - remainingPercent;
+                      const color = getUsageColorClass(remainingPercent);
+                      return (
+                        <div
+                          className={`h-full rounded-full transition-[width] ${color}`}
+                          style={{ width: `${usedPercent}%` }}
+                          aria-label="Add-on credits used"
+                        />
+                      );
+                    })()}
                   </div>
                 </div>
               </div>

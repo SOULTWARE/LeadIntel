@@ -144,14 +144,10 @@ export class CreditsService {
   }
 
   async getAddonBalance(userId: string): Promise<AddonBalanceRecord> {
-    return prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      const existing = await getAddonBalance(tx, userId);
-      if (existing) return existing;
-
-      const created = await tx.addonCreditBalance.upsert({
-        where: { userId },
-        update: {},
-        create: {
+    const existing = await prisma.addonCreditBalance.findUnique({ where: { userId } });
+    if (!existing) {
+      const created = await prisma.addonCreditBalance.create({
+        data: {
           userId,
           remaining: 0,
           expiresAt: null,
@@ -163,7 +159,34 @@ export class CreditsService {
         remaining: created.remaining,
         expiresAt: created.expiresAt,
       };
-    });
+    }
+
+    if (existing.expiresAt && existing.expiresAt.getTime() <= Date.now()) {
+      if (existing.remaining !== 0 || existing.expiresAt !== null) {
+        const updated = await prisma.addonCreditBalance.update({
+          where: { userId },
+          data: { remaining: 0, expiresAt: null },
+        });
+
+        return {
+          userId: updated.userId,
+          remaining: updated.remaining,
+          expiresAt: updated.expiresAt,
+        };
+      }
+
+      return {
+        userId: existing.userId,
+        remaining: 0,
+        expiresAt: null,
+      };
+    }
+
+    return {
+      userId: existing.userId,
+      remaining: existing.remaining,
+      expiresAt: existing.expiresAt,
+    };
   }
 
   async createHold(input: {

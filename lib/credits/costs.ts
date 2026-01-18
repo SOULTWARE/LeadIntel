@@ -1,5 +1,5 @@
-export const STARTER_INITIAL_CREDITS = 20;
-export const PRO_INITIAL_CREDITS = 60;
+export const STARTER_INITIAL_CREDITS = 1000;
+export const PRO_INITIAL_CREDITS = 5000;
 
 export type CreditAction =
   | "EMAIL_DISCOVER"

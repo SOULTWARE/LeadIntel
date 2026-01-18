@@ -17,15 +17,13 @@ async function getProfileData() {
     redirect("/login");
   }
 
-  const [plan, subscription, baseBalance, addonBalance] = await Promise.all([
-    prisma.userPlan.findUnique({ where: { userId: user.id } }),
-    prisma.stripeSubscription.findFirst({
-      where: { userId: user.id },
-      orderBy: { createdAt: "desc" },
-    }),
-    creditsService.getBalance(user.id),
-    creditsService.getAddonBalance(user.id),
-  ]);
+  const plan = await prisma.userPlan.findUnique({ where: { userId: user.id } });
+  const subscription = await prisma.stripeSubscription.findFirst({
+    where: { userId: user.id },
+    orderBy: { createdAt: "desc" },
+  });
+  const baseBalance = await creditsService.getBalance(user.id);
+  const addonBalance = await creditsService.getAddonBalance(user.id);
 
   return {
     user,
