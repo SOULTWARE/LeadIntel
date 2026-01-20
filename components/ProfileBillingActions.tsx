@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
@@ -44,7 +44,7 @@ async function openPortal() {
 export default function ProfileBillingActions({ hasPlan }: { hasPlan: boolean }) {
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState<null | "starter" | "pro" | "addon" | "portal">(null);
-  const [autoStarted, setAutoStarted] = useState(false);
+  const autoStartedRef = useRef(false);
 
   const handleCheckout = async (plan: PlanName) => {
     setLoading(plan);
@@ -57,13 +57,14 @@ export default function ProfileBillingActions({ hasPlan }: { hasPlan: boolean })
   };
 
   useEffect(() => {
-    if (autoStarted || loading) return;
+    if (autoStartedRef.current || loading || hasPlan) return;
     const plan = searchParams.get("plan");
     if (plan === "starter" || plan === "pro") {
-      setAutoStarted(true);
-      handleCheckout(plan);
+      autoStartedRef.current = true;
+      // Defer to avoid synchronous state updates directly inside the effect
+      setTimeout(() => handleCheckout(plan), 0);
     }
-  }, [autoStarted, loading, searchParams]);
+  }, [hasPlan, loading, searchParams]);
 
   const handleAddon = async () => {
     setLoading("addon");
@@ -87,39 +88,40 @@ export default function ProfileBillingActions({ hasPlan }: { hasPlan: boolean })
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2">
-        <button
-          type="button"
-          onClick={() => handleCheckout("starter")}
-          disabled={loading !== null}
-          className="rounded-2xl border border-slate-200 bg-white px-6 py-5 text-left shadow-sm transition hover:border-blue-200 hover:shadow-md"
-        >
-          <div className="text-xs font-black uppercase tracking-widest text-slate-400">Starter</div>
-          <div className="mt-2 text-3xl font-black text-slate-900">$29</div>
-          <div className="text-sm text-slate-500">Monthly subscription</div>
-          <div className="mt-4 text-sm font-bold text-blue-600">
-            {loading === "starter" ? "Redirecting..." : "Choose Starter"}
-          </div>
-        </button>
-        <button
-          type="button"
-          onClick={() => handleCheckout("pro")}
-          disabled={loading !== null}
-          className="rounded-2xl border border-blue-600 bg-slate-900 px-6 py-5 text-left text-white shadow-lg shadow-blue-200 transition hover:bg-slate-800"
-        >
-          <div className="text-xs font-black uppercase tracking-widest text-blue-300">Pro</div>
-          <div className="mt-2 text-3xl font-black">$79</div>
-          <div className="text-sm text-slate-300">Monthly subscription</div>
-          <div className="mt-4 text-sm font-bold text-blue-200">
-            {loading === "pro" ? "Redirecting..." : "Choose Pro"}
-          </div>
-        </button>
-      </div>
-
+      {!hasPlan && (
+        <div className="grid gap-4 md:grid-cols-2">
+          <button
+            type="button"
+            onClick={() => handleCheckout("starter")}
+            disabled={loading !== null}
+            className="rounded-2xl border border-slate-200 bg-white px-6 py-5 text-left shadow-sm transition hover:border-blue-200 hover:shadow-md"
+          >
+            <div className="text-xs font-black uppercase tracking-widest text-slate-400">Starter</div>
+            <div className="mt-2 text-3xl font-black text-slate-900">$29</div>
+            <div className="text-sm text-slate-500">Monthly subscription</div>
+            <div className="mt-4 text-sm font-bold text-blue-600">
+              {loading === "starter" ? "Redirecting..." : "Choose Starter"}
+            </div>
+          </button>
+          <button
+            type="button"
+            onClick={() => handleCheckout("pro")}
+            disabled={loading !== null}
+            className="rounded-2xl border border-blue-600 bg-slate-900 px-6 py-5 text-left text-white shadow-lg shadow-blue-200 transition hover:bg-slate-800"
+          >
+            <div className="text-xs font-black uppercase tracking-widest text-blue-300">Pro</div>
+            <div className="mt-2 text-3xl font-black">$79</div>
+            <div className="text-sm text-slate-300">Monthly subscription</div>
+            <div className="mt-4 text-sm font-bold text-blue-200">
+              {loading === "pro" ? "Redirecting..." : "Choose Pro"}
+            </div>
+          </button>
+        </div>
+      )}
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
         <div>
           <div className="text-sm font-black text-slate-900">Add-on credits</div>
-          <div className="text-sm text-slate-500">50 credits for $5 (expires in 3 months)</div>
+          <div className="text-sm text-slate-500">500 credits for $10 (expires in 3 months)</div>
         </div>
         <button
           type="button"

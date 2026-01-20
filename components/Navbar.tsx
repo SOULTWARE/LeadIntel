@@ -28,8 +28,18 @@ export default function Navbar({ user }: NavbarProps) {
     }
   };
 
-  const getInitials = (email: string) => {
-    return email?.substring(0, 2).toUpperCase() || 'U';
+  const getDisplayName = (u: SupabaseUser | null) => {
+    if (!u) return '';
+    const metaName =
+      (u.user_metadata?.full_name as string | undefined) || (u.user_metadata?.name as string | undefined) || '';
+    return metaName.trim() || u.email || '';
+  };
+
+  const getInitials = (display: string) => {
+    if (!display) return 'U';
+    const parts = display.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + (parts[1]?.[0] || '')).toUpperCase();
   };
 
   return (
@@ -55,14 +65,14 @@ export default function Navbar({ user }: NavbarProps) {
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
                   className="w-10 h-10 bg-slate-900 text-white rounded-full flex items-center justify-center font-bold text-sm hover:ring-4 hover:ring-slate-100 transition-all shadow-xl shadow-slate-200"
                 >
-                  {getInitials(user.email ?? '')}
+                  {getInitials(getDisplayName(user))}
                 </button>
 
                 {isMenuOpen && (
                   <div className="absolute right-0 top-14 w-48 bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden py-1">
                     <div className="px-4 py-3 border-b border-slate-50">
                       <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Signed in as</p>
-                      <p className="text-sm font-bold text-slate-900 truncate">{user.email ?? ''}</p>
+                      <p className="text-sm font-bold text-slate-900 truncate">{getDisplayName(user)}</p>
                     </div>
                     <Link
                       href="/profile"

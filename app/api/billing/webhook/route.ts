@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PlanType } from "@prisma/client";
+import { PlanType, type Prisma } from "@prisma/client";
+import type Stripe from "stripe";
 
 import { prisma } from "@/db";
 import { stripe } from "@/lib/stripe/server";
@@ -25,7 +26,7 @@ async function upsertUserPlan(input: {
 }) {
   const limits = PLAN_LIMITS[input.plan];
 
-  await (prisma as any).userPlan.upsert({
+  await prisma.userPlan.upsert({
     where: { userId: input.userId },
     update: {
       plan: input.plan,
@@ -52,17 +53,16 @@ async function upsertUserPlan(input: {
 async function ensurePlanCredits(userId: string, plan: PlanType) {
   const initial = plan === PlanType.PRO ? PRO_INITIAL_CREDITS : STARTER_INITIAL_CREDITS;
 
-  await prisma.$transaction(async (tx) => {
-    const creditBalance = (tx as any).creditBalance;
-    const existing = await creditBalance.findUnique({ where: { userId } });
+  await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+    const existing = await tx.creditBalance.findUnique({ where: { userId } });
 
     if (!existing) {
-      await creditBalance.create({ data: { userId, balance: initial } });
+      await tx.creditBalance.create({ data: { userId, balance: initial } });
       return;
     }
 
     if (existing.balance < initial) {
-      await creditBalance.update({ where: { userId }, data: { balance: initial } });
+      await tx.creditBalance.update({ where: { userId }, data: { balance: initial } });
     }
   });
 }
@@ -75,7 +75,7 @@ async function upsertStripeSubscription(input: {
   currentPeriodStart: Date;
   currentPeriodEnd: Date;
 }) {
-  await (prisma as any).stripeSubscription.upsert({
+  await prisma.stripeSubscription.upsert({
     where: { subscriptionId: input.subscriptionId },
     update: {
       userId: input.userId,
@@ -95,7 +95,7 @@ async function upsertStripeSubscription(input: {
   });
 }
 
-async function handleCheckoutCompleted(session: any) {
+async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const customerId = session.customer as string | null;
   if (!customerId) return;
 
@@ -103,9 +103,16 @@ async function handleCheckoutCompleted(session: any) {
   if (!userId) return;
 
   if (session.mode === "payment") {
-    const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { limit: 1 });
-    const priceId = lineItems.data[0]?.price?.id;
-    if (!priceId || !isAddonPriceId(priceId)) return;
+    const isAddonSession = session.metadata?.type === "addon";
+    let isAddonPrice = false;
+
+    if (!isAddonSession) {
+      const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { limit: 1 });
+      const priceId = lineItems.data[0]?.price?.id;
+      isAddonPrice = Boolean(priceId && isAddonPriceId(priceId));
+    }
+
+    if (!isAddonSession && !isAddonPrice) return;
 
     await creditsService.addAddonCredits({
       userId,
@@ -124,7 +131,7 @@ async function handleCheckoutCompleted(session: any) {
   }
 }
 
-async function handleSubscriptionUpdated(subscription: any) {
+async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   const customerId = subscription.customer as string | null;
   if (!customerId) return;
 
@@ -159,14 +166,14 @@ async function handleSubscriptionUpdated(subscription: any) {
   await ensurePlanCredits(userId, plan);
 }
 
-async function handleSubscriptionDeleted(subscription: any) {
+async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   const customerId = subscription.customer as string | null;
   if (!customerId) return;
 
   const userId = await getUserIdByStripeCustomerId(customerId);
   if (!userId) return;
 
-  await (prisma as any).stripeSubscription.updateMany({
+  await prisma.stripeSubscription.updateMany({
     where: { subscriptionId: subscription.id },
     data: { status: subscription.status ?? "canceled" },
   });
@@ -180,7 +187,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: "Missing stripe-signature" }, { status: 400 });
   }
 
-  let event: any;
+  let event: Stripe.Event;
   try {
     event = stripe.webhooks.constructEvent(rawBody, signature, requireEnv("STRIPE_WEBHOOK_SECRET"));
   } catch (error) {

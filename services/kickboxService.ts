@@ -1,6 +1,8 @@
 import { prisma } from "../db";
 import { EmailVerificationStatus, type Prisma } from "@prisma/client";
 
+const REQUEST_TIMEOUT_MS = 15_000;
+
 export interface KickboxVerifyResponse {
   result: "deliverable" | "undeliverable" | "risky" | "unknown";
   reason: string | null;
@@ -65,11 +67,32 @@ export class KickboxService {
     url.searchParams.set("email", input);
     url.searchParams.set("apikey", this.apiKey);
 
-    const res = await fetch(url.toString(), { method: "GET" });
-    const json = (await res.json()) as KickboxVerifyResponse;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
-    if (!res.ok || !json.success) {
-      throw new Error(json.message || `Kickbox API error: ${res.status}`);
+    let json: KickboxVerifyResponse;
+    try {
+      const res = await fetch(url.toString(), { method: "GET", signal: controller.signal });
+      json = (await res.json()) as KickboxVerifyResponse;
+
+      if (res.status >= 500) {
+        throw new Error(`Kickbox service unavailable (status ${res.status})`);
+      }
+
+      if (res.status >= 400) {
+        throw new Error(json.message || `Kickbox client error (status ${res.status})`);
+      }
+
+      if (!json.success) {
+        throw new Error(json.message || `Kickbox API error: ${res.status}`);
+      }
+    } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") {
+        throw new Error("Kickbox API request timed out");
+      }
+      throw err;
+    } finally {
+      clearTimeout(timeout);
     }
 
     const status = mapKickboxResultToStatus(json.result);

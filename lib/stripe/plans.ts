@@ -1,6 +1,7 @@
 import { PlanType } from "@prisma/client";
 
-const MAX_MONTHLY_CREDITS = 1000;
+const STARTER_MONTHLY_CREDITS = 1000;
+const PRO_MONTHLY_CREDITS = 5000;
 
 export const PLAN_LIMITS: Record<PlanType, {
   maxLeadsPerSearch: number;
@@ -10,17 +11,17 @@ export const PLAN_LIMITS: Record<PlanType, {
 }> = {
   [PlanType.STARTER]: {
     maxLeadsPerSearch: 100,
-    maxEnhancedLeadsPerMonth: MAX_MONTHLY_CREDITS,
-    maxEmailDiscoveriesPerMonth: MAX_MONTHLY_CREDITS,
-    maxEmailVerificationsPerMonth: Math.floor(MAX_MONTHLY_CREDITS / 2),
+    maxEnhancedLeadsPerMonth: STARTER_MONTHLY_CREDITS,
+    maxEmailDiscoveriesPerMonth: STARTER_MONTHLY_CREDITS,
+    maxEmailVerificationsPerMonth: Math.floor(STARTER_MONTHLY_CREDITS / 2),
   },
   [PlanType.PRO]: {
     maxLeadsPerSearch: 100,
-    maxEnhancedLeadsPerMonth: MAX_MONTHLY_CREDITS,
-    maxEmailDiscoveriesPerMonth: MAX_MONTHLY_CREDITS,
-    maxEmailVerificationsPerMonth: Math.floor(MAX_MONTHLY_CREDITS / 2),
+    maxEnhancedLeadsPerMonth: PRO_MONTHLY_CREDITS,
+    maxEmailDiscoveriesPerMonth: PRO_MONTHLY_CREDITS,
+    maxEmailVerificationsPerMonth: Math.floor(PRO_MONTHLY_CREDITS / 2),
   },
 };
 
-export const ADDON_CREDITS_AMOUNT = 50;
+export const ADDON_CREDITS_AMOUNT = 500;
 export const ADDON_CREDITS_MONTHS = 3;

@@ -1,6 +1,10 @@
 import { prisma } from "../db";
 import type { Job, JobStatus as PrismaJobStatus, JobType as PrismaJobType, Prisma } from "@prisma/client";
 
+const DEFAULT_LOCK_EXPIRY_MS = 5 * 60 * 1000;
+const envLockMs = Number.parseInt(process.env.JOB_LOCK_EXPIRY_MS || "", 10);
+export const LOCK_EXPIRY_MS = Number.isFinite(envLockMs) && envLockMs > 0 ? envLockMs : DEFAULT_LOCK_EXPIRY_MS;
+
 export type JobType = PrismaJobType;
 
 export type JobStatus = PrismaJobStatus;
@@ -33,7 +37,7 @@ export class JobQueueService {
 
   async claimNext(workerId: string): Promise<Job | null> {
     const now = new Date();
-    const lockExpiry = new Date(Date.now() - 5 * 60 * 1000);
+    const lockExpiry = new Date(Date.now() - LOCK_EXPIRY_MS);
 
     return prisma.$transaction(async (tx) => {
       const candidate = await tx.job.findFirst({
@@ -109,6 +113,21 @@ export class JobQueueService {
         runAt: new Date(),
       },
     });
+  }
+
+  async refreshLock(jobId: string, workerId: string): Promise<boolean> {
+    const updated = await prisma.job.updateMany({
+      where: {
+        id: jobId,
+        lockedBy: workerId,
+        status: "RUNNING",
+      },
+      data: {
+        lockedAt: new Date(),
+      },
+    });
+
+    return updated.count === 1;
   }
 }
 

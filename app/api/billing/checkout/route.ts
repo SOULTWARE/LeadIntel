@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
+import { prisma } from "@/db";
 import { createClient } from "@/lib/supabase/server";
 import { stripe } from "@/lib/stripe/server";
 import { getOrCreateStripeCustomer } from "@/lib/stripe/customers";
@@ -50,6 +51,23 @@ export async function POST(request: NextRequest) {
 
   if (parsed.data.type === "subscription" && !parsed.data.plan) {
     return NextResponse.json({ success: false, error: "Plan is required" }, { status: 400 });
+  }
+
+  if (parsed.data.type === "subscription") {
+    const existingSubscription = await prisma.stripeSubscription.findFirst({
+      where: {
+        userId: user.id,
+        status: { not: "canceled" },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (existingSubscription) {
+      return NextResponse.json(
+        { success: false, error: "Subscription already active" },
+        { status: 409 }
+      );
+    }
   }
 
   const priceId = getPriceId(parsed.data);

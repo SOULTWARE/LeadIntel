@@ -99,13 +99,13 @@ export default function PricingPage() {
                   <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
                     <Sparkles size={12} className="text-blue-600" />
                   </div>
-                  500 Enhanced Leads / month
+                  1,000 Enhanced Leads / month
                 </div>
                 <div className="flex items-center gap-3 font-bold text-slate-900">
                   <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
                     <Mail size={12} className="text-blue-600" />
                   </div>
-                  500 Email Discoveries / month
+                  1,000 Email Discoveries / month
                 </div>
                 <div className="flex items-center gap-3 font-bold text-slate-900">
                   <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center">
@@ -160,13 +160,13 @@ export default function PricingPage() {
                   <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center">
                     <Sparkles size={12} className="text-white" />
                   </div>
-                  2,000 Enhanced Leads / month
+                  5,000 Enhanced Leads / month
                 </div>
                 <div className="flex items-center gap-3 font-bold">
                   <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center">
                     <Mail size={12} className="text-white" />
                   </div>
-                  2,000 Email Discoveries / month
+                  5,000 Email Discoveries / month
                 </div>
                 <div className="flex items-center gap-3 font-bold">
                   <div className="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center">
