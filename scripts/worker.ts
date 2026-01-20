@@ -9,6 +9,7 @@ import { creditsService } from "../services/creditsService";
 import { CreditAction, getCreditCost } from "../lib/credits/costs";
 import { sleep } from "../lib/utils";
 import { EmailVerificationStatus, LeadProcessingState, type Job, type Prisma } from "@prisma/client";
+import { LOCK_EXPIRY_MS } from "../services/jobQueueService";
 
 function requireEnv(name: string): string {
   const v = process.env[name];
@@ -84,7 +85,7 @@ async function processEmailDiscoverJob(job: Job): Promise<void> {
     await prisma.lead.update({
       where: { id: leadId },
       data: {
-        processingState: "EMAIL_NOT_FOUND" as unknown as LeadProcessingState,
+        processingState: LeadProcessingState.EMAIL_NOT_FOUND,
       },
     });
 
@@ -143,6 +144,13 @@ async function processEmailVerifyJob(job: Job): Promise<void> {
     return;
   }
 
+  if (lead.email && lead.email.toLowerCase() !== email.toLowerCase()) {
+    console.log(
+      `[worker] EMAIL_VERIFY skipping update due to email mismatch leadId=${leadId} stored=${lead.email} payload=${email}`,
+    );
+    return;
+  }
+
   const holdAmount = getCreditCost(CreditAction.EMAIL_VERIFY);
   if (holdAmount > 0) {
     await creditsService.createHold({
@@ -166,6 +174,13 @@ async function processEmailVerifyJob(job: Job): Promise<void> {
   const result = await kickboxService.verifyEmail(email);
 
   console.log(`[worker] EMAIL_VERIFY result leadId=${leadId} email=${result.normalizedEmail} status=${result.status}`);
+
+  if (lead.email && lead.email.toLowerCase() !== result.normalizedEmail.toLowerCase()) {
+    console.log(
+      `[worker] EMAIL_VERIFY skipping update due to normalized email mismatch leadId=${leadId} stored=${lead.email} normalized=${result.normalizedEmail}`,
+    );
+    return;
+  }
 
   await prisma.lead.update({
     where: { id: leadId },
@@ -210,6 +225,7 @@ async function main() {
   requireEnv("KICKBOX_API_KEY");
 
   const workerId = `worker-${process.pid}`;
+  const heartbeatMs = Math.max(1, Math.floor(LOCK_EXPIRY_MS / 2));
 
   console.log(`[worker] started workerId=${workerId}`);
 
@@ -221,12 +237,30 @@ async function main() {
       continue;
     }
 
+    let heartbeat: NodeJS.Timeout | null = null;
     try {
       console.log(`[worker] claimed job id=${job.id} type=${job.type} attempts=${job.attempts}`);
+
+      heartbeat = setInterval(async () => {
+        try {
+          const refreshed = await jobQueueService.refreshLock(job.id, workerId);
+          if (!refreshed) {
+            console.warn(
+              `[worker] failed to refresh lock job id=${job.id} type=${job.type}; another worker may claim it`,
+            );
+          }
+        } catch (hbErr) {
+          console.error(
+            `[worker] heartbeat error job id=${job.id} type=${job.type} error=${hbErr instanceof Error ? hbErr.message : String(hbErr)}`,
+          );
+        }
+      }, heartbeatMs);
+
       await processJob(job);
       await jobQueueService.succeed(job.id);
       console.log(`[worker] succeeded job id=${job.id} type=${job.type}`);
     } catch (err) {
+      if (heartbeat) clearInterval(heartbeat);
       const msg = err instanceof Error ? err.message : "Unknown error";
 
       const shouldDeadLetter = job.attempts >= job.maxAttempts;
@@ -253,11 +287,17 @@ async function main() {
               }
             }
           }
-        } catch {}
+        } catch (releaseErr) {
+          console.error(
+            `[worker] failed to release credits on dead-letter job id=${job.id} type=${job.type} error=${releaseErr instanceof Error ? releaseErr.message : String(releaseErr)}`,
+          );
+        }
       }
 
       await jobQueueService.fail(job.id, msg);
       console.log(`[worker] failed job id=${job.id} type=${job.type} error=${msg}`);
+    } finally {
+      if (heartbeat) clearInterval(heartbeat);
     }
   }
 }

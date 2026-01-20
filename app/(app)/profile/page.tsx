@@ -45,6 +45,10 @@ export default async function ProfilePage({
   const selectedPlan = typeof resolvedSearchParams.plan === "string" ? resolvedSearchParams.plan : null;
   const totalCredits = baseBalance + addonBalance.remaining;
   const hasPlan = Boolean(plan);
+  const userName =
+    (user.user_metadata?.full_name as string | undefined) ||
+    (user.user_metadata?.name as string | undefined) ||
+    "";
 
   const addonBalanceForClient = {
     remaining: addonBalance.remaining,
@@ -104,6 +108,7 @@ export default async function ProfilePage({
 
         <ProfileTabs
           userEmail={user.email ?? ""}
+          userName={userName}
           totalCredits={totalCredits}
           baseBalance={baseBalance}
           addonBalance={addonBalanceForClient}

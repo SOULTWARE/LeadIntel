@@ -1,5 +1,7 @@
 import { externalApiCacheService } from "./externalApiCacheService";
 
+const REQUEST_TIMEOUT_MS = 15_000;
+
 interface HunterDomainSearchEmail {
   value: string;
   confidence?: number;
@@ -46,19 +48,37 @@ export class HunterService {
         url.searchParams.set("domain", normalizedDomain);
         url.searchParams.set("api_key", this.apiKey);
 
-        const res = await fetch(url.toString(), {
-          method: "GET",
-        });
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
-        const json = (await res.json()) as HunterDomainSearchResponse;
-        return { statusCode: res.status, json };
+        try {
+          const res = await fetch(url.toString(), {
+            method: "GET",
+            signal: controller.signal,
+          });
+
+          const json = (await res.json()) as HunterDomainSearchResponse;
+
+          if (res.status >= 500) {
+            throw new Error(`Hunter API unavailable (status ${res.status})`);
+          }
+
+          if (res.status >= 400) {
+            const details = json.errors?.[0]?.details || `Hunter client error (status ${res.status})`;
+            throw new Error(details);
+          }
+
+          return { statusCode: res.status, json };
+        } catch (err) {
+          if (err instanceof Error && err.name === "AbortError") {
+            throw new Error("Hunter API request timed out");
+          }
+          throw err;
+        } finally {
+          clearTimeout(timeout);
+        }
       },
     });
-
-    if (data.errors && data.errors.length > 0) {
-      const details = data.errors[0]?.details || "Hunter API error";
-      throw new Error(details);
-    }
 
     const emails = data.data?.emails || [];
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { ADDON_CREDITS_AMOUNT } from "@/lib/stripe/plans";
 
 import ProfileBillingActions from "@/components/ProfileBillingActions";
@@ -21,6 +22,7 @@ type Subscription = {
 
 export type ProfileTabsProps = {
   userEmail: string;
+  userName: string;
   totalCredits: number;
   baseBalance: number;
   addonBalance: { remaining: number; expiresAt: string | null };
@@ -54,17 +56,19 @@ function getUsageColorClass(percent: number) {
 }
 
 export default function ProfileTabs(props: ProfileTabsProps) {
-  const {
-    userEmail,
-    totalCredits,
-    baseBalance,
-    addonBalance,
-    plan,
-    subscription,
-    hasPlan,
-  } = props;
+  const { userEmail, userName, totalCredits, baseBalance, addonBalance, plan, subscription, hasPlan } = props;
 
-  const [active, setActive] = useState<string>("overview");
+  const supabase = useMemo(() => createClient(), []);
+
+  const [profileName, setProfileName] = useState(userName);
+  const [profileEmail] = useState(userEmail);
+  const [profilePassword, setProfilePassword] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [isError, setIsError] = useState(false);
+
+  const [active, setActive] = useState<string>("profile");
 
   const periodEnd = useMemo(
     () => formatDate(subscription?.currentPeriodEnd ?? plan?.periodEnd ?? null),
@@ -72,6 +76,56 @@ export default function ProfileTabs(props: ProfileTabsProps) {
   );
 
   const planPrice = planPriceLabel(plan?.plan ?? null);
+
+  async function handleSaveProfile() {
+    const trimmedPassword = profilePassword.trim();
+    const nameChanged = profileName.trim() !== userName.trim();
+
+    if (!nameChanged && !trimmedPassword) {
+      setStatusMessage("No changes to save.");
+      setIsError(false);
+      return;
+    }
+
+    if (!currentPassword.trim()) {
+      setStatusMessage("Enter your current password to save changes.");
+      setIsError(true);
+      return;
+    }
+
+    setSaving(true);
+    setStatusMessage(null);
+    setIsError(false);
+
+    try {
+      const { error: reauthError } = await supabase.auth.signInWithPassword({
+        email: profileEmail,
+        password: currentPassword.trim(),
+      });
+      if (reauthError) throw reauthError;
+
+      if (nameChanged) {
+        const { error } = await supabase.auth.updateUser({ data: { full_name: profileName.trim() } });
+        if (error) throw error;
+      }
+
+      if (trimmedPassword) {
+        const { error } = await supabase.auth.updateUser({ password: trimmedPassword });
+        if (error) throw error;
+      }
+
+      setStatusMessage("Profile updated.");
+      setIsError(false);
+      setCurrentPassword("");
+      if (trimmedPassword) setProfilePassword("");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Failed to update profile";
+      setStatusMessage(msg);
+      setIsError(true);
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <div className="grid gap-10 lg:grid-cols-[240px_1fr]">
@@ -150,46 +204,128 @@ export default function ProfileTabs(props: ProfileTabsProps) {
       </aside>
 
       <div className="space-y-8">
-        {active === "overview" && (
-          <section className="grid gap-6 md:grid-cols-3">
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-              <div className="text-xs font-black uppercase tracking-widest text-slate-400">Account</div>
-              <div className="mt-2 text-lg font-bold text-slate-900">{userEmail}</div>
-            </div>
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-              <div className="text-xs font-black uppercase tracking-widest text-slate-400">Plan</div>
-              <div className="mt-2 text-lg font-bold text-slate-900">
-                {plan?.plan ?? "No active plan"}
-              </div>
-              {subscription?.status && (
-                <div className="mt-1 text-sm text-slate-500">Status: {subscription.status}</div>
-              )}
-            </div>
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-              <div className="text-xs font-black uppercase tracking-widest text-slate-400">Total credits</div>
-              <div className="mt-2 text-3xl font-black text-blue-600">{totalCredits}</div>
-              {plan?.maxEnhancedLeadsPerMonth ? (
-                <div className="mt-4 space-y-2">
-                  <div className="flex items-center justify-between text-xs font-semibold text-slate-500">
-                    <span>Available</span>
-                    <span>{totalCredits} remaining</span>
-                  </div>
-                  <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
-                    {(() => {
-                      const remainingPercent = getUsagePercent(totalCredits, plan.maxEnhancedLeadsPerMonth);
-                      const usedPercent = 100 - remainingPercent;
-                      const color = getUsageColorClass(remainingPercent);
-                      return (
-                        <div
-                          className={`h-full rounded-full transition-[width] ${color}`}
-                          style={{ width: `${usedPercent}%` }}
-                          aria-label="Credits used"
-                        />
-                      );
-                    })()}
-                  </div>
+        {active === "profile" && (
+          <section className="grid gap-6 md:grid-cols-[1.3fr_1fr]">
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+              <div className="text-xs font-black uppercase tracking-widest text-slate-400">Profile</div>
+              <h2 className="text-xl font-black text-slate-900">Make it yours</h2>
+              <p className="text-sm text-slate-600">Update your display name and password. Email is managed via Supabase auth.</p>
+
+              <form className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-800" htmlFor="profile-name">
+                    Name
+                  </label>
+                  <input
+                    id="profile-name"
+                    type="text"
+                    value={profileName}
+                    onChange={(e) => setProfileName(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                    placeholder="Your name"
+                  />
                 </div>
-              ) : null}
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-800" htmlFor="profile-email">
+                    Email (read-only)
+                  </label>
+                  <input
+                    id="profile-email"
+                    type="email"
+                    value={profileEmail}
+                    readOnly
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600"
+                  />
+                  <p className="text-xs text-slate-500">Contact support to change the email linked to your Supabase auth.</p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-800" htmlFor="profile-current-password">
+                    Current password (required)
+                  </label>
+                  <input
+                    id="profile-current-password"
+                    type="password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                    placeholder="••••••••"
+                  />
+                  <p className="text-xs text-slate-500">We re-authenticate before updating your profile.</p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-800" htmlFor="profile-password">
+                    New password
+                  </label>
+                  <input
+                    id="profile-password"
+                    type="password"
+                    value={profilePassword}
+                    onChange={(e) => setProfilePassword(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                    placeholder="••••••••"
+                  />
+                  <p className="text-xs text-slate-500">Leave blank to keep current password.</p>
+                </div>
+
+                <div className="flex gap-3 items-center flex-wrap">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      void handleSaveProfile();
+                    }}
+                    disabled={saving}
+                    className={`rounded-xl px-4 py-2 text-sm font-bold text-white shadow-sm transition ${
+                      saving ? "bg-blue-400" : "bg-blue-600 hover:bg-blue-700"
+                    }`}
+                  >
+                    {saving ? "Saving..." : "Save changes"}
+                  </button>
+                  <button
+                    type="button"
+                    className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setProfileName(userName);
+                      setProfilePassword("");
+                      setCurrentPassword("");
+                    }}
+                  >
+                    Reset
+                  </button>
+                  {statusMessage ? (
+                    <span
+                      className={`text-sm font-semibold ${isError ? "text-red-600" : "text-emerald-700"}`}
+                      role="status"
+                    >
+                      {statusMessage}
+                    </span>
+                  ) : null}
+                </div>
+              </form>
+            </div>
+
+            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 shadow-sm space-y-4">
+              <div className="text-xs font-black uppercase tracking-widest text-slate-400">Snapshot</div>
+              <h3 className="text-lg font-black text-slate-900">Your account at a glance</h3>
+              <div className="grid gap-4 text-sm text-slate-700">
+                <div className="flex items-center justify-between rounded-2xl bg-white border border-slate-200 px-4 py-3">
+                  <span className="font-semibold text-slate-800">Signed in</span>
+                  <span className="text-slate-600">{profileEmail}</span>
+                </div>
+                <div className="flex items-center justify-between rounded-2xl bg-white border border-slate-200 px-4 py-3">
+                  <span className="font-semibold text-slate-800">Display name</span>
+                  <span className="text-slate-600">{profileName || "Not set"}</span>
+                </div>
+                <div className="flex items-center justify-between rounded-2xl bg-white border border-slate-200 px-4 py-3">
+                  <span className="font-semibold text-slate-800">Plan</span>
+                  <span className="text-slate-600">{plan?.plan ?? "No active plan"}</span>
+                </div>
+              </div>
+              <p className="text-xs text-slate-500">Keep your details fresh so your teammates see the right info in dashboards and exports.</p>
             </div>
           </section>
         )}
