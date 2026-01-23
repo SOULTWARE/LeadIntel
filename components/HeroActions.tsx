@@ -19,10 +19,10 @@ export default function HeroActions({ user }: HeroActionsProps) {
     return (
       <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 pt-4">
         <Link
-          href="/scraper"
+          href="/sourcer"
           className="group inline-flex items-center justify-center px-10 py-5 bg-blue-600 text-white rounded-2xl font-black text-lg hover:bg-blue-700 transition-all shadow-2xl shadow-blue-200 hover:-translate-y-1"
         >
-          Launch Intelligence Scraper
+          Launch Data Sourcing
           <ChevronRight className="ml-2 group-hover:translate-x-1 transition-transform" />
         </Link>
         <Link

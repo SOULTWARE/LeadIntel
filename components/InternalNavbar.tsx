@@ -59,11 +59,11 @@ export default function InternalNavbar() {
         icon: <Database className="w-4 h-4" />,
         rightAction: (
           <Link
-            href="/scraper"
+            href="/sourcer"
             className="bg-slate-900 text-white px-5 py-2.5 rounded-xl text-sm font-black hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 flex items-center gap-2"
           >
             <Search className="w-4 h-4" />
-            New Scrape
+            New Search
           </Link>
         ),
       };
@@ -77,7 +77,7 @@ export default function InternalNavbar() {
     }
 
     return {
-      title: 'Intelligence Scraper',
+      title: 'Data Sourcing',
       icon: <Search className="w-4 h-4" />,
       rightAction: (
         <Link

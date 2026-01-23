@@ -35,7 +35,7 @@ export function ProductPreviewSection() {
               {[
                 {
                   title: 'Set targets fast. Stay in control.',
-                  eyebrow: 'Configure Scrape',
+                  eyebrow: 'Configure Sourcing',
                   icon: <Settings2 size={14} />,
                   accent: 'bg-blue-50 text-blue-600 border-blue-100',
                   reverse: false,
@@ -54,7 +54,7 @@ export function ProductPreviewSection() {
                               <div className="h-6 w-px bg-slate-200" />
                               <h2 className="text-slate-500 font-medium text-sm tracking-tight flex items-center gap-2">
                                 <Search className="w-4 h-4" />
-                                Intelligence Scraper
+                                Data Sourcing
                               </h2>
                             </div>
                             <div className="flex items-center gap-2">
@@ -70,7 +70,7 @@ export function ProductPreviewSection() {
                             <div className="flex gap-2 bg-slate-200/50 p-1.5 rounded-2xl mb-10 w-fit mx-auto border border-slate-200 shadow-inner">
                               <div className="flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-bold transition-all duration-300 bg-white text-blue-600 shadow-md ring-1 ring-slate-100">
                                 <Settings2 className="w-4 h-4" />
-                                Configure Scrape
+                                Configure Sourcing
                               </div>
                               <div className="flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-bold text-slate-400 cursor-not-allowed opacity-60">
                                 <Database className="w-4 h-4" />
@@ -160,7 +160,7 @@ export function ProductPreviewSection() {
                 },
                 {
                   title: 'Scan results. Enhance. Export.',
-                  eyebrow: 'Scraper Results',
+                  eyebrow: 'Sourcing Results',
                   icon: <Database size={14} />,
                   accent: 'bg-indigo-50 text-indigo-600 border-indigo-100',
                   reverse: true,
@@ -179,7 +179,7 @@ export function ProductPreviewSection() {
                               <div className="h-6 w-px bg-slate-200" />
                               <h2 className="text-slate-500 font-medium text-sm tracking-tight flex items-center gap-2">
                                 <Search className="w-4 h-4" />
-                                Intelligence Scraper
+                                Data Sourcing
                               </h2>
                             </div>
                             <div className="flex items-center gap-2">
@@ -196,11 +196,11 @@ export function ProductPreviewSection() {
                               <div className="flex gap-2 bg-slate-200/50 p-1.5 rounded-2xl mb-8 w-fit mx-auto border border-slate-200 shadow-inner">
                                 <div className="flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-bold text-slate-500">
                                   <Settings2 className="w-4 h-4" />
-                                  Configure Scrape
+                                  Configure Sourcing
                                 </div>
                                 <div className="flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-bold transition-all duration-300 bg-white text-blue-600 shadow-md ring-1 ring-slate-100">
                                   <Database className="w-4 h-4" />
-                                  Results (3)
+                                  Sourcing Results (3)
                                 </div>
                               </div>
 

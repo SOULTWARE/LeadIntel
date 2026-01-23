@@ -1,4 +1,4 @@
-export interface ScraperOptions {
+export interface SourcerOptions {
   categories?: string;
   plainQueries?: string;
   location?: string;
@@ -37,14 +37,14 @@ type SerpApiMapsResponse = {
   local_results?: SerpApiLocalResult[];
 };
 
-export class GoogleMapsScraperService {
+export class GoogleMapsSourcerService {
   private apiKey: string;
 
   constructor() {
     this.apiKey = process.env.SEARCH_API_KEY || "";
   }
 
-  async scrape(options: ScraperOptions): Promise<GoogleMapsLead[]> {
+  async collect(options: SourcerOptions): Promise<GoogleMapsLead[]> {
     if (!this.apiKey) {
       throw new Error("SEARCH_API_KEY is missing in environment variables");
     }
@@ -53,7 +53,7 @@ export class GoogleMapsScraperService {
     // Construct query
     const q = [categories, plainQueries, location, country].filter(Boolean).join(" ");
 
-    console.log(`[GoogleMapsScraper] Scraping for: "${q}" (Max: ${maxResults})`);
+    console.log(`[GoogleMapsSourcer] Collecting for: "${q}" (Max: ${maxResults})`);
 
     let allResults: GoogleMapsLead[] = [];
     let start = 0;
@@ -68,12 +68,12 @@ export class GoogleMapsScraperService {
         url.searchParams.set("start", start.toString());
         if (country) url.searchParams.set("gl", country.toLowerCase());
 
-        console.log(`[GoogleMapsScraper] Fetching results starting at ${start}...`);
+        console.log(`[GoogleMapsSourcer] Fetching results starting at ${start}...`);
 
         const response = await fetch(url.toString());
         if (!response.ok) {
           const errorText = await response.text();
-          console.error(`[GoogleMapsScraper] SerpApi error: ${response.status}`, errorText);
+          console.error(`[GoogleMapsSourcer] SerpApi error: ${response.status}`, errorText);
           break;
         }
 
@@ -81,7 +81,7 @@ export class GoogleMapsScraperService {
         const results = data.local_results || [];
 
         if (results.length === 0) {
-          console.log("[GoogleMapsScraper] No more results found.");
+          console.log("[GoogleMapsSourcer] No more results found.");
           break;
         }
 
@@ -99,7 +99,7 @@ export class GoogleMapsScraperService {
         }));
 
         allResults = [...allResults, ...mapped];
-        console.log(`[GoogleMapsScraper] Fetched ${mapped.length} results. Total: ${allResults.length}`);
+        console.log(`[GoogleMapsSourcer] Fetched ${mapped.length} results. Total: ${allResults.length}`);
 
         if (allResults.length >= maxResults) {
           allResults = allResults.slice(0, maxResults);
@@ -116,10 +116,10 @@ export class GoogleMapsScraperService {
 
       return allResults;
     } catch (error) {
-      console.error("[GoogleMapsScraper] Error:", error);
+      console.error("[GoogleMapsSourcer] Error:", error);
       throw error;
     }
   }
 }
 
-export const googleMapsScraperService = new GoogleMapsScraperService();
+export const googleMapsSourcerService = new GoogleMapsSourcerService();

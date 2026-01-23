@@ -36,9 +36,9 @@ export default async function ResultsPage() {
         title="Qualified Leads Intelligence"
         icon={<Database className="w-4 h-4" />}
         rightSlot={(
-          <Link href="/scraper" className="bg-slate-900 text-white px-5 py-2.5 rounded-xl text-sm font-black hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 flex items-center gap-2">
+          <Link href="/sourcer" className="bg-slate-900 text-white px-5 py-2.5 rounded-xl text-sm font-black hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 flex items-center gap-2">
             <Search className="w-4 h-4" />
-            New Scrape
+            New Search
           </Link>
         )}
       />
@@ -52,7 +52,7 @@ export default async function ResultsPage() {
            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
               <div className="space-y-2">
                 <h3 className="text-5xl font-black text-slate-900 tracking-tighter uppercase">Intelligence <span className="text-blue-600">Dashboard</span></h3>
-                <p className="text-slate-500 font-medium text-lg">Manage your {sessions.length} scrape sessions and {totalLeads} prospects.</p>
+                <p className="text-slate-500 font-medium text-lg">Manage your {sessions.length} sourcing sessions and {totalLeads} prospects.</p>
               </div>
               <div className="flex bg-white p-2 rounded-2xl border border-slate-100 shadow-sm">
                  <div className="px-6 py-3 text-center border-r border-slate-100">

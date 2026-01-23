@@ -41,13 +41,13 @@ export function LandingHero({ user }: { user: SupabaseUser | null }) {
           variants={itemVariants}
           className="text-6xl md:text-7xl font-black text-slate-900 leading-[1.05] tracking-tight"
         >
-          Turn Google Maps into your{' '}
+          Verified business data as your{' '}
           <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">Growth Engine.</span>
         </motion.h1>
 
         <motion.p variants={itemVariants} className="text-xl text-slate-500 leading-relaxed max-w-lg">
-          Scrape high-precision business leads and use advanced AI to verify compatibility automatically. Stop cold calling, start
-          closing.
+          Source licensed, high-precision business leads and use advanced AI to verify compatibility automatically. Stop cold calling,
+          start closing.
         </motion.p>
 
         <HeroActions user={user} />
@@ -74,7 +74,7 @@ export function LandingHero({ user }: { user: SupabaseUser | null }) {
                     <div className="flex items-center gap-4">
                       <button className="bg-slate-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-800 transition-all shadow-lg shadow-slate-200 flex items-center gap-2">
                         <Search className="w-4 h-4" />
-                        New Scrape
+                        New Search
                       </button>
                     </div>
                   </div>
@@ -90,7 +90,7 @@ export function LandingHero({ user }: { user: SupabaseUser | null }) {
                         <span className="text-slate-900">INTELLIGENCE </span>
                         <span className="text-blue-600">DASHBOARD</span>
                       </h3>
-                      <p className="text-slate-500 font-medium">Manage your 4 scrape sessions and 97 prospects.</p>
+                      <p className="text-slate-500 font-medium">Manage your 4 sourcing sessions and 97 prospects.</p>
                     </div>
 
                     <div className="bg-white border border-slate-200 rounded-2xl shadow-lg shadow-slate-100/50 overflow-hidden w-[260px]">

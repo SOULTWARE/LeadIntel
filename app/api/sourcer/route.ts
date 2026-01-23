@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { googleMapsScraperService } from "@/services/googleMapsScraperService";
+import { googleMapsSourcerService } from "@/services/googleMapsScraperService";
 import { createClient } from "@/lib/supabase/server";
 import { creditsService, InsufficientCreditsError } from "@/services/creditsService";
 import { CreditAction, getCreditCost } from "@/lib/credits/costs";
 import { z } from "zod";
 
-const ScraperRequestSchema = z.object({
+const SourcerRequestSchema = z.object({
   categories: z.string().optional(),
   plainQueries: z.string().optional(),
   location: z.string().optional(),
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
-    const parsed = ScraperRequestSchema.safeParse(await request.json());
+    const parsed = SourcerRequestSchema.safeParse(await request.json());
     if (!parsed.success) {
       return NextResponse.json(
         {
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const results = await googleMapsScraperService.scrape({
+    const results = await googleMapsSourcerService.collect({
       categories,
       plainQueries,
       location,

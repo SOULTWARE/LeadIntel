@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import InternalLayoutSetter from '@/components/InternalLayoutSetter';
 
-type ScrapeResultLead = LeadPlaceData & {
+type SourceResultLead = LeadPlaceData & {
   address?: string | null;
   phone?: string | null;
   website?: string | null;
@@ -30,7 +30,7 @@ type ScrapeResultLead = LeadPlaceData & {
   aiAnalysis?: AIAnalysisResult | null;
 };
 
-export default function ScraperPage() {
+export default function SourcerPage() {
   const [activeTab, setActiveTab] = useState('input');
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -58,7 +58,7 @@ export default function ScraperPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [results, setResults] = useState<ScrapeResultLead[] | null>(null);
+  const [results, setResults] = useState<SourceResultLead[] | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -68,13 +68,13 @@ export default function ScraperPage() {
     setFormData(prev => ({ ...prev, [name]: val }));
   };
 
-  const startExtraction = async () => {
+  const startCollection = async () => {
     setIsLoading(true);
     setResults(null);
 
     const idempotencyKey = crypto.randomUUID();
 
-    const fetchPromise = fetch('/api/scraper', {
+    const fetchPromise = fetch('/api/sourcer', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey },
       body: JSON.stringify(formData),
@@ -82,10 +82,10 @@ export default function ScraperPage() {
 
     toast.promise(fetchPromise.then(async (res) => {
       const data = await res.json();
-      if (!res.ok || !data.success) throw new Error(data.error || 'Failed to scrape');
+      if (!res.ok || !data.success) throw new Error(data.error || 'Failed to collect data');
       return data;
     }), {
-      loading: 'Gathering data from Google Maps...',
+      loading: 'Gathering verified business data...',
       success: (data) => {
         setResults(data.data.results);
         setActiveTab('results');
@@ -95,9 +95,9 @@ export default function ScraperPage() {
           handleEnhanceAll(data.data.results);
         }
 
-        return `Successfully found ${data.data.results.length} leads!`;
+        return `Successfully sourced ${data.data.results.length} leads!`;
       },
-      error: (err) => `Scrape failed: ${err.message}`,
+      error: (err) => `Data collection failed: ${err.message}`,
     });
 
     try {
@@ -107,7 +107,7 @@ export default function ScraperPage() {
     }
   };
 
-  const handleEnhanceAll = async (leadsToEnhance?: ScrapeResultLead[] | React.MouseEvent) => {
+  const handleEnhanceAll = async (leadsToEnhance?: SourceResultLead[] | React.MouseEvent) => {
     let currentLeads = Array.isArray(leadsToEnhance) ? [...leadsToEnhance] : (results ? [...results] : []);
     if (currentLeads.length === 0) return;
 
@@ -149,8 +149,8 @@ export default function ScraperPage() {
 
         if (data.success) {
           const enhancedMap = new Map(
-            (data.data.results as ScrapeResultLead[])
-              .filter((r): r is ScrapeResultLead & { placeId: string } => typeof r.placeId === 'string' && r.placeId.length > 0)
+            (data.data.results as SourceResultLead[])
+              .filter((r): r is SourceResultLead & { placeId: string } => typeof r.placeId === 'string' && r.placeId.length > 0)
               .map((r) => [r.placeId, r] as const)
           );
 
@@ -237,7 +237,7 @@ export default function ScraperPage() {
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', `scraper_results_${Date.now()}.csv`);
+    link.setAttribute('download', `sourcing_results_${Date.now()}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -251,7 +251,7 @@ export default function ScraperPage() {
   return (
     <>
       <InternalLayoutSetter
-        title="Intelligence Scraper"
+        title="Data Sourcing"
         icon={<Search className="w-4 h-4" />}
         rightSlot={(
           <div className="flex items-center gap-3">
@@ -280,7 +280,7 @@ export default function ScraperPage() {
               className={`flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-bold transition-all duration-300 ${activeTab === 'input' ? 'bg-white text-blue-600 shadow-md ring-1 ring-slate-100' : 'text-slate-500 hover:text-slate-700'}`}
             >
               <Settings2 className="w-4 h-4" />
-              Configure Scrape
+              Configure Sourcing
             </button>
             <button
               onClick={() => { if(results) setActiveTab('results'); }}
@@ -324,7 +324,7 @@ export default function ScraperPage() {
                     if (e.key === 'Enter' && e.target instanceof HTMLElement && e.target.tagName !== 'TEXTAREA') {
                       e.preventDefault();
                       if (currentStep < 3) nextStep();
-                      else startExtraction();
+                      else startCollection();
                     }
                   }}
                   className="bg-white border border-slate-200 rounded-[2rem] shadow-xl shadow-slate-100/50 overflow-hidden"
@@ -499,7 +499,7 @@ export default function ScraperPage() {
                                       <option value={20}>20 Leads (1 page)</option>
                                       <option value={40}>40 Leads (2 pages)</option>
                                       <option value={60}>60 Leads (3 pages)</option>
-                                      <option value={100}>100 Leads (Deep Scrape)</option>
+                                      <option value={100}>100 Leads (Extended Search)</option>
                                     </select>
                                   </div>
                                   <div className="flex-1 space-y-2">
@@ -595,7 +595,7 @@ export default function ScraperPage() {
                     ) : (
                       <button
                         type="button"
-                        onClick={startExtraction}
+                        onClick={startCollection}
                         disabled={isLoading}
                         className="px-10 py-4 bg-slate-900 text-white rounded-2xl font-black text-base hover:bg-slate-800 transition-all shadow-2xl shadow-slate-300 disabled:opacity-50 flex items-center gap-3 relative overflow-hidden group"
                       >
