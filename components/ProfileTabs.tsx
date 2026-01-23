@@ -6,6 +6,8 @@ import { ADDON_CREDITS_AMOUNT } from "@/lib/stripe/plans";
 
 import ProfileBillingActions from "@/components/ProfileBillingActions";
 
+type PlanSlug = "starter" | "pro";
+
 type Plan = {
   plan: string | null;
   periodEnd?: string | null;
@@ -29,6 +31,7 @@ export type ProfileTabsProps = {
   plan: Plan | null;
   subscription: Subscription | null;
   hasPlan: boolean;
+  currentPlanName: PlanSlug | null;
 };
 
 function formatDate(value?: string | null) {
@@ -56,7 +59,17 @@ function getUsageColorClass(percent: number) {
 }
 
 export default function ProfileTabs(props: ProfileTabsProps) {
-  const { userEmail, userName, totalCredits, baseBalance, addonBalance, plan, subscription, hasPlan } = props;
+  const {
+    userEmail,
+    userName,
+    totalCredits,
+    baseBalance,
+    addonBalance,
+    plan,
+    subscription,
+    hasPlan,
+    currentPlanName,
+  } = props;
 
   const supabase = useMemo(() => createClient(), []);
 
@@ -478,7 +491,7 @@ export default function ProfileTabs(props: ProfileTabsProps) {
               </div>
 
               <div className="mt-4">
-                <ProfileBillingActions hasPlan={hasPlan} />
+                <ProfileBillingActions hasPlan={hasPlan} currentPlan={currentPlanName} />
               </div>
             </div>
           </section>
