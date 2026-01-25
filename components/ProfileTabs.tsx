@@ -437,10 +437,14 @@ export default function ProfileTabs(props: ProfileTabsProps) {
                   Once base credits are used, add-ons keep your premium enrichments running. Purchase more anytime.
                 </p>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-                  <a href="#billing" className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-blue-700 text-center">
-                    Manage / purchase credits
-                  </a>
-                  <button type="button" className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-bold text-slate-800 hover:bg-slate-50">
+                  <button
+                    type="button"
+                    onClick={() => setActive("billing")}
+                    className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-blue-700 text-center cursor-pointer"
+                  >
+                    Buy credits
+                  </button>
+                  <button type="button" className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-bold text-slate-800 hover:bg-slate-50 cursor-pointer">
                     Refer a friend for bonus credits
                   </button>
                 </div>

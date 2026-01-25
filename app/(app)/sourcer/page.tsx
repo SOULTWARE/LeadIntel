@@ -264,7 +264,7 @@ export default function SourcerPage() {
                 setActiveTab('input');
                 setCurrentStep(1);
               }}
-              className="bg-slate-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-800 transition-all shadow-lg shadow-slate-200 flex items-center gap-2"
+              className="bg-slate-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-800 transition-all shadow-lg shadow-slate-200 flex items-center gap-2 cursor-pointer"
             >
               Clear Session
             </button>
@@ -577,7 +577,7 @@ export default function SourcerPage() {
                       type="button"
                       onClick={prevStep}
                       disabled={currentStep === 1}
-                      className="px-6 py-3 rounded-xl border border-slate-200 text-slate-500 font-bold text-sm hover:bg-white transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-2"
+                      className="px-6 py-3 rounded-xl border border-slate-200 text-slate-500 font-bold text-sm hover:bg-white transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
                     >
                       <ArrowLeft className="w-4 h-4" />
                       Previous
@@ -587,7 +587,7 @@ export default function SourcerPage() {
                       <button
                         type="button"
                         onClick={nextStep}
-                        className="px-8 py-3 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 flex items-center gap-2 group"
+                        className="px-8 py-3 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 flex items-center gap-2 group cursor-pointer"
                       >
                         Next Step
                         <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -597,7 +597,7 @@ export default function SourcerPage() {
                         type="button"
                         onClick={startCollection}
                         disabled={isLoading}
-                        className="px-10 py-4 bg-slate-900 text-white rounded-2xl font-black text-base hover:bg-slate-800 transition-all shadow-2xl shadow-slate-300 disabled:opacity-50 flex items-center gap-3 relative overflow-hidden group"
+                        className="px-10 py-4 bg-slate-900 text-white rounded-2xl font-black text-base hover:bg-slate-800 transition-all shadow-2xl shadow-slate-300 disabled:opacity-50 flex items-center gap-3 relative overflow-hidden group cursor-pointer"
                       >
                         {isLoading ? (
                           <>
