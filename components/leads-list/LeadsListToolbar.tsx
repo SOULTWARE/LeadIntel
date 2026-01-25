@@ -48,7 +48,7 @@ export function LeadsListToolbar(props: {
         <div className="relative">
           <button
             onClick={onToggleFilterMenu}
-            className={`flex items-center gap-2 px-6 py-4 bg-white border border-slate-200 rounded-2xl text-sm font-bold transition-all shadow-sm ${filterStatus !== 'all' ? 'text-blue-600 border-blue-200 bg-blue-50/50' : 'text-slate-600 hover:bg-slate-50'}`}
+            className={`flex items-center gap-2 px-6 py-4 bg-white border border-slate-200 rounded-2xl text-sm font-bold transition-all shadow-sm cursor-pointer ${filterStatus !== 'all' ? 'text-blue-600 border-blue-200 bg-blue-50/50' : 'text-slate-600 hover:bg-slate-50'}`}
           >
             <Filter className="w-4 h-4" />
             {filterStatus === 'all' ? 'Filters' : filterStatus}
@@ -65,7 +65,7 @@ export function LeadsListToolbar(props: {
                   <button
                     key={status}
                     onClick={() => onSelectFilterStatus(status)}
-                    className={`w-full text-left px-5 py-3 text-sm font-bold transition-colors flex items-center justify-between ${filterStatus === status ? 'text-blue-600 bg-blue-50' : 'text-slate-600 hover:bg-slate-50'}`}
+                    className={`w-full text-left px-5 py-3 text-sm font-bold transition-colors flex items-center justify-between cursor-pointer ${filterStatus === status ? 'text-blue-600 bg-blue-50' : 'text-slate-600 hover:bg-slate-50'}`}
                   >
                     {status.charAt(0).toUpperCase() + status.slice(1)}
                     {filterStatus === status && <Check className="w-4 h-4" />}
@@ -76,23 +76,23 @@ export function LeadsListToolbar(props: {
           )}
         </div>
 
-        <button
-          onClick={onFindEmailsBatch}
-          disabled={selectedCount === 0 || isFindingBatch}
-          className={`flex items-center gap-2 px-6 py-4 rounded-2xl text-sm font-bold transition-all shadow-sm ${
-            selectedCount > 0
-              ? 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-xl shadow-indigo-100'
-              : 'bg-white border border-slate-200 text-slate-400 opacity-50'
-          }`}
-        >
-          <Mail className="w-4 h-4" />
-          {isFindingBatch ? 'Searching...' : `Find Email${selectedCount > 1 ? 's' : ''}`}
-        </button>
+        <div className="relative" title="Coming soon: Email discovery launches next release.">
+          <button
+            type="button"
+            onClick={onFindEmailsBatch}
+            disabled
+            aria-disabled="true"
+            className="flex items-center gap-2 px-6 py-4 rounded-2xl text-sm font-bold transition-all shadow-sm bg-white border border-slate-200 text-slate-400 opacity-60 cursor-not-allowed"
+          >
+            <Mail className="w-4 h-4" />
+            {isFindingBatch ? 'Searching...' : `Find Email${selectedCount > 1 ? 's' : ''}`}
+          </button>
+        </div>
 
         <button
           onClick={onExport}
           disabled={selectedCount === 0}
-          className="flex items-center gap-2 px-6 py-4 bg-slate-900 text-white rounded-2xl text-sm font-bold hover:bg-slate-800 transition-all shadow-lg shadow-slate-200 disabled:opacity-50 disabled:shadow-none"
+          className="flex items-center gap-2 px-6 py-4 bg-slate-900 text-white rounded-2xl text-sm font-bold hover:bg-slate-800 transition-all shadow-lg shadow-slate-200 disabled:opacity-50 disabled:shadow-none cursor-pointer"
         >
           Export {selectedCount > 0 ? `(${selectedCount})` : 'Selected'}
         </button>
