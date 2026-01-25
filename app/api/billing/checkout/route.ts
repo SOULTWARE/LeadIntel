@@ -13,6 +13,15 @@ import {
   STRIPE_SUCCESS_URL,
 } from "@/lib/stripe/config";
 
+const ACTIVE_SUBSCRIPTION_STATUSES = [
+  "active",
+  "trialing",
+  "past_due",
+  "unpaid",
+  "incomplete",
+  "incomplete_expired",
+] as const;
+
 const CheckoutRequestSchema = z.object({
   type: z.enum(["subscription", "addon"]),
   plan: z.enum(["starter", "pro"]).optional(),
@@ -57,16 +66,33 @@ export async function POST(request: NextRequest) {
     const existingSubscription = await prisma.stripeSubscription.findFirst({
       where: {
         userId: user.id,
-        status: { not: "canceled" },
+        status: { in: ACTIVE_SUBSCRIPTION_STATUSES as unknown as string[] },
       },
       orderBy: { createdAt: "desc" },
     });
 
     if (existingSubscription) {
-      return NextResponse.json(
-        { success: false, error: "Subscription already active" },
-        { status: 409 }
-      );
+      try {
+        const canceled = await stripe.subscriptions.cancel(existingSubscription.subscriptionId, {
+          invoice_now: false,
+          prorate: true,
+        });
+
+        await prisma.stripeSubscription.update({
+          where: { subscriptionId: existingSubscription.subscriptionId },
+          data: {
+            status: canceled.status,
+            currentPeriodStart: new Date(canceled.current_period_start * 1000),
+            currentPeriodEnd: new Date(canceled.current_period_end * 1000),
+          },
+        });
+      } catch (error) {
+        console.error("[Checkout] Failed to cancel existing subscription", error);
+        return NextResponse.json(
+          { success: false, error: "Unable to update existing subscription" },
+          { status: 500 }
+        );
+      }
     }
   }
 

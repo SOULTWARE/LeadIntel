@@ -147,9 +147,10 @@ export function LeadDetailDrawer(props: {
                   </h3>
                   {!emailDraft && (
                     <button
+                      type="button"
                       onClick={() => onGenerateEmail(lead)}
                       disabled={isGeneratingEmail}
-                      className="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-[10px] font-black uppercase hover:bg-indigo-100 transition-colors disabled:opacity-50"
+                      className="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-[10px] font-black uppercase hover:bg-indigo-100 transition-colors disabled:opacity-50 cursor-pointer"
                     >
                       {isGeneratingEmail ? 'Crafting...' : 'Generate AI Draft'}
                     </button>
@@ -189,7 +190,7 @@ export function LeadDetailDrawer(props: {
                     />
                     <div className="px-6 py-3 bg-indigo-50/50 flex items-center gap-2 border-t border-indigo-100">
                       <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
-                      <span className="text-[10px] font-black text-indigo-600 uppercase">Drafted by GPT-5-NANO</span>
+                      <span className="text-[10px] font-black text-indigo-600 uppercase">Drafted by AI. <small className="text-gray-600 font-medium">Please proofread before sending.</small></span>
                     </div>
                   </motion.div>
                 ) : (
@@ -265,9 +266,16 @@ export function LeadDetailDrawer(props: {
 
               <div className="space-y-6 pt-10 border-t border-slate-100">
                 <div className="flex gap-4 pt-4">
-                  <button className="flex-1 py-5 bg-slate-900 text-white rounded-2xl font-black uppercase text-sm tracking-widest hover:bg-slate-800 transition-all shadow-xl shadow-slate-200">
-                    Start Outreach
-                  </button>
+                  <div className="flex-1" title="Coming soon: Outreach workflows arrive in the next release.">
+                    <button
+                      type="button"
+                      disabled
+                      aria-disabled="true"
+                      className="w-full py-5 bg-slate-100 text-slate-400 rounded-2xl font-black uppercase text-sm tracking-widest cursor-not-allowed border border-slate-200"
+                    >
+                      Start Outreach
+                    </button>
+                  </div>
                   {lead.website && (
                     <a
                       href={lead.website}

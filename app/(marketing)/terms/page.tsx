@@ -26,7 +26,7 @@ export default function TermsOfServicePage() {
     {
       icon: Shield,
       title: '2. Description of Service',
-      content: `Lead Intel Pro is a lead intelligence platform that provides tools for discovering, analyzing, and managing business leads. Our services include Google Maps scraping, AI-powered lead enhancement, email discovery, and lead management features. We reserve the right to modify or discontinue any part of our services at any time.`,
+      content: `Lead Intel Pro is a lead intelligence platform that provides tools for discovering, analyzing, and managing business leads. Our services include verified business data sourcing through licensed providers, AI-powered lead enhancement, email discovery, and lead management features. We reserve the right to modify or discontinue any part of our services at any time.`,
     },
     {
       icon: Scale,
@@ -51,7 +51,7 @@ export default function TermsOfServicePage() {
     {
       icon: AlertTriangle,
       title: '7. Disclaimers & Limitations',
-      content: `The Service is provided "as is" without warranties of any kind. We do not guarantee the accuracy, completeness, or quality of scraped data. Email discovery success rates may vary. We are not liable for any indirect, incidental, or consequential damages. Our total liability is limited to the amount you paid in the 12 months preceding any claim.`,
+      content: `The Service is provided "as is" without warranties of any kind. We do not guarantee the accuracy, completeness, or quality of data received from licensed providers or public records. Email discovery success rates may vary. We are not liable for any indirect, incidental, or consequential damages. Our total liability is limited to the amount you paid in the 12 months preceding any claim.`,
     },
     {
       icon: Globe,

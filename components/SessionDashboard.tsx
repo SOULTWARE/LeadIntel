@@ -23,7 +23,7 @@ export default function SessionDashboard({ sessions }: { sessions: SessionWithLe
       <div className="space-y-8">
         <button
           onClick={() => setSelectedSession(null)}
-          className="inline-flex items-center gap-2 text-xs font-black text-slate-400 hover:text-blue-600 uppercase tracking-widest transition-colors group"
+          className="inline-flex items-center gap-2 text-xs font-black text-slate-400 hover:text-blue-600 uppercase tracking-widest transition-colors group cursor-pointer"
         >
           <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
           Back to Sessions

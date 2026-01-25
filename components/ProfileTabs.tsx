@@ -6,6 +6,8 @@ import { ADDON_CREDITS_AMOUNT } from "@/lib/stripe/plans";
 
 import ProfileBillingActions from "@/components/ProfileBillingActions";
 
+type PlanSlug = "starter" | "pro";
+
 type Plan = {
   plan: string | null;
   periodEnd?: string | null;
@@ -29,6 +31,7 @@ export type ProfileTabsProps = {
   plan: Plan | null;
   subscription: Subscription | null;
   hasPlan: boolean;
+  currentPlanName: PlanSlug | null;
 };
 
 function formatDate(value?: string | null) {
@@ -56,7 +59,17 @@ function getUsageColorClass(percent: number) {
 }
 
 export default function ProfileTabs(props: ProfileTabsProps) {
-  const { userEmail, userName, totalCredits, baseBalance, addonBalance, plan, subscription, hasPlan } = props;
+  const {
+    userEmail,
+    userName,
+    totalCredits,
+    baseBalance,
+    addonBalance,
+    plan,
+    subscription,
+    hasPlan,
+    currentPlanName,
+  } = props;
 
   const supabase = useMemo(() => createClient(), []);
 
@@ -424,10 +437,14 @@ export default function ProfileTabs(props: ProfileTabsProps) {
                   Once base credits are used, add-ons keep your premium enrichments running. Purchase more anytime.
                 </p>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-                  <a href="#billing" className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-blue-700 text-center">
-                    Manage / purchase credits
-                  </a>
-                  <button type="button" className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-bold text-slate-800 hover:bg-slate-50">
+                  <button
+                    type="button"
+                    onClick={() => setActive("billing")}
+                    className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-blue-700 text-center cursor-pointer"
+                  >
+                    Buy credits
+                  </button>
+                  <button type="button" className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-bold text-slate-800 hover:bg-slate-50 cursor-pointer">
                     Refer a friend for bonus credits
                   </button>
                 </div>
@@ -478,7 +495,7 @@ export default function ProfileTabs(props: ProfileTabsProps) {
               </div>
 
               <div className="mt-4">
-                <ProfileBillingActions hasPlan={hasPlan} />
+                <ProfileBillingActions hasPlan={hasPlan} currentPlan={currentPlanName} />
               </div>
             </div>
           </section>

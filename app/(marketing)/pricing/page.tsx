@@ -118,7 +118,7 @@ export default function PricingPage() {
               <div className="border-t border-slate-100 pt-6 space-y-3">
                 {[
                   'Unlimited searches',
-                  'Google Maps scraping',
+                  'Verified business data via licensed providers',
                   'AI lead analysis & scoring',
                   'Pain-point reasoning',
                   'Manual lead selection',
@@ -181,7 +181,7 @@ export default function PricingPage() {
                   'Everything in Starter',
                   'Bulk enhance leads',
                   'Batch email discovery (up to 200)',
-                  'Priority scraping queue',
+                  'Priority data sourcing queue',
                   'Faster AI processing',
                 ].map((feature, i) => (
                   <div key={i} className="flex items-center gap-3 text-sm text-slate-300">

@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Scraper Flow', () => {
   test('should scrape and enhance leads', async ({ page }) => {
     // Mock the scraper API
-    await page.route('/api/scraper', async (route) => {
+    await page.route('/api/sourcer', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -46,7 +46,7 @@ test.describe('Scraper Flow', () => {
     });
 
     // 1. Navigate to scraper page
-    await page.goto('/scraper');
+    await page.goto('/sourcer');
     await expect(page).toHaveTitle(/LeadIntel/);
 
     // 2. Fill the form

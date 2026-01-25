@@ -57,7 +57,7 @@ export default function Navbar({ user }: NavbarProps) {
         <nav className="hidden md:flex items-center gap-8">
           {user ? (
             <>
-              <Link href="/scraper" className="text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors">Scraper</Link>
+              <Link href="/sourcer" className="text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors">Data Sourcing</Link>
               <Link href="/results" className="text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors">Dashboard</Link>
 
               <div className="relative">

@@ -123,7 +123,7 @@ function LoginPageContent() {
           <div className="flex gap-4 pt-4">
              {[
                "AI Compatibility Scoring",
-               "Google Maps Scraper",
+               "Licensed Data Sourcing",
                "Verified Contact Info"
              ].map((item, i) => (
                <div key={i} className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-300 bg-slate-800/50 px-3 py-1.5 rounded-lg border border-slate-700/50">

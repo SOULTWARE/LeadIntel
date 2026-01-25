@@ -21,8 +21,8 @@ export function WorkflowSection() {
           },
           {
             num: '02',
-            title: 'Scrape',
-            desc: 'Extract live data from Google Maps with deep precision.',
+            title: 'Source',
+            desc: 'Gather verified business data via licensed providers and public records.',
             color: 'bg-blue-50',
             icon: <Search className="text-blue-600" />,
           },

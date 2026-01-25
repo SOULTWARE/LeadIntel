@@ -45,6 +45,7 @@ export default async function ProfilePage({
   const selectedPlan = typeof resolvedSearchParams.plan === "string" ? resolvedSearchParams.plan : null;
   const totalCredits = baseBalance + addonBalance.remaining;
   const hasPlan = Boolean(plan);
+  const currentPlanName = plan?.plan === "PRO" ? "pro" : plan?.plan === "STARTER" ? "starter" : null;
   const userName =
     (user.user_metadata?.full_name as string | undefined) ||
     (user.user_metadata?.name as string | undefined) ||
@@ -82,7 +83,7 @@ export default async function ProfilePage({
             </p>
           </div>
           <div className="sr-only">
-            <ProfileBillingActions hasPlan={hasPlan} />
+            <ProfileBillingActions hasPlan={hasPlan} currentPlan={currentPlanName} />
           </div>
         </main>
       </>
@@ -115,6 +116,7 @@ export default async function ProfilePage({
           plan={planForClient}
           subscription={subscriptionForClient}
           hasPlan={hasPlan}
+          currentPlanName={currentPlanName}
         />
       </main>
     </>

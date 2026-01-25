@@ -96,8 +96,8 @@ export default function AboutPage() {
                 actually respond. The ones with genuine business problems we could solve.
               </p>
               <p>
-                So we built Lead Intel Pro: a platform that combines the power of data scraping with AI-driven analysis
-                to surface leads that aren&apos;t just contact information, but genuine opportunities.
+                So we built Lead Intel Pro: a platform that combines verified data sourcing with AI-driven analysis to
+                surface leads that aren&apos;t just contact information, but genuine opportunities.
               </p>
             </div>
           </div>
