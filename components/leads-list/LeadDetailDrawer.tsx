@@ -146,19 +146,14 @@ export function LeadDetailDrawer(props: {
                     Personalized Outreach
                   </h3>
                   {!emailDraft && (
-                    <div className="relative" title="Coming soon: Outreach automation launches next version.">
-                      <button
-                        type="button"
-                        onClick={(event) => {
-                          event.preventDefault();
-                        }}
-                        disabled
-                        aria-disabled="true"
-                        className="px-4 py-2 bg-white border border-indigo-100 text-indigo-300 rounded-xl text-[10px] font-black uppercase opacity-70 cursor-not-allowed"
-                      >
-                        Generate AI Draft
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => onGenerateEmail(lead)}
+                      disabled={isGeneratingEmail}
+                      className="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-[10px] font-black uppercase hover:bg-indigo-100 transition-colors disabled:opacity-50 cursor-pointer"
+                    >
+                      {isGeneratingEmail ? 'Crafting...' : 'Generate AI Draft'}
+                    </button>
                   )}
                 </div>
 
@@ -195,7 +190,7 @@ export function LeadDetailDrawer(props: {
                     />
                     <div className="px-6 py-3 bg-indigo-50/50 flex items-center gap-2 border-t border-indigo-100">
                       <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
-                      <span className="text-[10px] font-black text-indigo-600 uppercase">Drafted by GPT-5-NANO</span>
+                      <span className="text-[10px] font-black text-indigo-600 uppercase">Drafted by AI. <small className="text-gray-600 font-medium">Please proofread before sending.</small></span>
                     </div>
                   </motion.div>
                 ) : (

@@ -8,14 +8,14 @@ const GenerateEmailRequestSchema = z.object({
   lead: z
     .object({
       name: z.string().min(1),
-      type: z.string().optional(),
-      reasoning: z.string().optional(),
-      compatibilityHooks: z.array(z.string()).optional(),
-      identifiedProblems: z.array(z.string()).optional(),
-      searchQuery: z.string().optional(),
+      type: z.string().nullish(),
+      reasoning: z.string().nullish(),
+      compatibilityHooks: z.array(z.string()).nullish(),
+      identifiedProblems: z.array(z.string()).nullish(),
+      searchQuery: z.string().nullish(),
     })
     .passthrough(),
-  leadPurpose: z.string().optional(),
+  leadPurpose: z.string().nullish(),
 });
 
 export async function POST(req: Request) {
