@@ -475,6 +475,7 @@ export default function SourcerPage() {
         sessionName: formData.sessionName || `${formData.categories || formData.plainQueries} - ${formData.location}`,
         target: formData.categories || formData.plainQueries,
         location: formData.location,
+        contactPurpose: formData.leadPurpose || undefined,
       }),
     });
 

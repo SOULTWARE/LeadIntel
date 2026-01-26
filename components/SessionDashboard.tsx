@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   ChevronRight,
@@ -15,14 +15,40 @@ import type { Prisma } from '@prisma/client';
 
 type SessionWithLeads = Prisma.SessionGetPayload<{ include: { leads: true } }>;
 
+const DASHBOARD_SESSION_STORAGE_KEY = 'dashboard.selectedSessionId';
+
 export default function SessionDashboard({ sessions }: { sessions: SessionWithLeads[] }) {
-  const [selectedSession, setSelectedSession] = useState<SessionWithLeads | null>(null);
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+
+  const selectedSession = useMemo(() => {
+    if (!selectedSessionId) return null;
+    return sessions.find((session) => session.id === selectedSessionId) ?? null;
+  }, [selectedSessionId, sessions]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const storedId = localStorage.getItem(DASHBOARD_SESSION_STORAGE_KEY);
+    if (!storedId) return;
+    const exists = sessions.some((session) => session.id === storedId);
+    if (exists) {
+      setSelectedSessionId(storedId);
+    }
+  }, [sessions]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (selectedSessionId) {
+      localStorage.setItem(DASHBOARD_SESSION_STORAGE_KEY, selectedSessionId);
+    } else {
+      localStorage.removeItem(DASHBOARD_SESSION_STORAGE_KEY);
+    }
+  }, [selectedSessionId]);
 
   if (selectedSession) {
     return (
       <div className="space-y-8">
         <button
-          onClick={() => setSelectedSession(null)}
+          onClick={() => setSelectedSessionId(null)}
           className="inline-flex items-center gap-2 text-xs font-black text-slate-400 hover:text-blue-600 uppercase tracking-widest transition-colors group cursor-pointer"
         >
           <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
@@ -72,7 +98,7 @@ export default function SessionDashboard({ sessions }: { sessions: SessionWithLe
            initial={{ opacity: 0, y: 20 }}
            animate={{ opacity: 1, y: 0 }}
            transition={{ delay: i * 0.1 }}
-           onClick={() => setSelectedSession(session)}
+           onClick={() => setSelectedSessionId(session.id)}
            className="group relative bg-white p-8 rounded-[2rem] border border-slate-200 shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all cursor-pointer overflow-hidden"
         >
           <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
