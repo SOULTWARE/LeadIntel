@@ -12,7 +12,6 @@ export default function LeadsList({ initialLeads }: { initialLeads: Lead[] }) {
   const [leads, setLeads] = useState<Lead[]>(initialLeads);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [emailDraft, setEmailDraft] = useState<{ subject: string; body: string } | null>(null);
   const [isGeneratingEmail, setIsGeneratingEmail] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
 
@@ -67,7 +66,6 @@ export default function LeadsList({ initialLeads }: { initialLeads: Lead[] }) {
 
   const generateEmail = async (lead: Lead) => {
     setIsGeneratingEmail(true);
-    setEmailDraft(null);
     try {
       const response = await fetch('/api/generate/email', {
         method: 'POST',
@@ -76,7 +74,32 @@ export default function LeadsList({ initialLeads }: { initialLeads: Lead[] }) {
       });
       const data = await response.json();
       if (data.success && data.data?.subject && data.data?.body) {
-        setEmailDraft(data.data);
+        const generatedAt = data.data.generatedAt ? new Date(data.data.generatedAt) : new Date();
+
+        setLeads((prev) =>
+          prev.map((item) =>
+            item.id === lead.id
+              ? {
+                  ...item,
+                  emailDraftSubject: data.data.subject,
+                  emailDraftBody: data.data.body,
+                  emailDraftGeneratedAt: generatedAt,
+                }
+              : item
+          )
+        );
+
+        setSelectedLead((prev) =>
+          prev && prev.id === lead.id
+            ? {
+                ...prev,
+                emailDraftSubject: data.data.subject,
+                emailDraftBody: data.data.body,
+                emailDraftGeneratedAt: generatedAt,
+              }
+            : prev
+        );
+
         toast.success("Personalized draft ready!");
       } else {
         toast.error("Failed to generate draft.");
@@ -89,13 +112,21 @@ export default function LeadsList({ initialLeads }: { initialLeads: Lead[] }) {
   };
 
   const copyToClipboard = () => {
-    if (!emailDraft) return;
-    const text = `Subject: ${emailDraft.subject}\n\n${emailDraft.body}`;
+    if (!currentDraft) return;
+    const text = `Subject: ${currentDraft.subject}\n\n${currentDraft.body}`;
     navigator.clipboard.writeText(text);
     setIsCopied(true);
     toast.success("Copied to clipboard!");
     setTimeout(() => setIsCopied(false), 2000);
   };
+
+  const currentDraft =
+    selectedLead?.emailDraftSubject && selectedLead?.emailDraftBody
+      ? {
+          subject: selectedLead.emailDraftSubject,
+          body: selectedLead.emailDraftBody,
+        }
+      : null;
 
   const filteredLeads = leads.filter(lead => {
     const matchesSearch = lead.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -267,7 +298,7 @@ export default function LeadsList({ initialLeads }: { initialLeads: Lead[] }) {
       <LeadDetailDrawer
         lead={selectedLead}
         onClose={() => setSelectedLead(null)}
-        emailDraft={emailDraft}
+        emailDraft={currentDraft}
         isGeneratingEmail={isGeneratingEmail}
         onGenerateEmail={generateEmail}
         onCopyToClipboard={copyToClipboard}

@@ -7,6 +7,8 @@ import InternalLayoutSetter from "@/components/InternalLayoutSetter";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
+export const dynamic = 'force-dynamic';
+
 async function getSessions() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
