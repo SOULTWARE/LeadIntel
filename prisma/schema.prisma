@@ -33,6 +33,11 @@ model Lead {
   identifiedProblems Json?   @default("[]")
   compatibilityHooks Json?   @default("[]")
 
+  // AI Outreach Draft
+  emailDraftSubject     String?
+  emailDraftBody        String?
+  emailDraftGeneratedAt DateTime?
+
   // Status
   isEnhanced Boolean @default(false)
 

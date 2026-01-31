@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { creditsService, InsufficientCreditsError } from '@/services/creditsService';
 import { CreditAction, getCreditCost } from '@/lib/credits/costs';
+import { prisma } from '@/db';
 import { z } from 'zod';
 
 const GenerateEmailRequestSchema = z.object({
@@ -17,6 +18,12 @@ const GenerateEmailRequestSchema = z.object({
     .passthrough(),
   leadPurpose: z.string().nullish(),
 });
+
+function extractLeadId(value: unknown): string | null {
+  if (typeof value !== 'object' || value === null) return null;
+  const candidate = value as { id?: unknown };
+  return typeof candidate.id === 'string' && candidate.id.length > 0 ? candidate.id : null;
+}
 
 export async function POST(req: Request) {
   try {
@@ -123,6 +130,22 @@ Return ONLY a valid JSON object:
     const data = await response.json();
     const content = JSON.parse(data.choices[0].message.content);
 
+    const leadId = extractLeadId(lead);
+    let generatedAt: string | null = null;
+
+    if (leadId) {
+      const updated = await prisma.lead.update({
+        where: { id: leadId },
+        data: {
+          emailDraftSubject: content.subject,
+          emailDraftBody: content.body,
+          emailDraftGeneratedAt: new Date(),
+        },
+        select: { emailDraftGeneratedAt: true },
+      });
+      generatedAt = updated.emailDraftGeneratedAt?.toISOString() ?? new Date().toISOString();
+    }
+
     if (shouldCharge) {
       await creditsService.captureHold({
         userId: user.id,
@@ -133,7 +156,12 @@ Return ONLY a valid JSON object:
 
     return NextResponse.json({
       success: true,
-      data: content,
+      data: {
+        subject: content.subject,
+        body: content.body,
+        leadId,
+        generatedAt,
+      },
     });
   } catch (error) {
     console.error("[EmailGen] Error:", error);

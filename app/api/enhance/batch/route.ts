@@ -3,6 +3,7 @@ import { aiEnhanceService } from "@/services/aiEnhanceService";
 import { createClient } from "@/lib/supabase/server";
 import { creditsService, InsufficientCreditsError } from "@/services/creditsService";
 import { CreditAction, getCreditCost } from "@/lib/credits/costs";
+import { prisma } from "@/db";
 import { z } from "zod";
 
 const LeadPlaceDataSchema = z
@@ -77,8 +78,6 @@ export async function POST(request: NextRequest) {
 
     let batchForAi = batch;
     if (ids.length > 0) {
-      const { prisma } = await import("@/db");
-
       const dbLeads = await prisma.lead.findMany({
         where: {
           id: { in: ids },
@@ -93,6 +92,37 @@ export async function POST(request: NextRequest) {
     }
 
     const results = await aiEnhanceService.enhanceBatch(batchForAi, leadPurpose);
+
+    const leadsToPersist = results
+      .map((analysis, index) => {
+        const candidate = batchForAi[index];
+        const id = getLeadId(candidate);
+        return id
+          ? {
+              id,
+              analysis,
+            }
+          : null;
+      })
+      .filter((item): item is { id: string; analysis: typeof results[number] } => item !== null);
+
+    if (leadsToPersist.length > 0) {
+      await prisma.$transaction(
+        leadsToPersist.map(({ id, analysis }) =>
+          prisma.lead.update({
+            where: { id },
+            data: {
+              isEnhanced: true,
+              compatibilityScore: analysis.compatibilityScore,
+              recommendation: analysis.recommendation,
+              reasoning: analysis.reasoning,
+              identifiedProblems: analysis.identifiedProblems,
+              compatibilityHooks: analysis.compatibilityHooks,
+            },
+          })
+        )
+      );
+    }
 
     if (shouldCharge) {
       await creditsService.captureHold({
