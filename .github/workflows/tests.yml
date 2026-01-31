@@ -27,7 +27,7 @@ jobs:
       - name: Generate Prisma client
         run: pnpm db:generate
         env:
-          DATABASE_URL: postgresql://user:pass@localhost:5432/leadintel?schema=public
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Run unit/integration tests
         run: pnpm test:run
