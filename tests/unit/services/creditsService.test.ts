@@ -1,4 +1,9 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
+
+vi.mock("@/db", () => ({
+  prisma: {},
+}));
+
 import { CreditsService } from "@/services/creditsService";
 
 describe("CreditsService validations", () => {

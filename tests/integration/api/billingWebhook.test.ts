@@ -2,6 +2,10 @@ import { describe, it, expect, vi } from "vitest";
 import { POST } from "@/app/api/billing/webhook/route";
 import { NextRequest } from "next/server";
 
+vi.mock("@/db", () => ({
+  prisma: {},
+}));
+
 vi.mock("@/lib/stripe/server", () => ({
   stripe: {
     webhooks: {

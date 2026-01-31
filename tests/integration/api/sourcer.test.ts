@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { POST } from "@/app/api/sourcer/route";
 import { createClient } from "@/lib/supabase/server";
-import { creditsService } from "@/services/creditsService";
+import { creditsService, InsufficientCreditsError } from "@/services/creditsService";
 import { googleMapsSourcerService } from "@/services/googleMapsScraperService";
 import { NextRequest } from "next/server";
 
@@ -15,15 +15,13 @@ vi.mock("@/services/googleMapsScraperService", () => ({
   },
 }));
 
-class MockInsufficientCreditsError extends Error {}
-
 vi.mock("@/services/creditsService", () => ({
   creditsService: {
     createHold: vi.fn(),
     captureHold: vi.fn(),
     releaseHold: vi.fn(),
   },
-  InsufficientCreditsError: MockInsufficientCreditsError,
+  InsufficientCreditsError: class MockInsufficientCreditsError extends Error {},
 }));
 
 describe("/api/sourcer", () => {
@@ -73,7 +71,7 @@ describe("/api/sourcer", () => {
       },
     } as Awaited<ReturnType<typeof createClient>>);
 
-    vi.mocked(creditsService.createHold).mockRejectedValue(new MockInsufficientCreditsError("nope"));
+    vi.mocked(creditsService.createHold).mockRejectedValue(new InsufficientCreditsError("nope"));
 
     const req = new NextRequest("http://localhost:3000/api/sourcer", {
       method: "POST",
@@ -92,6 +90,14 @@ describe("/api/sourcer", () => {
         getUser: async () => ({ data: { user: { id: "user-1" } } }),
       },
     } as Awaited<ReturnType<typeof createClient>>);
+
+    vi.mocked(creditsService.createHold).mockResolvedValue({
+      id: "hold-1",
+      userId: "user-1",
+      status: "HOLD",
+      amount: 1,
+      idempotencyKey: "key",
+    } as Awaited<ReturnType<typeof creditsService.createHold>>);
 
     vi.mocked(googleMapsSourcerService.collect).mockResolvedValue([
       { name: "Test" },

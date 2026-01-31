@@ -10,14 +10,12 @@ vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(),
 }));
 
-class MockInsufficientCreditsError extends Error {}
-
 vi.mock("@/services/creditsService", () => ({
   creditsService: {
     createHold: vi.fn(),
     releaseHold: vi.fn(),
   },
-  InsufficientCreditsError: MockInsufficientCreditsError,
+  InsufficientCreditsError: class MockInsufficientCreditsError extends Error {},
 }));
 
 vi.mock("@/services/jobQueueService", () => ({

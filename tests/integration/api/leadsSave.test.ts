@@ -41,7 +41,7 @@ describe("/api/leads/save", () => {
     expect(res.status).toBe(401);
   });
 
-  it("returns 400 when body invalid", async () => {
+  it("returns 200 with empty count when body uses default leads", async () => {
     vi.mocked(createClient).mockResolvedValue({
       auth: {
         getUser: async () => ({ data: { user: { id: "user-1" } } }),
@@ -55,7 +55,10 @@ describe("/api/leads/save", () => {
 
     const res = await POST(req);
 
-    expect(res.status).toBe(400);
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.data.count).toBe(0);
   });
 
   it("creates session and upserts leads", async () => {

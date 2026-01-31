@@ -3,6 +3,16 @@ import { POST } from '@/app/api/enhance/batch/route';
 import { aiEnhanceService } from '@/services/aiEnhanceService';
 import { NextRequest } from 'next/server';
 
+vi.mock('@/db', () => ({
+  prisma: {
+    lead: {
+      findMany: vi.fn(),
+      update: vi.fn(),
+    },
+    $transaction: vi.fn(),
+  },
+}));
+
 vi.mock('@/lib/supabase/server', () => ({
   createClient: async () => ({
     auth: {

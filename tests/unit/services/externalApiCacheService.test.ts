@@ -13,7 +13,8 @@ vi.mock("@/db", () => ({
 
 describe("ExternalApiCacheService", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.restoreAllMocks();
+    vi.mocked(prisma.externalApiCache.findUnique).mockResolvedValue(null);
   });
 
   it("returns null when cache entry is missing", async () => {
