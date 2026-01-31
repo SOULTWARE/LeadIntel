@@ -24,6 +24,9 @@ jobs:
           version: 9
           run_install: true
 
+      - name: Generate Prisma client
+        run: pnpm db:generate
+
       - name: Run unit/integration tests
         run: pnpm test:run
 
