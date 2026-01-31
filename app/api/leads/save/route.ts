@@ -34,6 +34,7 @@ const SaveLeadsRequestSchema = z.object({
   sessionName: z.string().optional(),
   target: z.string().optional(),
   location: z.string().optional(),
+  contactPurpose: z.string().optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -53,7 +54,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { leads, sessionName, target, location } = parsed.data;
+    const { leads, sessionName, target, location, contactPurpose } = parsed.data;
 
     let sessionId: string | undefined;
     if (sessionName) {
@@ -81,6 +82,7 @@ export async function POST(request: NextRequest) {
           placeId: lead.placeId,
           sessionId: sessionId,
           userId: user.id,
+          searchQuery: contactPurpose || undefined,
         };
 
         const updateData: Prisma.LeadUncheckedUpdateInput = {
@@ -94,6 +96,7 @@ export async function POST(request: NextRequest) {
           placeId: lead.placeId,
           sessionId: sessionId,
           userId: user.id,
+          searchQuery: contactPurpose || undefined,
         };
 
         if (lead.aiAnalysis) {

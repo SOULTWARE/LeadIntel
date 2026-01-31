@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -15,9 +15,17 @@ import {
   ArrowLeft,
   ArrowRight,
   ChevronRight,
-  FileDown
+  FileDown,
+  Check,
+  X,
+  Phone,
+  Globe,
+  Mail
 } from 'lucide-react';
 import InternalLayoutSetter from '@/components/InternalLayoutSetter';
+import { COUNTRIES } from '@/lib/constants/countries';
+
+const STORAGE_KEY = 'sourcerState.v1';
 
 type SourceResultLead = LeadPlaceData & {
   address?: string | null;
@@ -59,6 +67,16 @@ export default function SourcerPage() {
   const [isEnhancing, setIsEnhancing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [results, setResults] = useState<SourceResultLead[] | null>(null);
+  const [selectedResultIds, setSelectedResultIds] = useState<Set<string>>(new Set());
+  const [activeResultLead, setActiveResultLead] = useState<SourceResultLead | null>(null);
+  const isHydratingRef = useRef(true);
+
+  const getResultId = (lead: SourceResultLead, index: number) => lead.placeId ?? `${lead.name}-${index}`;
+
+  const getSelectedResults = () => {
+    if (!results || selectedResultIds.size === 0) return [] as SourceResultLead[];
+    return results.filter((lead, idx) => selectedResultIds.has(getResultId(lead, idx)));
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -67,6 +85,8 @@ export default function SourcerPage() {
     const val = target instanceof HTMLInputElement && type === 'checkbox' ? target.checked : value;
     setFormData(prev => ({ ...prev, [name]: val }));
   };
+
+  const hasSelectedResults = selectedResultIds.size > 0;
 
   const startCollection = async () => {
     setIsLoading(true);
@@ -90,7 +110,6 @@ export default function SourcerPage() {
         setResults(data.data.results);
         setActiveTab('results');
 
-        // Handle Auto-Enhance here to ensure it triggers after state update
         if (formData.autoEnhance) {
           handleEnhanceAll(data.data.results);
         }
@@ -107,9 +126,17 @@ export default function SourcerPage() {
     }
   };
 
-  const handleEnhanceAll = async (leadsToEnhance?: SourceResultLead[] | React.MouseEvent) => {
-    let currentLeads = Array.isArray(leadsToEnhance) ? [...leadsToEnhance] : (results ? [...results] : []);
-    if (currentLeads.length === 0) return;
+  const handleEnhanceAll = async (overrideLeads?: SourceResultLead[]) => {
+    const currentLeads = overrideLeads
+      ? [...overrideLeads]
+      : (results ? results.filter((lead, idx) => selectedResultIds.has(getResultId(lead, idx))) : []);
+
+    if (currentLeads.length === 0) {
+      if (!overrideLeads) {
+        toast.error('Select at least one lead to enhance.');
+      }
+      return;
+    }
 
     if (!formData.leadPurpose) {
       toast.error("Please enter a 'Contact Purpose' in Step 3 first.");
@@ -120,10 +147,11 @@ export default function SourcerPage() {
 
     setIsEnhancing(true);
 
+    let leadsQueue = [...currentLeads];
+
     try {
       while (true) {
-        // Find unenhanced leads from the local tracking variable
-        const unenhancedLeads = currentLeads.filter(l => !l.aiAnalysis);
+        const unenhancedLeads = leadsQueue.filter(l => !l.aiAnalysis);
 
         if (unenhancedLeads.length === 0) {
           toast.success("All leads have been successfully analyzed!");
@@ -155,10 +183,16 @@ export default function SourcerPage() {
           );
 
           // Update the local variable so the next loop iteration sees the new data
-          currentLeads = currentLeads.map(oldLead => (oldLead.placeId ? enhancedMap.get(oldLead.placeId) : undefined) || oldLead);
+          leadsQueue = leadsQueue.map(oldLead => (oldLead.placeId ? enhancedMap.get(oldLead.placeId) : undefined) || oldLead);
 
-          // Update React state for the UI
-          setResults([...currentLeads]);
+          setResults((prev) => {
+            if (!prev) return prev;
+            return prev.map((oldLead) => {
+              if (!oldLead.placeId) return oldLead;
+              const updated = enhancedMap.get(oldLead.placeId);
+              return updated ? { ...oldLead, aiAnalysis: updated.aiAnalysis } : oldLead;
+            });
+          });
 
           toast.success(`Processed batch of ${data.data.totalProcessed} leads!`, { id: toastId });
 
@@ -178,17 +212,22 @@ export default function SourcerPage() {
   };
 
   const handleSaveResults = async () => {
-    if (!results || results.length === 0) return;
+    const leadsToSave = getSelectedResults();
+    if (leadsToSave.length === 0) {
+      toast.error('Select at least one lead to save.');
+      return;
+    }
 
     setIsSaving(true);
     const promise = fetch('/api/leads/save', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        leads: results,
+        leads: leadsToSave,
         sessionName: formData.sessionName || `${formData.categories || formData.plainQueries} - ${formData.location}`,
         target: formData.categories || formData.plainQueries,
         location: formData.location,
+        contactPurpose: formData.leadPurpose || undefined,
       }),
     });
 
@@ -214,12 +253,16 @@ export default function SourcerPage() {
   };
 
   const handleExportCSV = () => {
-    if (!results || results.length === 0) return;
+    const leadsToExport = getSelectedResults();
+    if (leadsToExport.length === 0) {
+      toast.error('Select at least one lead to export.');
+      return;
+    }
 
     const headers = ['Name', 'Address', 'Phone', 'Website', 'Rating', 'Reviews', 'Type', 'Compatibility Score', 'Recommendation', 'Reasoning'];
     const csvContent = [
       headers.join(','),
-      ...results.map(r => [
+      ...leadsToExport.map(r => [
         `"${r.name || ''}"`,
         `"${r.address || ''}"`,
         `"${r.phone || ''}"`,
@@ -247,6 +290,88 @@ export default function SourcerPage() {
 
   const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, 3));
   const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1));
+
+  useEffect(() => {
+    if (!results || results.length === 0) {
+      setSelectedResultIds(new Set());
+      setActiveResultLead(null);
+      return;
+    }
+    if (isHydratingRef.current) return;
+    setSelectedResultIds(new Set(results.map((lead, idx) => getResultId(lead, idx))));
+    setActiveResultLead(null);
+  }, [results]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (parsed.formData) {
+          setFormData(prev => ({ ...prev, ...parsed.formData }));
+        }
+        if (parsed.activeTab === 'results' || parsed.activeTab === 'input') {
+          setActiveTab(parsed.activeTab);
+        }
+        if (typeof parsed.currentStep === 'number') {
+          const clampedStep = Math.min(Math.max(parsed.currentStep, 1), 3);
+          setCurrentStep(clampedStep);
+        }
+        if (Array.isArray(parsed.results)) {
+          setResults(parsed.results);
+        }
+        if (Array.isArray(parsed.selectedResultIds)) {
+          setSelectedResultIds(new Set(parsed.selectedResultIds));
+        }
+        if (parsed.activeResultLead) {
+          setActiveResultLead(parsed.activeResultLead);
+        }
+      } catch (error) {
+        console.error('[SourcerState] Failed to parse persisted state', error);
+      }
+    }
+    isHydratingRef.current = false;
+  }, []);
+
+  useEffect(() => {
+    if (isHydratingRef.current) return;
+    if (typeof window === 'undefined') return;
+    try {
+      const payload = {
+        activeTab,
+        currentStep,
+        formData,
+        results,
+        selectedResultIds: Array.from(selectedResultIds),
+        activeResultLead,
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    } catch (error) {
+      console.error('[SourcerState] Failed to persist state', error);
+    }
+  }, [activeTab, currentStep, formData, results, selectedResultIds, activeResultLead]);
+
+  const toggleSelectAllResults = () => {
+    if (!results || results.length === 0) return;
+    if (selectedResultIds.size === results.length) {
+      setSelectedResultIds(new Set());
+      return;
+    }
+    const allIds = new Set(results.map((lead, idx) => getResultId(lead, idx)));
+    setSelectedResultIds(allIds);
+  };
+
+  const toggleSelectResult = (lead: SourceResultLead, index: number) => {
+    const id = getResultId(lead, index);
+    const next = new Set(selectedResultIds);
+    if (next.has(id)) {
+      next.delete(id);
+    } else {
+      next.add(id);
+    }
+    setSelectedResultIds(next);
+  };
 
   return (
     <>
@@ -277,14 +402,14 @@ export default function SourcerPage() {
           <div className="flex gap-2 bg-slate-200/50 p-1.5 rounded-2xl mb-12 w-fit mx-auto border border-slate-200 shadow-inner">
             <button
               onClick={() => setActiveTab('input')}
-              className={`flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-bold transition-all duration-300 ${activeTab === 'input' ? 'bg-white text-blue-600 shadow-md ring-1 ring-slate-100' : 'text-slate-500 hover:text-slate-700'}`}
+              className={`flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-bold cursor-pointer transition-all duration-300 ${activeTab === 'input' ? 'bg-white text-blue-600 shadow-md ring-1 ring-slate-100' : 'text-slate-500 hover:text-slate-700'}`}
             >
               <Settings2 className="w-4 h-4" />
               Configure Sourcing
             </button>
             <button
               onClick={() => { if(results) setActiveTab('results'); }}
-              className={`flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-bold transition-all duration-300 ${activeTab === 'results' ? 'bg-white text-blue-600 shadow-md ring-1 ring-slate-100' : 'text-slate-400 cursor-not-allowed opacity-60'}`}
+              className={`flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-bold cursor-pointer transition-all duration-300 ${activeTab === 'results' ? 'bg-white text-blue-600 shadow-md ring-1 ring-slate-100' : 'text-slate-400 cursor-not-allowed opacity-60'}`}
               disabled={!results}
             >
               <Database className="w-4 h-4" />
@@ -413,11 +538,11 @@ export default function SourcerPage() {
                                 onChange={handleInputChange}
                                 className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-100 focus:bg-white outline-none transition-all text-sm font-medium"
                               >
-                                <option value="US">United States</option>
-                                <option value="GB">United Kingdom</option>
-                                <option value="DE">Germany</option>
-                                <option value="FR">France</option>
-                                <option value="CA">Canada</option>
+                                {COUNTRIES.map(country => (
+                                  <option key={country.code} value={country.code}>
+                                    {country.name}
+                                  </option>
+                                ))}
                               </select>
                             </div>
 
@@ -625,17 +750,21 @@ export default function SourcerPage() {
               >
                 <div className="bg-white rounded-[2rem] border border-slate-200 shadow-2xl shadow-slate-200/50 overflow-hidden">
                    <div className="p-10 border-b border-slate-100 bg-slate-50/30 flex flex-col md:flex-row items-center justify-between gap-6">
-                      <div className="space-y-1">
+                      <div className="space-y-2 text-center md:text-left">
                         <h3 className="text-3xl font-black text-slate-900 tracking-tight">Extracted Leads</h3>
                         <p className="text-slate-500 font-medium flex items-center gap-2">
                            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                            Successfully found {results?.length || 0} businesses
                         </p>
+                        <div className="inline-flex items-center gap-2 text-xs font-bold text-slate-500 bg-white border border-slate-200 rounded-full px-4 py-1">
+                          <Check className="w-3 h-3 text-blue-500" />
+                          {selectedResultIds.size} selected
+                        </div>
                       </div>
                       <div className="flex flex-wrap justify-center gap-3">
                         <button
                           onClick={handleExportCSV}
-                          className="px-6 py-3 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all flex items-center gap-2 shadow-sm"
+                          className="px-6 py-3 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all flex items-center gap-2 shadow-sm cursor-pointer"
                         >
                           <FileDown className="w-4 h-4" />
                           Export CSV
@@ -643,7 +772,7 @@ export default function SourcerPage() {
                         <button
                           onClick={() => handleEnhanceAll()}
                           disabled={isEnhancing}
-                          className="px-8 py-3 text-sm font-black bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 shadow-xl shadow-indigo-100 transition-all disabled:opacity-50 flex items-center gap-2 group"
+                          className="px-8 py-3 text-sm font-black bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 shadow-xl shadow-indigo-100 transition-all disabled:opacity-50 flex items-center gap-2 group cursor-pointer"
                         >
                           {isEnhancing ? (
                             <>
@@ -660,10 +789,10 @@ export default function SourcerPage() {
                         <button
                           onClick={handleSaveResults}
                           disabled={isSaving}
-                          className="px-8 py-3 text-sm font-black bg-slate-900 text-white rounded-xl hover:bg-slate-800 shadow-xl shadow-slate-900/10 transition-all disabled:opacity-50 flex items-center gap-2"
+                          className="px-8 py-3 text-sm font-black bg-slate-900 text-white rounded-xl hover:bg-slate-800 shadow-xl shadow-slate-900/10 transition-all disabled:opacity-40 flex items-center gap-2 cursor-pointer"
                         >
                            <Database className="w-4 h-4" />
-                           {isSaving ? 'Saving...' : 'Save All'}
+                           {isSaving ? 'Saving...' : 'Save'}
                         </button>
                       </div>
                    </div>
@@ -672,6 +801,20 @@ export default function SourcerPage() {
                      <table className="w-full text-left border-collapse">
                         <thead>
                           <tr className="bg-slate-50/80">
+                            <th className="pl-8 py-6 w-12">
+                              <div
+                                onClick={toggleSelectAllResults}
+                                className={`w-5 h-5 rounded-md border-2 flex items-center justify-center cursor-pointer transition-all ${
+                                  results && selectedResultIds.size === results.length && results.length > 0
+                                    ? 'bg-blue-600 border-blue-600'
+                                    : 'bg-white border-slate-300 hover:border-blue-400'
+                                }`}
+                              >
+                                {results && results.length > 0 && selectedResultIds.size === results.length && (
+                                  <Check className="w-3.5 h-3.5 text-white stroke-[4]" />
+                                )}
+                              </div>
+                            </th>
                             <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Business Name</th>
                             <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Contact Details</th>
                             <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">AI Intelligence</th>
@@ -681,12 +824,29 @@ export default function SourcerPage() {
                         <tbody className="divide-y divide-slate-100">
                           {(results || []).map((r, i) => (
                             <motion.tr
+                              onClick={() => setActiveResultLead(r)}
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ delay: i * 0.03 }}
                               key={i}
-                              className="group hover:bg-blue-50/30 transition-all duration-300"
+                              className={`group hover:bg-blue-50/30 transition-all duration-300 cursor-pointer ${
+                                selectedResultIds.has(getResultId(r, i)) ? 'bg-blue-50/40' : ''
+                              }`}
                             >
+                               <td className="pl-8 py-8 w-12" onClick={(e) => e.stopPropagation()}>
+                                 <div
+                                   onClick={() => toggleSelectResult(r, i)}
+                                   className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
+                                     selectedResultIds.has(getResultId(r, i))
+                                       ? 'bg-blue-600 border-blue-600'
+                                       : 'bg-white border-slate-300 group-hover:border-blue-400'
+                                   }`}
+                                 >
+                                   {selectedResultIds.has(getResultId(r, i)) && (
+                                     <Check className="w-3.5 h-3.5 text-white stroke-[4]" />
+                                   )}
+                                 </div>
+                               </td>
                                <td className="px-8 py-8">
                                  <div className="font-bold text-slate-800 text-base group-hover:text-blue-600 transition-colors">{r.name}</div>
                                  <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1 bg-slate-100 px-2 py-0.5 rounded w-fit">{r.type || 'Business'}</div>
@@ -749,6 +909,123 @@ export default function SourcerPage() {
                         </tbody>
                      </table>
                    </div>
+                   <AnimatePresence>
+                     {activeResultLead && (
+                       <>
+                         <motion.div
+                           initial={{ opacity: 0 }}
+                           animate={{ opacity: 0.5 }}
+                           exit={{ opacity: 0 }}
+                           onClick={() => setActiveResultLead(null)}
+                           className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[90]"
+                         />
+                         <motion.div
+                           initial={{ x: '100%' }}
+                           animate={{ x: 0 }}
+                           exit={{ x: '100%' }}
+                           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                           className="fixed top-0 right-0 w-full md:w-[520px] h-full bg-white shadow-2xl z-[100] overflow-y-auto"
+                         >
+                           <div className="p-8 space-y-8">
+                             <div className="flex items-center justify-between">
+                               <div>
+                                 <div className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-600">Live Preview</div>
+                                 <h3 className="text-3xl font-black text-slate-900 tracking-tight">{activeResultLead.name}</h3>
+                               </div>
+                               <button
+                                 onClick={() => setActiveResultLead(null)}
+                                 className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition-colors cursor-pointer"
+                               >
+                                 <X className="w-5 h-5" />
+                               </button>
+                             </div>
+
+                             <div className="grid grid-cols-2 gap-4">
+                               <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                                 <div className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Category</div>
+                                 <div className="text-lg font-black text-slate-900">{activeResultLead.type || 'Business'}</div>
+                               </div>
+                               <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                                 <div className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Rating</div>
+                                 <div className="text-lg font-black text-slate-900">
+                                   {activeResultLead.rating ? `${activeResultLead.rating} ★` : 'N/A'}
+                                 </div>
+                               </div>
+                             </div>
+
+                             <div className="space-y-4">
+                               <h4 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">AI Analysis</h4>
+                               {activeResultLead.aiAnalysis ? (
+                                 <div className="space-y-4">
+                                   <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase w-fit border ${
+                                     activeResultLead.aiAnalysis.recommendation === 'Highly Recommended'
+                                       ? 'bg-green-50 text-green-700 border-green-100'
+                                       : activeResultLead.aiAnalysis.recommendation === 'Recommended'
+                                         ? 'bg-blue-50 text-blue-700 border-blue-100'
+                                         : 'bg-slate-50 text-slate-600 border-slate-100'
+                                   }`}>
+                                     {activeResultLead.aiAnalysis.recommendation}
+                                   </div>
+                                   <div className="text-sm text-slate-600 italic border-l-2 border-slate-200 pl-4">
+                                     “{activeResultLead.aiAnalysis.reasoning}”
+                                   </div>
+                                   <div>
+                                     <div className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Compatibility Hooks</div>
+                                     <ul className="space-y-2 text-sm text-slate-600">
+                                       {activeResultLead.aiAnalysis.compatibilityHooks.map((hook, idx) => (
+                                         <li key={idx} className="flex items-center gap-2">
+                                           <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                                           {hook}
+                                         </li>
+                                       ))}
+                                     </ul>
+                                   </div>
+                                 </div>
+                               ) : (
+                                 <p className="text-sm text-slate-500 italic">No AI summary yet. Run AI Enhance to generate insights.</p>
+                               )}
+                             </div>
+
+                             <div className="space-y-4">
+                               <h4 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Contact Details</h4>
+                               <div className="space-y-3 text-sm text-slate-600">
+                                 {activeResultLead.address && (
+                                   <div className="flex items-center gap-3">
+                                     <MapPin className="w-4 h-4 text-slate-400" />
+                                     {activeResultLead.address}
+                                   </div>
+                                 )}
+                                 {activeResultLead.phone && (
+                                   <div className="flex items-center gap-3">
+                                     <Phone className="w-4 h-4 text-slate-400" />
+                                     {activeResultLead.phone}
+                                   </div>
+                                 )}
+                                 {activeResultLead.website && (
+                                   <a
+                                     href={activeResultLead.website}
+                                     target="_blank"
+                                     className="flex items-center gap-3 text-blue-600 font-semibold"
+                                   >
+                                     <Globe className="w-4 h-4" />
+                                     Visit website
+                                   </a>
+                                 )}
+                               </div>
+                             </div>
+
+                             <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 space-y-3">
+                               <div className="flex items-center gap-3">
+                                 <Mail className="w-4 h-4 text-indigo-500" />
+                                 <div className="text-sm font-bold text-slate-700">Need personalized outreach?</div>
+                               </div>
+                               <p className="text-xs text-slate-500">Save this lead to your results dashboard to use full outreach workflows.</p>
+                             </div>
+                           </div>
+                         </motion.div>
+                       </>
+                     )}
+                   </AnimatePresence>
                 </div>
               </motion.div>
             )}

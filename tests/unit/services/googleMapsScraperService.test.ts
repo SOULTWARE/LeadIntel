@@ -1,15 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { GoogleMapsScraperService } from '@/services/googleMapsScraperService';
+import { GoogleMapsSourcerService } from '@/services/googleMapsScraperService';
 
 // Mock the environment variables
 process.env.SEARCH_API_KEY = 'test-api-key';
 
-describe('GoogleMapsScraperService', () => {
-  let service: GoogleMapsScraperService;
+describe('GoogleMapsSourcerService', () => {
+  let service: GoogleMapsSourcerService;
   let fetchMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    service = new GoogleMapsScraperService();
+    service = new GoogleMapsSourcerService();
     fetchMock = vi.fn();
     vi.stubGlobal('fetch', fetchMock);
   });
@@ -35,7 +35,7 @@ describe('GoogleMapsScraperService', () => {
       json: async () => mockResponse,
     });
 
-    const results = await service.scrape({
+    const results = await service.collect({
       categories: 'Restaurants',
       location: 'New York'
     });
@@ -61,7 +61,7 @@ describe('GoogleMapsScraperService', () => {
       json: async () => ({ local_results: [] }),
     });
 
-    const results = await service.scrape({ plainQueries: 'Nothing' });
+    const results = await service.collect({ plainQueries: 'Nothing' });
     expect(results).toHaveLength(0);
   });
 
@@ -72,6 +72,6 @@ describe('GoogleMapsScraperService', () => {
       text: async () => 'Forbidden',
     });
 
-    await expect(service.scrape({ categories: 'Test' })).resolves.toEqual([]);
+    await expect(service.collect({ categories: 'Test' })).resolves.toEqual([]);
   });
 });

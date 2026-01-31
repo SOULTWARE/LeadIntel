@@ -48,6 +48,8 @@ const CreditLedgerEntryType: Record<Uppercase<CreditLedgerEntryTypeType>, Credit
   DEBIT: "DEBIT",
 };
 
+const TRANSACTION_OPTIONS = { timeout: 15000, maxWait: 5000 } as const;
+
 async function getInitialCreditsForUser(tx: Prisma.TransactionClient, userId: string): Promise<number> {
   const plan = await tx.userPlan.findUnique({
     where: { userId },
@@ -131,7 +133,7 @@ export class CreditsService {
       });
 
       return balance;
-    });
+    }, TRANSACTION_OPTIONS);
   }
 
   async getBalance(userId: string): Promise<number> {
@@ -318,7 +320,7 @@ export class CreditsService {
           metaJson: { ...(input.meta ?? {}), source: "addon" } as Prisma.InputJsonValue,
         },
       });
-    });
+    }, TRANSACTION_OPTIONS);
   }
 
   async captureHold(input: {
@@ -395,7 +397,7 @@ export class CreditsService {
           amount: finalAmount,
         },
       });
-    });
+    }, TRANSACTION_OPTIONS);
   }
 
   async releaseHold(input: {
@@ -458,7 +460,7 @@ export class CreditsService {
           },
         });
       }
-    });
+    }, TRANSACTION_OPTIONS);
   }
 
   async addAddonCredits(input: {
@@ -541,7 +543,7 @@ export class CreditsService {
         remaining: updated.remaining,
         expiresAt: updated.expiresAt,
       };
-    });
+    }, TRANSACTION_OPTIONS);
   }
 
   async addCredits(input: {
@@ -623,7 +625,7 @@ export class CreditsService {
           },
         },
       });
-    });
+    }, TRANSACTION_OPTIONS);
   }
 }
 
