@@ -173,7 +173,7 @@ export default function PricingPage() {
                       100 max leads per search
                     </div>
                     <div className="flex items-center gap-3 font-bold">
-                      <div className="w-6 h-6 rounded-full bg-rose-500 flex items.center justify-center">
+                      <div className="w-6 h-6 rounded-full bg-rose-500 flex items-center justify-center">
                         <Mail size={12} className="text-white" />
                       </div>
                       AI email drafts & hooks included
