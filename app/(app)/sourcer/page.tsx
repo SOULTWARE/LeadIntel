@@ -374,7 +374,7 @@ export default function SourcerPage() {
   };
 
   return (
-    <>
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans flex flex-col justify-between">
       <InternalLayoutSetter
         title="Data Sourcing"
         icon={<Search className="w-4 h-4" />}
@@ -1031,19 +1031,20 @@ export default function SourcerPage() {
             )}
           </AnimatePresence>
         </div>
-        <footer className="mt-20 border-t border-slate-200 py-16 bg-white">
-          <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-8">
-            <div className="bg-slate-50 px-4 py-2 rounded-full text-slate-400 text-xs font-bold tracking-widest uppercase">
-              Generated Intelligence Engine 2025
-            </div>
-            <div className="flex gap-10 text-slate-400 text-xs font-black uppercase tracking-widest">
+      </main>
+
+      <footer className="mt-20 border-t border-slate-200 py-16 bg-white bottom-0 w-full">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-8">
+           <div className="bg-slate-50 px-4 py-2 rounded-full text-slate-400 text-xs font-bold tracking-widest uppercase">
+             Generated Intelligence Engine 2025
+           </div>
+           <div className="flex gap-10 text-slate-400 text-xs font-black uppercase tracking-widest">
               <a href="#" className="hover:text-blue-600 transition-colors">Documentation</a>
               <a href="#" className="hover:text-blue-600 transition-colors">Support</a>
               <a href="#" className="hover:text-blue-600 transition-colors">Privacy</a>
-            </div>
-          </div>
-        </footer>
-      </main>
-    </>
+           </div>
+        </div>
+      </footer>
+    </div>
   );
 }
