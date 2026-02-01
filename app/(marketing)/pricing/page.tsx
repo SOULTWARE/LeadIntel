@@ -38,7 +38,7 @@ export default function PricingPage() {
           </motion.h1>
 
           <motion.p variants={itemVariants} className="text-xl text-slate-500 leading-relaxed">
-            Subscribe to a plan with monthly allowances. Usage resets every month. Need more? Purchase add-ons anytime.
+            Subscribe to monthly lead intelligence credits that cover sourcing, AI discovery, outreach drafts, and exports. Usage resets every cycle, and you can top up whenever you outpace demand.
           </motion.p>
         </section>
 
@@ -55,26 +55,26 @@ export default function PricingPage() {
                   <Sparkles size={18} className="text-indigo-600" />
                 </div>
                 <div>
-                  <div className="font-bold text-slate-900 mb-1">Enhanced Lead</div>
-                  <p className="text-sm text-slate-500">AI analysis, scoring, and pain-point reasoning for one business.</p>
+                  <div className="font-bold text-slate-900 mb-1">AI discovery & scoring</div>
+                  <p className="text-sm text-slate-500">Each credit unlocks a business summary, pain points, compatibility score, and outreach hooks.</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
                 <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
-                  <Mail size={18} className="text-blue-600" />
+                  <Search size={18} className="text-blue-600" />
                 </div>
                 <div>
-                  <div className="font-bold text-slate-900 mb-1">Email Discovery</div>
-                  <p className="text-sm text-slate-500">One attempt to find contact emails. Counts whether successful or not.</p>
+                  <div className="font-bold text-slate-900 mb-1">Lead generation request</div>
+                  <p className="text-sm text-slate-500">Pull a verified business with firmographics before asking the AI to enrich it.</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center shrink-0">
-                  <Search size={18} className="text-green-600" />
+                <div className="w-10 h-10 bg-rose-100 rounded-xl flex items-center justify-center shrink-0">
+                  <Mail size={18} className="text-rose-600" />
                 </div>
                 <div>
-                  <div className="font-bold text-slate-900 mb-1">Search</div>
-                  <p className="text-sm text-slate-500">Free. Browse leads anytime, even with zero remaining usage.</p>
+                  <div className="font-bold text-slate-900 mb-1">AI outreach draft</div>
+                  <p className="text-sm text-slate-500">Generate a ready-to-edit email draft for the lead you just enriched.</p>
                 </div>
               </div>
             </div>
@@ -82,123 +82,197 @@ export default function PricingPage() {
         </motion.section>
 
         {/* Pricing Cards */}
-        <motion.section variants={itemVariants} className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-          {/* Starter Plan */}
-          <div className="relative bg-white rounded-[2rem] p-10 border border-slate-200 shadow-xl hover:shadow-2xl transition-all group">
-            <div className="space-y-8">
-              <div>
-                <div className="text-sm font-black text-slate-400 uppercase tracking-widest mb-2">Starter</div>
-                <div className="text-5xl font-black text-slate-900">
-                  $29<span className="text-xl text-slate-400 font-medium">/mo</span>
+        <motion.section variants={itemVariants} className="space-y-8 max-w-6xl mx-auto">
+          <div className="grid gap-8 md:grid-cols-2">
+            {/* Starter Plan */}
+            <div className="relative bg-white rounded-[2rem] p-10 border border-slate-200 shadow-xl hover:shadow-2xl transition-all group">
+              <div className="flex h-full flex-col gap-8">
+                <div className="space-y-8">
+                  <div>
+                    <div className="text-sm font-black text-slate-400 uppercase tracking-widest mb-2">Starter</div>
+                    <div className="text-5xl font-black text-slate-900">
+                      $29<span className="text-xl text-slate-400 font-medium">/mo</span>
+                    </div>
+                    <p className="text-slate-500 mt-3">For solo founders and small teams testing outbound or running light campaigns.</p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3 font-bold text-slate-900">
+                      <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
+                        <Sparkles size={12} className="text-blue-600" />
+                      </div>
+                      1,000 AI discovery credits / month
+                    </div>
+                    <div className="flex items-center gap-3 font-bold text-slate-900">
+                      <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center">
+                        <Search size={12} className="text-slate-600" />
+                      </div>
+                      100 max leads per search
+                    </div>
+                    <div className="flex items-center gap-3 font-bold text-slate-900">
+                      <div className="w-6 h-6 rounded-full bg-rose-100 flex items-center justify-center">
+                        <Mail size={12} className="text-rose-600" />
+                      </div>
+                      AI email drafts & hooks included
+                    </div>
+                  </div>
+
+                  <div className="border-t border-slate-100 pt-6 space-y-3">
+                    {[
+                      'Unlimited sourcing sessions',
+                      'Business profile summaries & firmographics',
+                      'Pain-point reasoning & compatibility scoring',
+                      'AI outreach hooks plus ready-to-edit drafts',
+                      'Manual lead selection workflow',
+                      'CSV export of selected leads',
+                    ].map((feature) => (
+                      <div key={feature} className="flex items-center gap-3 text-sm text-slate-600">
+                        <Check size={16} className="text-green-500" />
+                        {feature}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <p className="text-slate-500 mt-3">For solo founders and small teams testing outbound or running light campaigns.</p>
+
+                <Link
+                  href="/login?plan=starter"
+                  className="mt-auto block w-full py-4 rounded-2xl bg-slate-100 text-slate-900 font-bold text-center hover:bg-slate-200 transition-colors group-hover:bg-blue-600 group-hover:text-white"
+                >
+                  Get Started
+                </Link>
+              </div>
+            </div>
+
+            {/* Pro Plan */}
+            <div className="relative bg-slate-900 rounded-[2rem] p-10 border-2 border-blue-600 shadow-2xl shadow-blue-200 overflow-hidden">
+              <div className="absolute top-0 right-0 bg-blue-600 text-white text-xs font-bold px-4 py-1.5 rounded-bl-2xl uppercase tracking-wider">
+                Popular
               </div>
 
-              <div className="space-y-4">
-                <div className="flex items-center gap-3 font-bold text-slate-900">
+              <div className="flex h-full flex-col gap-8 text-white">
+                <div className="space-y-8">
+                  <div>
+                    <div className="text-sm font-black text-blue-400 uppercase tracking-widest mb-2">Pro</div>
+                    <div className="text-5xl font-black">
+                      $79<span className="text-xl text-slate-400 font-medium">/mo</span>
+                    </div>
+                    <p className="text-slate-400 mt-3">For agencies and teams running consistent outbound campaigns at scale.</p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3 font-bold">
+                      <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center">
+                        <Sparkles size={12} className="text-white" />
+                      </div>
+                      5,000 AI discovery credits / month
+                    </div>
+                    <div className="flex items-center gap-3 font-bold">
+                      <div className="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center">
+                        <Search size={12} className="text-slate-300" />
+                      </div>
+                      100 max leads per search
+                    </div>
+                    <div className="flex items-center gap-3 font-bold">
+                      <div className="w-6 h-6 rounded-full bg-rose-500 flex items.center justify-center">
+                        <Mail size={12} className="text-white" />
+                      </div>
+                      AI email drafts & hooks included
+                    </div>
+                  </div>
+
+                  <div className="border-t border-slate-700 pt-6 space-y-3">
+                    {[
+                      'Everything in Starter',
+                      'Bulk AI discovery (up to 100 leads per batch)',
+                      'Automated outreach drafts for every lead',
+                      'Priority data sourcing queue',
+                      'Faster AI processing & scoring',
+                    ].map((feature) => (
+                      <div key={feature} className="flex items-center gap-3 text-sm text-slate-300">
+                        <Check size={16} className="text-blue-400" />
+                        {feature}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <Link
+                  href="/login?plan=pro"
+                  className="mt-auto block w-full py-4 rounded-2xl bg-blue-600 text-white font-bold text-center hover:bg-blue-500 transition-colors"
+                >
+                  Get Started
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Comment this until implementing the 50 free credites on signup */}
+          {/* Free Trial */}
+          {/* <div className="relative bg-slate-50 rounded-[2rem] p-6 border border-dashed border-slate-300 shadow-sm">
+            <div className="grid gap-6 md:grid-cols-[1.5fr_1.2fr_auto] items-center">
+              <div className="space-y-2">
+                <div className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-[11px] font-black uppercase tracking-[0.3em] text-slate-500">Free</div>
+                <div className="flex flex-wrap items-baseline gap-3">
+                  <span className="text-3xl md:text-4xl font-black text-slate-900">50 credits</span>
+                  <span className="text-xs md:text-sm font-semibold text-slate-500">Complimentary trial — no card required</span>
+                </div>
+              </div>
+
+              <div className="grid gap-3 text-sm font-semibold text-slate-700 md:grid-cols-2">
+                <div className="flex items-center gap-2">
                   <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
                     <Sparkles size={12} className="text-blue-600" />
                   </div>
-                  1,000 Enhanced Leads / month
+                  50 AI discoveries
                 </div>
-                <div className="flex items-center gap-3 font-bold text-slate-900">
-                  <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
-                    <Mail size={12} className="text-blue-600" />
-                  </div>
-                  1,000 Email Discoveries / month
-                </div>
-                <div className="flex items-center gap-3 font-bold text-slate-900">
+                <div className="flex items-center gap-2">
                   <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center">
                     <Search size={12} className="text-slate-600" />
                   </div>
-                  50 max leads per search
+                  100 lead searches
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-rose-100 flex items-center justify-center">
+                    <Mail size={12} className="text-rose-600" />
+                  </div>
+                  AI email drafts
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center">
+                    <Check size={12} className="text-emerald-600" />
+                  </div>
+                  CSV export ready
                 </div>
               </div>
 
-              <div className="border-t border-slate-100 pt-6 space-y-3">
-                {[
-                  'Unlimited searches',
-                  'Verified business data via licensed providers',
-                  'AI lead analysis & scoring',
-                  'Pain-point reasoning',
-                  'Manual lead selection',
-                  'CSV export',
-                ].map((feature, i) => (
-                  <div key={i} className="flex items-center gap-3 text-sm text-slate-600">
-                    <Check size={16} className="text-green-500" />
-                    {feature}
-                  </div>
-                ))}
+              <div className="flex flex-col gap-2 text-xs text-slate-500">
+                <div className="font-black uppercase tracking-[0.3em] text-slate-400">Also included</div>
+                <div className="grid gap-1 text-[11px] font-semibold text-slate-600">
+                  {[
+                    'Unlimited sourcing sessions',
+                    'Business summaries & firmographics',
+                    'Pain-point reasoning & scoring',
+                    'AI outreach hooks',
+                    'Manual selection workflow',
+                  ].map((feature) => (
+                    <div key={feature} className="flex items-center gap-2">
+                      <Check size={12} className="text-green-500" />
+                      {feature}
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              <Link
-                href="/login?plan=starter"
-                className="block w-full py-4 rounded-2xl bg-slate-100 text-slate-900 font-bold text-center hover:bg-slate-200 transition-colors group-hover:bg-blue-600 group-hover:text-white"
-              >
-                Get Started
-              </Link>
+              <div className="w-full md:w-auto">
+                <Link
+                  href="/login"
+                  className="block w-full rounded-2xl border border-slate-200 bg-white px-5 py-3 text-center text-sm font-black text-slate-900 hover:border-blue-200 hover:text-blue-600 transition-colors"
+                >
+                  Start free trial
+                </Link>
+              </div>
             </div>
-          </div>
-
-          {/* Pro Plan */}
-          <div className="relative bg-slate-900 rounded-[2rem] p-10 border-2 border-blue-600 shadow-2xl shadow-blue-200 overflow-hidden">
-            <div className="absolute top-0 right-0 bg-blue-600 text-white text-xs font-bold px-4 py-1.5 rounded-bl-2xl uppercase tracking-wider">
-              Popular
-            </div>
-
-            <div className="space-y-8 text-white">
-              <div>
-                <div className="text-sm font-black text-blue-400 uppercase tracking-widest mb-2">Pro</div>
-                <div className="text-5xl font-black">
-                  $79<span className="text-xl text-slate-400 font-medium">/mo</span>
-                </div>
-                <p className="text-slate-400 mt-3">For agencies and teams running consistent outbound campaigns at scale.</p>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center gap-3 font-bold">
-                  <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center">
-                    <Sparkles size={12} className="text-white" />
-                  </div>
-                  5,000 Enhanced Leads / month
-                </div>
-                <div className="flex items-center gap-3 font-bold">
-                  <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center">
-                    <Mail size={12} className="text-white" />
-                  </div>
-                  5,000 Email Discoveries / month
-                </div>
-                <div className="flex items-center gap-3 font-bold">
-                  <div className="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center">
-                    <Search size={12} className="text-slate-300" />
-                  </div>
-                  200 max leads per search
-                </div>
-              </div>
-
-              <div className="border-t border-slate-700 pt-6 space-y-3">
-                {[
-                  'Everything in Starter',
-                  'Bulk enhance leads',
-                  'Batch email discovery (up to 200)',
-                  'Priority data sourcing queue',
-                  'Faster AI processing',
-                ].map((feature, i) => (
-                  <div key={i} className="flex items-center gap-3 text-sm text-slate-300">
-                    <Check size={16} className="text-blue-400" />
-                    {feature}
-                  </div>
-                ))}
-              </div>
-
-              <Link
-                href="/login?plan=pro"
-                className="block w-full py-4 rounded-2xl bg-blue-600 text-white font-bold text-center hover:bg-blue-500 transition-colors"
-              >
-                Get Started
-              </Link>
-            </div>
-          </div>
+          </div> */}
         </motion.section>
 
         {/* Add-ons Section */}
@@ -208,31 +282,18 @@ export default function PricingPage() {
             <p className="text-slate-500 mt-2">Purchase add-ons when you exceed your monthly allowance.</p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid gap-6">
             <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-2xl p-8 border border-indigo-100">
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center">
                   <Sparkles size={20} className="text-white" />
                 </div>
                 <div>
-                  <div className="font-black text-slate-900">+500 Enhanced Leads</div>
-                  <div className="text-sm text-slate-500">One-time purchase</div>
+                  <div className="font-black text-slate-900">+500 Lead intelligence credits</div>
+                  <div className="text-sm text-slate-500">One-time · $10 · Expires in 3 months</div>
                 </div>
               </div>
-              <p className="text-sm text-slate-600">Boost your lead enhancement capacity. Used only after monthly usage is exhausted.</p>
-            </div>
-
-            <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl p-8 border border-blue-100">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
-                  <Mail size={20} className="text-white" />
-                </div>
-                <div>
-                  <div className="font-black text-slate-900">+500 Email Discoveries</div>
-                  <div className="text-sm text-slate-500">One-time purchase</div>
-                </div>
-              </div>
-              <p className="text-sm text-slate-600">Expand your email finding capacity. Add-ons expire after 6-12 months.</p>
+              <p className="text-sm text-slate-600">Use add-on credits for additional sourcing, AI discoveries, outreach drafts, and CSV exports after your base allowance is exhausted.</p>
             </div>
           </div>
         </motion.section>
@@ -246,9 +307,9 @@ export default function PricingPage() {
                 'Monthly usage resets automatically on renewal',
                 'Unused monthly usage does not roll over',
                 'Re-enhancing the same lead is free',
-                'Email discovery retries count as usage',
+                'AI email drafts are generated using a separate credit',
                 'Add-ons are used after monthly allowance',
-                'Usage limits ensure fair platform use',
+                'CSV exports reflect whatever you select in the workspace',
               ].map((note, i) => (
                 <div key={i} className="flex items-center gap-3 text-sm text-slate-300">
                   <div className="w-1.5 h-1.5 bg-blue-500 rounded-full shrink-0" />
