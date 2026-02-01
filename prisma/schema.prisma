@@ -356,3 +356,11 @@ model CreditLedgerEntry {
   @@index([userId, status])
   @@map("credit_ledger_entries")
 }
+
+model BlockedEmail {
+  email     String   @id
+  reason    String?
+  createdAt DateTime @default(now())
+
+  @@map("blocked_emails")
+}
