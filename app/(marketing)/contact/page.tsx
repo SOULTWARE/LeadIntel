@@ -1,18 +1,9 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Mail, MessageSquare, HelpCircle, Clock, Send, Building } from 'lucide-react';
-import { useState } from 'react';
+import { Mail, MessageSquare, HelpCircle, Clock, Building, PhoneCall, Sparkles } from 'lucide-react';
 
 export default function ContactPage() {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    subject: 'general',
-    message: '',
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -25,15 +16,6 @@ export default function ContactPage() {
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0 },
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setIsSubmitting(false);
-    setSubmitted(true);
   };
 
   const contactMethods = [
@@ -112,149 +94,40 @@ export default function ContactPage() {
           ))}
         </motion.section>
 
-        {/* Contact Form Section */}
-        <motion.section variants={itemVariants} className="grid md:grid-cols-2 gap-12">
-          {/* Form */}
-          <div className="bg-white rounded-3xl p-8 md:p-10 border border-slate-100 shadow-lg">
-            {submitted ? (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Send size={28} className="text-green-600" />
-                </div>
-                <h3 className="text-2xl font-black text-slate-900 mb-3">Message Sent!</h3>
-                <p className="text-slate-500">
-                  Thanks for reaching out. We&apos;ll get back to you within 24 hours.
-                </p>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <label htmlFor="name" className="block text-sm font-bold text-slate-700 mb-2">
-                    Your Name
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    required
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-100 outline-none transition-all"
-                    placeholder="John Doe"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="email" className="block text-sm font-bold text-slate-700 mb-2">
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    required
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-100 outline-none transition-all"
-                    placeholder="john@example.com"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="subject" className="block text-sm font-bold text-slate-700 mb-2">
-                    Subject
-                  </label>
-                  <select
-                    id="subject"
-                    value={formData.subject}
-                    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-100 outline-none transition-all bg-white"
-                  >
-                    <option value="general">General Inquiry</option>
-                    <option value="support">Technical Support</option>
-                    <option value="sales">Sales Question</option>
-                    <option value="billing">Billing Issue</option>
-                    <option value="feedback">Product Feedback</option>
-                    <option value="partnership">Partnership</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label htmlFor="message" className="block text-sm font-bold text-slate-700 mb-2">
-                    Message
-                  </label>
-                  <textarea
-                    id="message"
-                    required
-                    rows={5}
-                    value={formData.message}
-                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-100 outline-none transition-all resize-none"
-                    placeholder="Tell us how we can help..."
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full py-4 bg-purple-600 text-white font-bold rounded-xl hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Sending...
-                    </>
-                  ) : (
-                    <>
-                      <Send size={18} />
-                      Send Message
-                    </>
-                  )}
-                </button>
-              </form>
-            )}
-          </div>
-
-          {/* Info */}
-          <div className="space-y-8">
-            <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+        {/* Info Grid */}
+        <motion.section variants={itemVariants} className="grid md:grid-cols-2 gap-8">
+          <div className="space-y-6">
+            <div className="rounded-3xl bg-white border border-slate-100 shadow-sm p-8">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
                   <Clock size={18} className="text-purple-600" />
                 </div>
-                <h3 className="text-lg font-black text-slate-900">Response Time</h3>
+                <div>
+                  <p className="text-xs font-black uppercase tracking-[0.4em] text-slate-400">Response time</p>
+                  <p className="text-lg font-black text-slate-900">Under 24 hours</p>
+                </div>
               </div>
-              <p className="text-slate-600">
-                Our team typically responds to all inquiries within <strong>24 hours</strong> during business days.
-                Urgent support requests are prioritized.
+              <p className="text-slate-600 mt-4">
+                Our inboxes are reviewed every weekday. Enterprise customers receive priority handling and direct Slack
+                access.
               </p>
             </div>
+          </div>
 
-            <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
-                  <Building size={18} className="text-purple-600" />
-                </div>
-                <h3 className="text-lg font-black text-slate-900">Company Info</h3>
+          <div className="rounded-3xl bg-white border border-slate-100 shadow-sm p-8 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
+                <Sparkles size={18} className="text-purple-600" />
               </div>
-              <div className="space-y-2 text-slate-600">
-                <p><strong>Lead Intel Pro</strong></p>
-                <p>A product by Soultware</p>
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.4em] text-slate-400">Company info</p>
+                <p className="text-lg font-black text-slate-900">Lead Intel Pro</p>
               </div>
             </div>
-
-            <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-100">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center">
-                  <HelpCircle size={18} className="text-white" />
-                </div>
-                <h3 className="text-lg font-black text-slate-900">Need Quick Help?</h3>
-              </div>
-              <p className="text-slate-600 mb-4">
-                Check out our documentation and FAQ for instant answers to common questions.
-              </p>
-              <a href="#" className="text-purple-600 font-bold hover:underline">
-                View Documentation →
-              </a>
-            </div>
+            <p className="text-slate-600">
+              Built by Soultware. For security reasons we don&apos;t publish office addresses publicly—reach out through any
+              of the inboxes above and we&apos;ll share details as needed.
+            </p>
           </div>
         </motion.section>
       </motion.div>
