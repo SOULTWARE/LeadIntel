@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { ADDON_CREDITS_AMOUNT } from "@/lib/stripe/plans";
 
 import ProfileBillingActions from "@/components/ProfileBillingActions";
+import DeleteAccountButton from "@/components/DeleteAccountButton";
 
 type PlanSlug = "starter" | "pro";
 
@@ -321,24 +322,34 @@ export default function ProfileTabs(props: ProfileTabsProps) {
               </form>
             </div>
 
-            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 shadow-sm space-y-4">
-              <div className="text-xs font-black uppercase tracking-widest text-slate-400">Snapshot</div>
-              <h3 className="text-lg font-black text-slate-900">Your account at a glance</h3>
-              <div className="grid gap-4 text-sm text-slate-700">
-                <div className="flex items-center justify-between rounded-2xl bg-white border border-slate-200 px-4 py-3">
-                  <span className="font-semibold text-slate-800">Signed in</span>
-                  <span className="text-slate-600">{profileEmail}</span>
+            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 shadow-sm space-y-6">
+              <div>
+                <div className="text-xs font-black uppercase tracking-widest text-slate-400">Snapshot</div>
+                <h3 className="text-lg font-black text-slate-900">Your account at a glance</h3>
+                <div className="grid gap-4 text-sm text-slate-700 mt-4">
+                  <div className="flex items-center justify-between rounded-2xl bg-white border border-slate-200 px-4 py-3">
+                    <span className="font-semibold text-slate-800">Signed in</span>
+                    <span className="text-slate-600">{profileEmail}</span>
+                  </div>
+                  <div className="flex items-center justify-between rounded-2xl bg-white border border-slate-200 px-4 py-3">
+                    <span className="font-semibold text-slate-800">Display name</span>
+                    <span className="text-slate-600">{profileName || "Not set"}</span>
+                  </div>
+                  <div className="flex items-center justify-between rounded-2xl bg-white border border-slate-200 px-4 py-3">
+                    <span className="font-semibold text-slate-800">Plan</span>
+                    <span className="text-slate-600">{plan?.plan ?? "No active plan"}</span>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between rounded-2xl bg-white border border-slate-200 px-4 py-3">
-                  <span className="font-semibold text-slate-800">Display name</span>
-                  <span className="text-slate-600">{profileName || "Not set"}</span>
-                </div>
-                <div className="flex items-center justify-between rounded-2xl bg-white border border-slate-200 px-4 py-3">
-                  <span className="font-semibold text-slate-800">Plan</span>
-                  <span className="text-slate-600">{plan?.plan ?? "No active plan"}</span>
-                </div>
+                <p className="text-xs text-slate-500 mt-3">Keep your details fresh so your teammates see the right info in dashboards and exports.</p>
               </div>
-              <p className="text-xs text-slate-500">Keep your details fresh so your teammates see the right info in dashboards and exports.</p>
+
+              <div className="rounded-2xl border border-rose-200 bg-white p-5 space-y-3">
+                <div className="text-xs font-black uppercase tracking-[0.3em] text-rose-500">Danger zone</div>
+                <p className="text-sm text-slate-600">
+                  Delete your account and usage history. This cannot be undone and your email will be blocked from signing up again.
+                </p>
+                <DeleteAccountButton email={profileEmail} />
+              </div>
             </div>
           </section>
         )}

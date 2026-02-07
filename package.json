@@ -31,8 +31,8 @@
     "playwright": "^1.57.0",
     "react": "19.2.1",
     "react-dom": "19.2.1",
-    "stripe": "^17.4.0",
     "sonner": "^2.0.7",
+    "stripe": "^17.4.0",
     "zod": "^4.2.1"
   },
   "devDependencies": {
@@ -42,6 +42,7 @@
     "@types/pg": "^8.16.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "baseline-browser-mapping": "^2.9.19",
     "eslint": "^9",
     "eslint-config-next": "16.0.10",
     "prisma": "^7.1.0",

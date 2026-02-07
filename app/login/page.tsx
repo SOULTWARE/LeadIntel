@@ -42,6 +42,20 @@ function LoginPageContent() {
 
     try {
       if (isSignUp) {
+        const blockedResponse = await fetch('/api/account/blocked', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        });
+        const blockedData = await blockedResponse.json().catch(() => undefined);
+
+        if (!blockedResponse.ok) {
+          throw new Error(blockedData?.error || 'Unable to verify email status');
+        }
+        if (blockedData?.blocked) {
+          throw new Error('This email was previously deleted and cannot sign up again.');
+        }
+
         const plan = searchParams.get('plan');
         const redirectPath = plan ? `/profile?plan=${plan}` : '/profile';
         const { error } = await supabase.auth.signUp({
