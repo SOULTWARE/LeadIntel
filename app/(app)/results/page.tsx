@@ -78,9 +78,8 @@ export default async function ResultsPage() {
              Generated Intelligence Engine 2025
            </div>
            <div className="flex gap-10 text-slate-400 text-xs font-black uppercase tracking-widest">
-              <a href="#" className="hover:text-blue-600 transition-colors">Documentation</a>
-              <a href="#" className="hover:text-blue-600 transition-colors">Support</a>
-              <a href="#" className="hover:text-blue-600 transition-colors">Privacy</a>
+              <Link href="/contact" className="hover:text-blue-600 transition-colors">Support</Link>
+              <Link href="/privacy" className="hover:text-blue-600 transition-colors">Privacy</Link>
            </div>
         </div>
       </footer>
