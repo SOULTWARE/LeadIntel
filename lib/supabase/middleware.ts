@@ -35,17 +35,38 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
+  const pathname = request.nextUrl.pathname
+
   if (
     !user &&
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/auth') &&
-    request.nextUrl.pathname !== '/' &&
-    !request.nextUrl.pathname.startsWith('/api/')
+    !pathname.startsWith('/login') &&
+    !pathname.startsWith('/auth') &&
+    pathname !== '/' &&
+    !pathname.startsWith('/api/')
   ) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
+  }
+
+  // For authenticated users on protected app routes, check onboarding status.
+  // The onboarding_completed cookie is set by POST /api/onboarding on completion
+  // and by the /onboarding page for returning users who already finished.
+  if (
+    user &&
+    !pathname.startsWith('/onboarding') &&
+    !pathname.startsWith('/login') &&
+    !pathname.startsWith('/auth') &&
+    !pathname.startsWith('/api/') &&
+    pathname !== '/'
+  ) {
+    const onboardingDone = request.cookies.get('onboarding_completed')?.value
+    if (onboardingDone !== '1') {
+      const url = request.nextUrl.clone()
+      url.pathname = '/onboarding'
+      return NextResponse.redirect(url)
+    }
   }
 
   return supabaseResponse

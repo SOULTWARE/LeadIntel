@@ -56,13 +56,11 @@ function LoginPageContent() {
           throw new Error('This email was previously deleted and cannot sign up again.');
         }
 
-        const plan = searchParams.get('plan');
-        const redirectPath = plan ? `/profile?plan=${plan}` : '/profile';
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: `${location.origin}/auth/callback?next=${encodeURIComponent(redirectPath)}`,
+            emailRedirectTo: `${location.origin}/auth/callback?next=${encodeURIComponent('/onboarding')}`,
           },
         });
         if (error) throw error;
@@ -73,9 +71,10 @@ function LoginPageContent() {
           password,
         });
         if (error) throw error;
-        const plan = searchParams.get('plan');
-        const nextPath = plan ? `/profile?plan=${plan}` : '/profile';
         toast.success('Successfully logged in!');
+        // Middleware will redirect to /onboarding if not completed
+        const plan = searchParams.get('plan');
+        const nextPath = plan ? `/profile?plan=${plan}` : '/sourcer';
         router.push(nextPath);
         router.refresh();
       }

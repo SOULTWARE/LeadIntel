@@ -53,12 +53,18 @@ export async function POST(request: NextRequest) {
       await tx.addonCreditBalance.deleteMany({ where: { userId: user.id } });
       await tx.stripeSubscription.deleteMany({ where: { userId: user.id } });
       await tx.stripeCustomer.deleteMany({ where: { userId: user.id } });
+      await tx.userProfile.deleteMany({ where: { userId: user.id } });
     });
 
     const admin = createAdminClient();
     await admin.auth.admin.deleteUser(user.id);
 
-    return NextResponse.json({ success: true });
+    const response = NextResponse.json({ success: true });
+    response.cookies.set("onboarding_completed", "", {
+      path: "/",
+      maxAge: 0,
+    });
+    return response;
   } catch (error) {
     console.error("[api/account/delete]", error);
     return NextResponse.json(
