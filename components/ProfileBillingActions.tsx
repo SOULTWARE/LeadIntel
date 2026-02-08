@@ -33,7 +33,7 @@ async function startCheckout(type: "subscription" | "addon", plan?: PlanName) {
 
   const url = data.data?.url as string | undefined;
   if (!url) {
-    throw new Error("Missing Stripe checkout URL");
+    throw new Error("Missing checkout URL");
   }
 
   window.location.href = url;
@@ -126,7 +126,7 @@ export default function ProfileBillingActions({
         throw new Error(data.error || "Unable to change plan");
       }
 
-      toast.success("Plan updated. Stripe will apply prorations automatically.");
+      toast.success("Plan updated. Prorations will be applied automatically.");
       setLocalPlan(plan);
       router.refresh();
     } catch (error) {
@@ -212,7 +212,7 @@ export default function ProfileBillingActions({
           disabled={loading !== null}
           className="w-full rounded-xl border border-slate-200 px-5 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50"
         >
-          {loading === "portal" ? "Opening..." : "Manage plan in Stripe"}
+          {loading === "portal" ? "Opening..." : "Manage plan"}
         </button>
       )}
     </div>

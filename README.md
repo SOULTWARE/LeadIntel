@@ -32,6 +32,7 @@ Lead Intel Pro turns raw location-based business data into verified, enriched le
 | Contact Discovery | Hybrid Hunter + Playwright crawler retrieves and verifies inboxes via Kickbox scoring. |
 | Sessionized Saving | Leads persist to PostgreSQL via Prisma and may be grouped by named sessions for later review/export. |
 | Credit Accounting | Each AI enhancement call holds and captures credits to keep workloads within quota. |
+| Payments & Billing | Polar.sh handles checkout, subscriptions, plan upgrades/downgrades, and customer portal via `@polar-sh/nextjs`. |
 
 ## System Architecture
 
@@ -66,6 +67,7 @@ Duplicate `.env.example` and fill the following groups:
 | Search | `SEARCH_PROVIDER`, `SEARCH_API_KEY`, `MAX_CONCURRENT_FETCHES`, `FETCH_USER_AGENT` |
 | Emails | `HUNTER_API_KEY`, `KICKBOX_API_KEY` |
 | Supabase | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` |
+| Polar | `POLAR_ACCESS_TOKEN`, `POLAR_WEBHOOK_SECRET`, `POLAR_SERVER`, `POLAR_STARTER_PRODUCT_ID`, `POLAR_PRO_PRODUCT_ID`, `POLAR_ADDON_PRODUCT_ID`, `POLAR_SUCCESS_URL`, `POLAR_PORTAL_RETURN_URL` |
 
 > Keep `.env` out of version control. Rotate keys whenever deploying a new beta build.
 
@@ -79,7 +81,7 @@ npm run dev                     # start Next.js + API routes
 npm run worker                  # optional: start background discoverer (Option B)
 ```
 
-Additional scripts live in `package.json` (`npm run db:migrate`, `npm run test`, `npm run stripe:setup`).
+Additional scripts live in `package.json` (`npm run db:migrate`, `npm run test`).
 
 ## Operational Workflows
 
@@ -106,7 +108,8 @@ Additional scripts live in `package.json` (`npm run db:migrate`, `npm run test`,
 - **Frontend**: Next.js 16, React 19, Tailwind CSS 4, Framer Motion
 - **Backend**: Next.js API Routes, Prisma 7 + `@prisma/adapter-pg`, Supabase auth
 - **Data & Intelligence**: Postgres, SerpApi, OpenAI (`aiEnhanceService`), Hunter, Kickbox
-- **Tooling**: TypeScript 5, Playwright, Vitest, Stripe CLI setup script
+- **Tooling**: TypeScript 5, Playwright, Vitest
+- **Payments**: Polar.sh (`@polar-sh/sdk`, `@polar-sh/nextjs`)
 
 ---
 

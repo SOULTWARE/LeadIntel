@@ -310,22 +310,22 @@ model AddonCreditBalance {
   @@map("addon_credit_balances")
 }
 
-model StripeCustomer {
+model PolarCustomer {
   userId String @id
 
   customerId String @unique
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  @@map("stripe_customers")
+  @@map("polar_customers")
 }
 
-model StripeSubscription {
+model PolarSubscription {
   id String @id @default(uuid()) @db.Uuid
 
   userId String
   subscriptionId String @unique
-  priceId String
+  productId String
   status String
   currentPeriodStart DateTime
   currentPeriodEnd DateTime
@@ -333,7 +333,7 @@ model StripeSubscription {
   updatedAt DateTime @updatedAt
 
   @@index([userId])
-  @@map("stripe_subscriptions")
+  @@map("polar_subscriptions")
 }
 
 model CreditLedgerEntry {

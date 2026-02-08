@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { ADDON_CREDITS_AMOUNT } from "@/lib/stripe/plans";
+import { ADDON_CREDITS_AMOUNT } from "@/lib/polar/plans";
 
 import ProfileBillingActions from "@/components/ProfileBillingActions";
 import DeleteAccountButton from "@/components/DeleteAccountButton";
@@ -493,7 +493,7 @@ export default function ProfileTabs(props: ProfileTabsProps) {
               <div className="space-y-4 rounded-2xl border border-slate-100 bg-slate-50 p-4">
                 <div className="text-sm font-bold text-slate-900">Billing</div>
                 <p className="text-sm text-slate-600">
-                  {periodEnd ? `Your subscription renews on ${periodEnd}.` : "Your subscription renews based on your Stripe billing cycle."}
+                  {periodEnd ? `Your subscription renews on ${periodEnd}.` : "Your subscription renews based on your billing cycle."}
                 </p>
                 <div className="space-y-2 text-sm text-slate-700">
                   <div>

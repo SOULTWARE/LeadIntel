@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/db";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { stripe } from "@/lib/stripe/server";
+import { polar } from "@/lib/polar/server";
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,14 +20,11 @@ export async function POST(request: NextRequest) {
     const reason = typeof body?.reason === "string" ? body.reason : "user_deleted";
     const email = user.email?.trim().toLowerCase();
 
-    const subscriptions = await prisma.stripeSubscription.findMany({ where: { userId: user.id } });
+    const subscriptions = await prisma.polarSubscription.findMany({ where: { userId: user.id } });
 
     for (const subscription of subscriptions) {
       try {
-        await stripe.subscriptions.cancel(subscription.subscriptionId, {
-          invoice_now: false,
-          prorate: true,
-        });
+        await polar.subscriptions.revoke({ id: subscription.subscriptionId });
       } catch (error) {
         console.error("[api/account/delete] Failed to cancel subscription", subscription.subscriptionId, error);
         return NextResponse.json({ success: false, error: "Unable to cancel subscription" }, { status: 500 });
@@ -51,8 +48,8 @@ export async function POST(request: NextRequest) {
       await tx.userPlan.deleteMany({ where: { userId: user.id } });
       await tx.creditBalance.deleteMany({ where: { userId: user.id } });
       await tx.addonCreditBalance.deleteMany({ where: { userId: user.id } });
-      await tx.stripeSubscription.deleteMany({ where: { userId: user.id } });
-      await tx.stripeCustomer.deleteMany({ where: { userId: user.id } });
+      await tx.polarSubscription.deleteMany({ where: { userId: user.id } });
+      await tx.polarCustomer.deleteMany({ where: { userId: user.id } });
     });
 
     const admin = createAdminClient();

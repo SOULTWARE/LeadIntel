@@ -15,8 +15,7 @@
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
-    "db:reset": "prisma migrate reset",
-    "stripe:setup": "tsx scripts/stripe-setup.ts"
+    "db:reset": "prisma migrate reset"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.1.0",
@@ -32,7 +31,8 @@
     "react": "19.2.1",
     "react-dom": "19.2.1",
     "sonner": "^2.0.7",
-    "stripe": "^17.4.0",
+    "@polar-sh/nextjs": "latest",
+    "@polar-sh/sdk": "^0.42.5",
     "zod": "^4.2.1"
   },
   "devDependencies": {
