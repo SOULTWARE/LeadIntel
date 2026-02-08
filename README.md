@@ -1,53 +1,113 @@
-# Lead Intel Pro ✨
+# Lead Intel Pro · V1.Beta
 
-High-precision lead generation powered by verified business data from licensed providers, AI compatibility enhancement, and automated contact discovery.
+Lead Intel Pro turns raw location-based business data into verified, enriched lead lists that are ready for outreach. V1.Beta focuses on dependable sourcing, AI scoring, and contact discovery while keeping the deployment footprint lean.
 
-## Features
+---
 
-- **Verified Data Sourcing**: Extract rich business data (name, address, website, rating) through licensed providers and public records APIs.
-- **AI Enhancement**: Automatically verify if a business needs your services using OpenAI's latest models.
-- **Batch Contact Discovery**: Deep-scout emails for dozens of leads at once. Uses a hybrid engine of Playwright website capture and AI-driven search fallbacks.
-- **Clean Results Dashboard**: A refined UI focusing on business value (Company, Analysis, Score) while unifying contact details in an interactive lead drawer.
-- **Intelligent Filtering**: Narrow down leads by AI recommendation level to focus on "Highly Recommended" opportunities.
-- **CSV Export**: Download professionally formatted lead lists with full intelligence results.
+## Contents
 
-## Getting Started
+1. [Product Overview](#product-overview)
+2. [Core Capabilities](#core-capabilities)
+3. [System Architecture](#system-architecture)
+4. [Requirements](#requirements)
+5. [Environment Variables](#environment-variables)
+6. [Setup & Local Development](#setup--local-development)
+7. [Operational Workflows](#operational-workflows)
+8. [Tech Stack](#tech-stack)
 
-### 1. Prerequisites
-- Node.js 18+
-- PostgreSQL database
-- SerpApi Key (for licensed business data retrieval)
-- OpenAI API Key (for AI enhancement)
-- **Playwright** (for contact discovery)
+---
 
-### 2. Environment Setup
-Create a `.env` file based on `.env.example`:
-```env
-DATABASE_URL="postgresql://..."
-OPENAI_API_KEY="sk-..."
-SEARCH_API_KEY="serpapi_key_..."
-AI_MODEL="gpt-5-nano"
+## Product Overview
+
+- **Audience**: GTM and growth teams that need pre-qualified SMB leads with contextual insight.
+- **Goal**: Source, enrich, and save leads with deterministic signals before handing them to SDRs.
+- **Version Scope**: V1.Beta covers the `/sourcer` experience, AI compatibility analysis, Supabase-authenticated persistence, and CSV-ready exports.
+
+## Core Capabilities
+
+| Pillar | Description |
+| --- | --- |
+| Verified Data Sourcing | Licensed SerpApi feeds + public records to capture business metadata (name, address, coordinates, ratings). |
+| AI Compatibility Analysis | Batched OpenAI calls score each lead, produce hooks/problems, and normalize recommendation levels (`Highly Recommended` → `Not Recommended`). |
+| Contact Discovery | Hybrid Hunter + Playwright crawler retrieves and verifies inboxes via Kickbox scoring. |
+| Sessionized Saving | Leads persist to PostgreSQL via Prisma and may be grouped by named sessions for later review/export. |
+| Credit Accounting | Each AI enhancement call holds and captures credits to keep workloads within quota. |
+
+## System Architecture
+
+```
+Client (Next.js app)
+  └── /sourcer UI → /api/sourcer → SerpApi & internal collectors
+       └── Optional auto-enhance → /api/enhance/batch → aiEnhanceService → OpenAI
+            └── Lead persistence → Prisma (@/db) → PostgreSQL
+Background worker (scripts/worker.ts)
+  └── Polls DB (Option B) for long-running contact discovery + Hunter/Kickbox validation
+Auth layer via Supabase session cookies guarding API routes
 ```
 
-### 3. Installation
+## Requirements
+
+- Node.js 18+
+- PostgreSQL 14+
+- Supabase project for auth (URL + anon key)
+- SerpApi (or other configured search provider)
+- OpenAI API key (model defaults to `gpt-4o`, override with `AI_MODEL`)
+- Hunter + Kickbox API keys for email discovery/verification
+- Playwright browser dependencies (headless discovery)
+
+## Environment Variables
+
+Duplicate `.env.example` and fill the following groups:
+
+| Group | Keys |
+| --- | --- |
+| Database | `DATABASE_URL` |
+| AI | `OPENAI_API_KEY`, `AI_MODEL`, `MIN_CONFIDENCE_THRESHOLD` |
+| Search | `SEARCH_PROVIDER`, `SEARCH_API_KEY`, `MAX_CONCURRENT_FETCHES`, `FETCH_USER_AGENT` |
+| Emails | `HUNTER_API_KEY`, `KICKBOX_API_KEY` |
+| Supabase | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` |
+
+> Keep `.env` out of version control. Rotate keys whenever deploying a new beta build.
+
+## Setup & Local Development
+
 ```bash
 npm install
-npx playwright install
-npm run db:push
-npm run dev
+npx playwright install          # required for discovery flows
+npm run db:push                 # sync Prisma schema to Postgres
+npm run dev                     # start Next.js + API routes
+npm run worker                  # optional: start background discoverer (Option B)
 ```
 
-## Workflow
+Additional scripts live in `package.json` (`npm run db:migrate`, `npm run test`, `npm run stripe:setup`).
 
-1. **Source**: Navigate to `/sourcer`, enter your target categories and locations.
-2. **Analyze**: Provide a "Contact Purpose" to trigger AI verification and scoring.
-3. **Discover**: Select leads in the results table and click **Find Emails** to automatically scout contact info.
-4. **Capture**: Access deep insights in the lead drawer or export your qualified list to CSV.
+## Operational Workflows
+
+1. **Source** (`/sourcer` → `POST /api/sourcer`)
+   - Define categories, geo targets, and batch size.
+   - Collector stores the last request under `sourcerState.v1` to resume later.
+
+2. **Enhance** (`POST /api/enhance/batch`)
+   - Select leads + add a "Contact Purpose".
+   - Service enforces Idempotency-Key headers, credit holds, and persists AI output back into `lead.aiAnalysis`.
+
+3. **Save & Organize** (`POST /api/leads/save`)
+   - Persist leads (optionally grouped via `sessionName`).
+   - Upserts by `placeId` to avoid dupes; stores AI analysis fields alongside user metadata.
+
+4. **Contact Discovery (worker)**
+   - Background worker polls DB for pending leads, crawls websites via Playwright, looks up emails via Hunter, and verifies via Kickbox before writing verified contacts back to the session.
+
+5. **Export & Review**
+   - CSV export button on the results dashboard compiles saved leads with compatibility scores for downstream tooling.
 
 ## Tech Stack
 
-- **Frontend**: Next.js 16, React 19, Tailwind CSS 4, Framer Motion
-- **Backend**: Next.js API Routes, Prisma ORM (PostgreSQL)
-- **Intelligence**: OpenAI GPT-5-Nano / GPT-4o
-- **Data Sourcing**: SerpApi (licensed business data)
-- **Discovery**: Playwright (Headless Browser Automation) & AI Search
+- **Frontend**: Next.js 16, React 19, Tailwind CSS 4, Framer Motion
+- **Backend**: Next.js API Routes, Prisma 7 + `@prisma/adapter-pg`, Supabase auth
+- **Data & Intelligence**: Postgres, SerpApi, OpenAI (`aiEnhanceService`), Hunter, Kickbox
+- **Tooling**: TypeScript 5, Playwright, Vitest, Stripe CLI setup script
+
+---
+
+**Status**: V1.Beta — stable for internal teams, not yet hardened for multi-tenant production. Report issues via GitHub or the internal ops channel.
