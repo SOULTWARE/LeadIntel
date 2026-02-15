@@ -35,6 +35,8 @@ function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '');
+  const redirectBaseUrl = appUrl || location.origin;
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,7 +64,7 @@ function LoginPageContent() {
           email,
           password,
           options: {
-            emailRedirectTo: `${location.origin}/auth/callback?next=${encodeURIComponent(redirectPath)}`,
+            emailRedirectTo: `${redirectBaseUrl}/auth/callback?next=${encodeURIComponent(redirectPath)}`,
           },
         });
         if (error) throw error;
@@ -96,7 +98,7 @@ function LoginPageContent() {
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${location.origin}/auth/callback`,
+          emailRedirectTo: `${redirectBaseUrl}/auth/callback`,
         },
       });
       if (error) throw error;
