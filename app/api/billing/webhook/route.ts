@@ -1,22 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
 import { PlanType, type Prisma } from "@prisma/client";
-import type Stripe from "stripe";
+import { Webhooks } from "@polar-sh/nextjs";
 
 import { prisma } from "@/db";
-import { stripe } from "@/lib/stripe/server";
-import { getUserIdByStripeCustomerId } from "@/lib/stripe/customers";
-import { PLAN_LIMITS, ADDON_CREDITS_AMOUNT, ADDON_CREDITS_MONTHS } from "@/lib/stripe/plans";
-import { getPlanTypeByPriceId, isAddonPriceId } from "@/lib/stripe/prices";
+import { PLAN_LIMITS, ADDON_CREDITS_AMOUNT, ADDON_CREDITS_MONTHS } from "@/lib/polar/plans";
+import { getPlanTypeByProductId, isAddonProductId } from "@/lib/polar/products";
 import { STARTER_INITIAL_CREDITS, PRO_INITIAL_CREDITS } from "@/lib/credits/costs";
 import { creditsService } from "@/services/creditsService";
-
-function requireEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) {
-    throw new Error(`${name} environment variable is not set`);
-  }
-  return value;
-}
 
 async function upsertUserPlan(input: {
   userId: string;
@@ -67,19 +56,19 @@ async function ensurePlanCredits(userId: string, plan: PlanType) {
   });
 }
 
-async function upsertStripeSubscription(input: {
+async function upsertPolarSubscription(input: {
   userId: string;
   subscriptionId: string;
-  priceId: string;
+  productId: string;
   status: string;
   currentPeriodStart: Date;
   currentPeriodEnd: Date;
 }) {
-  await prisma.stripeSubscription.upsert({
+  await prisma.polarSubscription.upsert({
     where: { subscriptionId: input.subscriptionId },
     update: {
       userId: input.userId,
-      priceId: input.priceId,
+      productId: input.productId,
       status: input.status,
       currentPeriodStart: input.currentPeriodStart,
       currentPeriodEnd: input.currentPeriodEnd,
@@ -87,7 +76,7 @@ async function upsertStripeSubscription(input: {
     create: {
       userId: input.userId,
       subscriptionId: input.subscriptionId,
-      priceId: input.priceId,
+      productId: input.productId,
       status: input.status,
       currentPeriodStart: input.currentPeriodStart,
       currentPeriodEnd: input.currentPeriodEnd,
@@ -95,125 +84,125 @@ async function upsertStripeSubscription(input: {
   });
 }
 
-async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
-  const customerId = session.customer as string | null;
-  if (!customerId) return;
+async function resolveUserId(customer: { externalId?: string | null; id: string } | null): Promise<string | null> {
+  if (!customer) return null;
+  if (customer.externalId) return customer.externalId;
 
-  const userId = await getUserIdByStripeCustomerId(customerId);
-  if (!userId) return;
+  const mapped = await prisma.polarCustomer.findUnique({
+    where: { customerId: customer.id },
+  });
 
-  if (session.mode === "payment") {
-    const isAddonSession = session.metadata?.type === "addon";
-    let isAddonPrice = false;
-
-    if (!isAddonSession) {
-      const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { limit: 1 });
-      const priceId = lineItems.data[0]?.price?.id;
-      isAddonPrice = Boolean(priceId && isAddonPriceId(priceId));
-    }
-
-    if (!isAddonSession && !isAddonPrice) return;
-
-    await creditsService.addAddonCredits({
-      userId,
-      amount: ADDON_CREDITS_AMOUNT,
-      monthsToExtend: ADDON_CREDITS_MONTHS,
-      idempotencyKey: session.id,
-    });
-  }
-
-  if (session.mode === "subscription") {
-    const subscriptionId = session.subscription as string | null;
-    if (!subscriptionId) return;
-
-    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-    await handleSubscriptionUpdated(subscription);
-  }
+  return mapped?.userId ?? null;
 }
 
-async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
-  const customerId = subscription.customer as string | null;
-  if (!customerId) return;
+async function handleSubscriptionPayload(payload: {
+  data: {
+    id: string;
+    productId: string;
+    status: string;
+    customer: { externalId?: string | null; id: string } | null;
+    currentPeriodStart: Date | string;
+    currentPeriodEnd?: Date | string | null;
+  };
+}) {
+  const customer = payload.data.customer;
+  if (!customer) return;
 
-  const userId = await getUserIdByStripeCustomerId(customerId);
+  const userId = await resolveUserId(payload.data.customer);
   if (!userId) return;
 
-  const priceId = subscription.items?.data?.[0]?.price?.id;
-  if (!priceId) return;
-
-  const plan = getPlanTypeByPriceId(priceId);
+  const productId = payload.data.productId;
+  const plan = getPlanTypeByProductId(productId);
   if (!plan) return;
 
-  const periodStart = new Date(subscription.current_period_start * 1000);
-  const periodEnd = new Date(subscription.current_period_end * 1000);
+  const periodStart = new Date(payload.data.currentPeriodStart);
+  const periodEnd = payload.data.currentPeriodEnd
+    ? new Date(payload.data.currentPeriodEnd)
+    : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
-  await upsertStripeSubscription({
+  await upsertPolarSubscription({
     userId,
-    subscriptionId: subscription.id,
-    priceId,
-    status: subscription.status,
+    subscriptionId: payload.data.id,
+    productId,
+    status: payload.data.status,
     currentPeriodStart: periodStart,
     currentPeriodEnd: periodEnd,
   });
 
-  await upsertUserPlan({
-    userId,
-    plan,
-    periodStart,
-    periodEnd,
-  });
-
+  await upsertUserPlan({ userId, plan, periodStart, periodEnd });
   await ensurePlanCredits(userId, plan);
+
+  await prisma.polarCustomer.upsert({
+    where: { userId },
+    update: { customerId: customer.id },
+    create: { userId, customerId: customer.id },
+  });
 }
 
-async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
-  const customerId = subscription.customer as string | null;
-  if (!customerId) return;
+async function handleAddonOrderPayload(payload: {
+  data: {
+    id: string;
+    paid?: boolean;
+    productId?: string | null;
+    product?: { id: string } | null;
+    customer: { externalId?: string | null; id: string } | null;
+  };
+}) {
+  const customer = payload.data.customer;
+  if (!customer) return;
 
-  const userId = await getUserIdByStripeCustomerId(customerId);
+  const userId = await resolveUserId(customer);
   if (!userId) return;
 
-  await prisma.stripeSubscription.updateMany({
-    where: { subscriptionId: subscription.id },
-    data: { status: subscription.status ?? "canceled" },
+  const productId = payload.data.productId ?? payload.data.product?.id ?? null;
+  if (!productId) return;
+  if (!isAddonProductId(productId)) return;
+
+  await creditsService.addAddonCredits({
+    userId,
+    amount: ADDON_CREDITS_AMOUNT,
+    monthsToExtend: ADDON_CREDITS_MONTHS,
+    idempotencyKey: payload.data.id,
+  });
+
+  await prisma.polarCustomer.upsert({
+    where: { userId },
+    update: { customerId: customer.id },
+    create: { userId, customerId: customer.id },
   });
 }
 
-export async function POST(request: NextRequest) {
-  const rawBody = await request.text();
-  const signature = request.headers.get("stripe-signature");
+export const POST = Webhooks({
+  webhookSecret: process.env.POLAR_WEBHOOK_SECRET!,
 
-  if (!signature) {
-    return NextResponse.json({ success: false, error: "Missing stripe-signature" }, { status: 400 });
-  }
+  onSubscriptionCreated: async (payload) => {
+    await handleSubscriptionPayload(payload);
+  },
 
-  let event: Stripe.Event;
-  try {
-    event = stripe.webhooks.constructEvent(rawBody, signature, requireEnv("STRIPE_WEBHOOK_SECRET"));
-  } catch (error) {
-    console.error("[StripeWebhook] Signature verification failed", error);
-    return NextResponse.json({ success: false, error: "Invalid signature" }, { status: 400 });
-  }
+  onSubscriptionActive: async (payload) => {
+    await handleSubscriptionPayload(payload);
+  },
 
-  try {
-    switch (event.type) {
-      case "checkout.session.completed":
-        await handleCheckoutCompleted(event.data.object);
-        break;
-      case "customer.subscription.created":
-      case "customer.subscription.updated":
-        await handleSubscriptionUpdated(event.data.object);
-        break;
-      case "customer.subscription.deleted":
-        await handleSubscriptionDeleted(event.data.object);
-        break;
-      default:
-        break;
-    }
-  } catch (error) {
-    console.error("[StripeWebhook] Handler error", error);
-    return NextResponse.json({ success: false, error: "Webhook handler failed" }, { status: 500 });
-  }
+  onSubscriptionUpdated: async (payload) => {
+    await handleSubscriptionPayload(payload);
+  },
 
-  return NextResponse.json({ received: true });
-}
+  onSubscriptionCanceled: async (payload) => {
+    const userId = await resolveUserId(payload.data.customer);
+    if (!userId) return;
+
+    await prisma.polarSubscription.updateMany({
+      where: { subscriptionId: payload.data.id },
+      data: { status: payload.data.status ?? "canceled" },
+    });
+  },
+
+  onOrderPaid: async (payload) => {
+    await handleAddonOrderPayload(payload);
+  },
+
+  onOrderUpdated: async (payload) => {
+    if (!payload.data.paid) return;
+    await handleAddonOrderPayload(payload);
+  },
+});

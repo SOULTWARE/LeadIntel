@@ -18,7 +18,7 @@ async function getProfileData() {
   }
 
   const plan = await prisma.userPlan.findUnique({ where: { userId: user.id } });
-  const subscription = await prisma.stripeSubscription.findFirst({
+  const subscription = await prisma.polarSubscription.findFirst({
     where: { userId: user.id },
     orderBy: { createdAt: "desc" },
   });
@@ -77,7 +77,7 @@ export default async function ProfilePage({
         <main className="max-w-2xl mx-auto px-6 py-20">
           <div className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
             <div className="text-xs font-black uppercase tracking-widest text-slate-400">Redirecting</div>
-            <h1 className="mt-3 text-2xl font-black">Opening Stripe Checkout...</h1>
+            <h1 className="mt-3 text-2xl font-black">Opening Checkout...</h1>
             <p className="mt-3 text-sm text-slate-500">
               If you are not redirected automatically, wait a few seconds or refresh the page.
             </p>

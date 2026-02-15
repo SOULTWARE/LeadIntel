@@ -6,6 +6,17 @@ import { toast } from "sonner";
 
 type PlanName = "starter" | "pro";
 
+async function safeParseJson(response: Response): Promise<Record<string, unknown> | null> {
+  const text = await response.text();
+  if (!text) return null;
+
+  try {
+    return JSON.parse(text) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
 const PLAN_DETAILS: Record<PlanName, { label: string; price: string; bullets: string[] }> = {
   starter: {
     label: "Starter",
@@ -26,14 +37,17 @@ async function startCheckout(type: "subscription" | "addon", plan?: PlanName) {
     body: JSON.stringify({ type, plan }),
   });
 
-  const data = await response.json();
-  if (!response.ok || !data.success) {
-    throw new Error(data.error || "Checkout failed");
+  const data = await safeParseJson(response);
+  const success = data?.success === true;
+  const error = typeof data?.error === "string" ? data.error : "Checkout failed";
+
+  if (!response.ok || !success) {
+    throw new Error(error);
   }
 
-  const url = data.data?.url as string | undefined;
+  const url = (data?.data as { url?: string } | undefined)?.url;
   if (!url) {
-    throw new Error("Missing Stripe checkout URL");
+    throw new Error("Missing checkout URL");
   }
 
   window.location.href = url;
@@ -41,12 +55,15 @@ async function startCheckout(type: "subscription" | "addon", plan?: PlanName) {
 
 async function openPortal() {
   const response = await fetch("/api/billing/portal", { method: "POST" });
-  const data = await response.json();
-  if (!response.ok || !data.success) {
-    throw new Error(data.error || "Unable to open billing portal");
+  const data = await safeParseJson(response);
+  const success = data?.success === true;
+  const error = typeof data?.error === "string" ? data.error : "Unable to open billing portal";
+
+  if (!response.ok || !success) {
+    throw new Error(error);
   }
 
-  const url = data.data?.url as string | undefined;
+  const url = (data?.data as { url?: string } | undefined)?.url;
   if (!url) {
     throw new Error("Missing portal URL");
   }
@@ -120,13 +137,15 @@ export default function ProfileBillingActions({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ plan }),
       });
-      const data = await response.json();
+      const data = await safeParseJson(response);
+      const success = data?.success === true;
+      const error = typeof data?.error === "string" ? data.error : "Unable to change plan";
 
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || "Unable to change plan");
+      if (!response.ok || !success) {
+        throw new Error(error);
       }
 
-      toast.success("Plan updated. Stripe will apply prorations automatically.");
+      toast.success("Plan updated. Prorations will be applied automatically.");
       setLocalPlan(plan);
       router.refresh();
     } catch (error) {
@@ -212,7 +231,7 @@ export default function ProfileBillingActions({
           disabled={loading !== null}
           className="w-full rounded-xl border border-slate-200 px-5 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50"
         >
-          {loading === "portal" ? "Opening..." : "Manage plan in Stripe"}
+          {loading === "portal" ? "Opening..." : "Manage plan"}
         </button>
       )}
     </div>

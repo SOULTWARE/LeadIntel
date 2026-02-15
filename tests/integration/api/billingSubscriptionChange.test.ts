@@ -2,22 +2,21 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { POST } from "@/app/api/billing/subscription/change/route";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/db";
-import { stripe } from "@/lib/stripe/server";
+import { polar } from "@/lib/polar/server";
 import { NextRequest } from "next/server";
 
-vi.mock("@/lib/stripe/config", () => ({
-  STRIPE_PRO_PRICE_ID: "pro-price",
-  STRIPE_STARTER_PRICE_ID: "starter-price",
+vi.mock("@/lib/polar/config", () => ({
+  POLAR_PRO_PRODUCT_ID: "pro-product",
+  POLAR_STARTER_PRODUCT_ID: "starter-product",
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(),
 }));
 
-vi.mock("@/lib/stripe/server", () => ({
-  stripe: {
+vi.mock("@/lib/polar/server", () => ({
+  polar: {
     subscriptions: {
-      retrieve: vi.fn(),
       update: vi.fn(),
     },
   },
@@ -25,7 +24,7 @@ vi.mock("@/lib/stripe/server", () => ({
 
 vi.mock("@/db", () => ({
   prisma: {
-    stripeSubscription: {
+    polarSubscription: {
       findFirst: vi.fn(),
       update: vi.fn(),
     },
@@ -60,7 +59,7 @@ describe("/api/billing/subscription/change", () => {
       auth: { getUser: async () => ({ data: { user: { id: "user-1" } } }) },
     } as Awaited<ReturnType<typeof createClient>>);
 
-    vi.mocked(prisma.stripeSubscription.findFirst).mockResolvedValue(null);
+    vi.mocked(prisma.polarSubscription.findFirst).mockResolvedValue(null);
 
     const req = new NextRequest("http://localhost:3000/api/billing/subscription/change", {
       method: "POST",
@@ -77,20 +76,16 @@ describe("/api/billing/subscription/change", () => {
       auth: { getUser: async () => ({ data: { user: { id: "user-1" } } }) },
     } as Awaited<ReturnType<typeof createClient>>);
 
-    vi.mocked(prisma.stripeSubscription.findFirst).mockResolvedValue({
+    vi.mocked(prisma.polarSubscription.findFirst).mockResolvedValue({
       subscriptionId: "sub-1",
+      productId: "starter-product",
     } as never);
 
-    vi.mocked(stripe.subscriptions.retrieve).mockResolvedValue({
-      id: "sub-1",
-      items: { data: [{ id: "item-1", price: { id: "starter-price" } }] },
-    } as never);
-
-    vi.mocked(stripe.subscriptions.update).mockResolvedValue({
+    vi.mocked(polar.subscriptions.update).mockResolvedValue({
       id: "sub-1",
       status: "active",
-      current_period_start: 1700000000,
-      current_period_end: 1700003600,
+      currentPeriodStart: "2024-01-01T00:00:00Z",
+      currentPeriodEnd: "2024-02-01T00:00:00Z",
     } as never);
 
     const req = new NextRequest("http://localhost:3000/api/billing/subscription/change", {
