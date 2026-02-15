@@ -84,74 +84,78 @@ async function upsertPolarSubscription(input: {
   });
 }
 
-function resolveUserId(customer: { externalId?: string | null; id: string } | null): string | null {
+async function resolveUserId(customer: { externalId?: string | null; id: string } | null): Promise<string | null> {
   if (!customer) return null;
-  return customer.externalId || null;
+  if (customer.externalId) return customer.externalId;
+
+  const mapped = await prisma.polarCustomer.findUnique({
+    where: { customerId: customer.id },
+  });
+
+  return mapped?.userId ?? null;
+}
+
+async function handleSubscriptionPayload(payload: {
+  data: {
+    id: string;
+    productId: string;
+    status: string;
+    customer: { externalId?: string | null; id: string } | null;
+    currentPeriodStart: Date | string;
+    currentPeriodEnd?: Date | string | null;
+  };
+}) {
+  const customer = payload.data.customer;
+  if (!customer) return;
+
+  const userId = await resolveUserId(payload.data.customer);
+  if (!userId) return;
+
+  const productId = payload.data.productId;
+  const plan = getPlanTypeByProductId(productId);
+  if (!plan) return;
+
+  const periodStart = new Date(payload.data.currentPeriodStart);
+  const periodEnd = payload.data.currentPeriodEnd
+    ? new Date(payload.data.currentPeriodEnd)
+    : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+  await upsertPolarSubscription({
+    userId,
+    subscriptionId: payload.data.id,
+    productId,
+    status: payload.data.status,
+    currentPeriodStart: periodStart,
+    currentPeriodEnd: periodEnd,
+  });
+
+  await upsertUserPlan({ userId, plan, periodStart, periodEnd });
+  await ensurePlanCredits(userId, plan);
+
+  await prisma.polarCustomer.upsert({
+    where: { userId },
+    update: { customerId: customer.id },
+    create: { userId, customerId: customer.id },
+  });
 }
 
 export const POST = Webhooks({
   webhookSecret: process.env.POLAR_WEBHOOK_SECRET!,
 
+  onSubscriptionCreated: async (payload) => {
+    await handleSubscriptionPayload(payload);
+  },
+
   onSubscriptionActive: async (payload) => {
-    const userId = resolveUserId(payload.data.customer);
-    if (!userId) return;
-
-    const productId = payload.data.productId;
-    const plan = getPlanTypeByProductId(productId);
-    if (!plan) return;
-
-    const periodStart = new Date(payload.data.currentPeriodStart);
-    const periodEnd = payload.data.currentPeriodEnd
-      ? new Date(payload.data.currentPeriodEnd)
-      : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-
-    await upsertPolarSubscription({
-      userId,
-      subscriptionId: payload.data.id,
-      productId,
-      status: payload.data.status,
-      currentPeriodStart: periodStart,
-      currentPeriodEnd: periodEnd,
-    });
-
-    await upsertUserPlan({ userId, plan, periodStart, periodEnd });
-    await ensurePlanCredits(userId, plan);
-
-    await prisma.polarCustomer.upsert({
-      where: { userId },
-      update: { customerId: payload.data.customer.id },
-      create: { userId, customerId: payload.data.customer.id },
-    });
+    await handleSubscriptionPayload(payload);
   },
 
   onSubscriptionUpdated: async (payload) => {
-    const userId = resolveUserId(payload.data.customer);
-    if (!userId) return;
-
-    const productId = payload.data.productId;
-    const plan = getPlanTypeByProductId(productId);
-    if (!plan) return;
-
-    const periodStart = new Date(payload.data.currentPeriodStart);
-    const periodEnd = payload.data.currentPeriodEnd
-      ? new Date(payload.data.currentPeriodEnd)
-      : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-
-    await upsertPolarSubscription({
-      userId,
-      subscriptionId: payload.data.id,
-      productId,
-      status: payload.data.status,
-      currentPeriodStart: periodStart,
-      currentPeriodEnd: periodEnd,
-    });
-
-    await upsertUserPlan({ userId, plan, periodStart, periodEnd });
-    await ensurePlanCredits(userId, plan);
+    await handleSubscriptionPayload(payload);
   },
 
   onSubscriptionCanceled: async (payload) => {
-    const userId = resolveUserId(payload.data.customer);
+    const userId = await resolveUserId(payload.data.customer);
     if (!userId) return;
 
     await prisma.polarSubscription.updateMany({
@@ -161,10 +165,11 @@ export const POST = Webhooks({
   },
 
   onOrderPaid: async (payload) => {
-    const userId = resolveUserId(payload.data.customer);
+    const userId = await resolveUserId(payload.data.customer);
     if (!userId) return;
 
     const productId = payload.data.productId;
+    if (!productId) return;
     if (!isAddonProductId(productId)) return;
 
     await creditsService.addAddonCredits({
