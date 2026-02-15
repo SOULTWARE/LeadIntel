@@ -139,6 +139,39 @@ async function handleSubscriptionPayload(payload: {
   });
 }
 
+async function handleAddonOrderPayload(payload: {
+  data: {
+    id: string;
+    paid?: boolean;
+    productId?: string | null;
+    product?: { id: string } | null;
+    customer: { externalId?: string | null; id: string } | null;
+  };
+}) {
+  const customer = payload.data.customer;
+  if (!customer) return;
+
+  const userId = await resolveUserId(customer);
+  if (!userId) return;
+
+  const productId = payload.data.productId ?? payload.data.product?.id ?? null;
+  if (!productId) return;
+  if (!isAddonProductId(productId)) return;
+
+  await creditsService.addAddonCredits({
+    userId,
+    amount: ADDON_CREDITS_AMOUNT,
+    monthsToExtend: ADDON_CREDITS_MONTHS,
+    idempotencyKey: payload.data.id,
+  });
+
+  await prisma.polarCustomer.upsert({
+    where: { userId },
+    update: { customerId: customer.id },
+    create: { userId, customerId: customer.id },
+  });
+}
+
 export const POST = Webhooks({
   webhookSecret: process.env.POLAR_WEBHOOK_SECRET!,
 
@@ -165,24 +198,11 @@ export const POST = Webhooks({
   },
 
   onOrderPaid: async (payload) => {
-    const userId = await resolveUserId(payload.data.customer);
-    if (!userId) return;
+    await handleAddonOrderPayload(payload);
+  },
 
-    const productId = payload.data.productId;
-    if (!productId) return;
-    if (!isAddonProductId(productId)) return;
-
-    await creditsService.addAddonCredits({
-      userId,
-      amount: ADDON_CREDITS_AMOUNT,
-      monthsToExtend: ADDON_CREDITS_MONTHS,
-      idempotencyKey: payload.data.id,
-    });
-
-    await prisma.polarCustomer.upsert({
-      where: { userId },
-      update: { customerId: payload.data.customer.id },
-      create: { userId, customerId: payload.data.customer.id },
-    });
+  onOrderUpdated: async (payload) => {
+    if (!payload.data.paid) return;
+    await handleAddonOrderPayload(payload);
   },
 });

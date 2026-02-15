@@ -58,21 +58,35 @@ export async function POST(request: NextRequest) {
 
   const customerId = await getOrCreatePolarCustomer({ userId: user.id, email: user.email });
 
-  const checkout = await polar.checkouts.create({
-    products: [productId],
-    customerId,
-    successUrl: POLAR_SUCCESS_URL,
-    metadata: {
+  try {
+    const metadata: Record<string, string> = {
       userId: user.id,
       type: parsed.data.type,
-      plan: parsed.data.plan ?? "",
-    },
-  });
+    };
 
-  return NextResponse.json({
-    success: true,
-    data: {
-      url: checkout.url,
-    },
-  });
+    if (parsed.data.type === "subscription" && parsed.data.plan) {
+      metadata.plan = parsed.data.plan;
+    }
+
+    const checkout = await polar.checkouts.create({
+      products: [productId],
+      customerId,
+      successUrl: POLAR_SUCCESS_URL,
+      metadata,
+    });
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        url: checkout.url,
+      },
+    });
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error && error.message
+        ? error.message
+        : "Failed to create Polar checkout";
+
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
+  }
 }
