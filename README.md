@@ -1,4 +1,4 @@
-# Lead Intel Pro · V1.Beta
+# Lead Intel Pro · V1.0 Beta
 
 Lead Intel Pro turns raw location-based business data into verified, enriched lead lists that are ready for outreach. V1.Beta focuses on dependable sourcing, AI scoring, and contact discovery while keeping the deployment footprint lean.
 
