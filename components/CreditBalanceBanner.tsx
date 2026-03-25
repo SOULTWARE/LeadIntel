@@ -44,14 +44,14 @@ export default function CreditBalanceBanner() {
   if (summary.total >= 10) return null;
 
   return (
-    <div className="bg-amber-50 border-b border-amber-100">
-      <div className="max-w-7xl mx-auto px-6 py-3 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+    <div className="border-b border-amber-200/60 bg-amber-50/90 backdrop-blur-xl">
+      <div className="mx-auto flex w-full max-w-[1680px] flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:justify-between md:px-6">
         <div className="text-sm font-semibold text-amber-900">
           Low credits alert: {summary.total} remaining. Top up to keep running jobs.
         </div>
         <Link
           href="/profile"
-          className="text-sm font-bold text-amber-900 bg-amber-100 px-4 py-2 rounded-xl hover:bg-amber-200 transition"
+          className="inline-flex items-center justify-center rounded-xl border border-amber-200 bg-white/80 px-4 py-2 text-sm font-black text-amber-900 transition-transform hover:-translate-y-0.5"
         >
           Buy add-on credits
         </Link>

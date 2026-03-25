@@ -140,10 +140,10 @@ export default function ProfileTabs(props: ProfileTabsProps) {
   }
 
   return (
-    <div className="grid gap-10 lg:grid-cols-[240px_1fr]">
+    <div className="grid gap-8 lg:grid-cols-[300px_1fr]">
       <aside className="h-full">
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sticky top-24 space-y-4">
-          <div className="text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Account</div>
+        <div className="sticky top-24 space-y-4 rounded-[2rem] border border-white/70 bg-white/80 p-5 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.25)] backdrop-blur-xl">
+          <div className="mb-1 text-[10px] font-black uppercase tracking-[0.35em] text-slate-400">Account</div>
           <nav className="space-y-1">
             <a
               href="#profile"
@@ -151,8 +151,8 @@ export default function ProfileTabs(props: ProfileTabsProps) {
                 e.preventDefault();
                 setActive("profile");
               }}
-              className={`block rounded-xl px-3 py-2 text-sm font-semibold transition ${
-                active === "profile" ? "bg-slate-900 text-white shadow-sm" : "text-slate-700 hover:bg-slate-50"
+              className={`block rounded-2xl px-4 py-3 text-sm font-bold transition ${
+                active === "profile" ? "bg-slate-950 text-white shadow-lg shadow-slate-900/10" : "text-slate-700 hover:bg-slate-50"
               }`}
             >
               Profile
@@ -163,8 +163,8 @@ export default function ProfileTabs(props: ProfileTabsProps) {
                 e.preventDefault();
                 setActive("notifications");
               }}
-              className={`block rounded-xl px-3 py-2 text-sm font-semibold transition ${
-                active === "notifications" ? "bg-slate-900 text-white shadow-sm" : "text-slate-700 hover:bg-slate-50"
+              className={`block rounded-2xl px-4 py-3 text-sm font-bold transition ${
+                active === "notifications" ? "bg-slate-950 text-white shadow-lg shadow-slate-900/10" : "text-slate-700 hover:bg-slate-50"
               }`}
             >
               Notifications
@@ -175,17 +175,17 @@ export default function ProfileTabs(props: ProfileTabsProps) {
                 e.preventDefault();
                 setActive("settings");
               }}
-              className={`block rounded-xl px-3 py-2 text-sm font-semibold transition ${
-                active === "settings" ? "bg-slate-900 text-white shadow-sm" : "text-slate-700 hover:bg-slate-50"
+              className={`block rounded-2xl px-4 py-3 text-sm font-bold transition ${
+                active === "settings" ? "bg-slate-950 text-white shadow-lg shadow-slate-900/10" : "text-slate-700 hover:bg-slate-50"
               }`}
             >
               Settings
             </a>
           </nav>
 
-          <div className="h-px w-full bg-slate-100" />
+          <div className="h-px w-full bg-slate-200" />
 
-          <div className="text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Subscription</div>
+          <div className="mb-1 text-[10px] font-black uppercase tracking-[0.35em] text-slate-400">Subscription</div>
           <nav className="space-y-1">
             <a
               href="#usage"
@@ -193,8 +193,8 @@ export default function ProfileTabs(props: ProfileTabsProps) {
                 e.preventDefault();
                 setActive("usage");
               }}
-              className={`block rounded-xl px-3 py-2 text-sm font-semibold transition ${
-                active === "usage" ? "bg-slate-900 text-white shadow-sm" : "text-slate-700 hover:bg-slate-50"
+              className={`block rounded-2xl px-4 py-3 text-sm font-bold transition ${
+                active === "usage" ? "bg-slate-950 text-white shadow-lg shadow-slate-900/10" : "text-slate-700 hover:bg-slate-50"
               }`}
             >
               Usage
@@ -205,8 +205,8 @@ export default function ProfileTabs(props: ProfileTabsProps) {
                 e.preventDefault();
                 setActive("billing");
               }}
-              className={`block rounded-xl px-3 py-2 text-sm font-semibold transition ${
-                active === "billing" ? "bg-slate-900 text-white shadow-sm" : "text-slate-700 hover:bg-slate-50"
+              className={`block rounded-2xl px-4 py-3 text-sm font-bold transition ${
+                active === "billing" ? "bg-slate-950 text-white shadow-lg shadow-slate-900/10" : "text-slate-700 hover:bg-slate-50"
               }`}
             >
               Manage Plan
@@ -218,8 +218,8 @@ export default function ProfileTabs(props: ProfileTabsProps) {
       <div className="space-y-8">
         {active === "profile" && (
           <section className="grid gap-6 md:grid-cols-[1.3fr_1fr]">
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
-              <div className="text-xs font-black uppercase tracking-widest text-slate-400">Profile</div>
+            <div className="space-y-4 rounded-[2rem] border border-white/70 bg-white/80 p-6 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.25)] backdrop-blur-xl">
+              <div className="text-[10px] font-black uppercase tracking-[0.35em] text-slate-400">Profile</div>
               <h2 className="text-xl font-black text-slate-900">Make it yours</h2>
               <p className="text-sm text-slate-600">Update your display name and password. Email is managed via Supabase auth.</p>
 
@@ -233,7 +233,7 @@ export default function ProfileTabs(props: ProfileTabsProps) {
                     type="text"
                     value={profileName}
                     onChange={(e) => setProfileName(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                    className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-blue-500"
                     placeholder="Your name"
                   />
                 </div>
@@ -247,7 +247,7 @@ export default function ProfileTabs(props: ProfileTabsProps) {
                     type="email"
                     value={profileEmail}
                     readOnly
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600"
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600"
                   />
                   <p className="text-xs text-slate-500">Contact support to change the email linked to your Supabase auth.</p>
                 </div>
@@ -290,7 +290,7 @@ export default function ProfileTabs(props: ProfileTabsProps) {
                       void handleSaveProfile();
                     }}
                     disabled={saving}
-                    className={`rounded-xl px-4 py-2 text-sm font-bold text-white shadow-sm transition ${
+                    className={`rounded-2xl px-5 py-3 text-sm font-black text-white shadow-lg shadow-blue-200 transition-transform hover:-translate-y-0.5 ${
                       saving ? "bg-blue-400" : "bg-blue-600 hover:bg-blue-700"
                     }`}
                   >
@@ -298,7 +298,7 @@ export default function ProfileTabs(props: ProfileTabsProps) {
                   </button>
                   <button
                     type="button"
-                    className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+                    className="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-bold text-slate-800 hover:bg-slate-50"
                     onClick={(e) => {
                       e.preventDefault();
                       setProfileName(userName);
@@ -320,12 +320,12 @@ export default function ProfileTabs(props: ProfileTabsProps) {
               </form>
             </div>
 
-            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 shadow-sm space-y-6">
+            <div className="space-y-6 rounded-[2rem] border border-white/70 bg-white/80 p-6 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.25)] backdrop-blur-xl">
               <div>
                 <div className="text-xs font-black uppercase tracking-widest text-slate-400">Snapshot</div>
                 <h3 className="text-lg font-black text-slate-900">Your account at a glance</h3>
                 <div className="grid gap-4 text-sm text-slate-700 mt-4">
-                  <div className="flex items-center justify-between rounded-2xl bg-white border border-slate-200 px-4 py-3">
+                  <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3">
                     <span className="font-semibold text-slate-800">Signed in</span>
                     <span className="text-slate-600">{profileEmail}</span>
                   </div>
@@ -341,8 +341,8 @@ export default function ProfileTabs(props: ProfileTabsProps) {
                 <p className="text-xs text-slate-500 mt-3">Keep your details fresh so your teammates see the right info in dashboards and exports.</p>
               </div>
 
-              <div className="rounded-2xl border border-rose-200 bg-white p-5 space-y-3">
-                <div className="text-xs font-black uppercase tracking-[0.3em] text-rose-500">Danger zone</div>
+              <div className="space-y-3 rounded-[2rem] border border-rose-200 bg-white p-5">
+                <div className="text-[10px] font-black uppercase tracking-[0.35em] text-rose-500">Danger zone</div>
                 <p className="text-sm text-slate-600">
                   Delete your account and usage history. This cannot be undone and your email will be blocked from signing up again.
                 </p>
@@ -354,11 +354,11 @@ export default function ProfileTabs(props: ProfileTabsProps) {
 
         {active === "notifications" && (
           <section className="grid gap-6 md:grid-cols-1">
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-3">
-              <div className="text-xs font-black uppercase tracking-widest text-slate-400">Notifications</div>
+            <div className="space-y-3 rounded-[2rem] border border-white/70 bg-white/80 p-6 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.25)] backdrop-blur-xl">
+              <div className="text-[10px] font-black uppercase tracking-[0.35em] text-slate-400">Notifications</div>
               <h2 className="text-xl font-black text-slate-900">Notifications</h2>
               <p className="text-sm text-slate-600">Your current alerts, important updates, and account notifications.</p>
-              <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-500 text-center">
+              <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500">
                 You currently have no notifications.
               </div>
             </div>
@@ -367,9 +367,9 @@ export default function ProfileTabs(props: ProfileTabsProps) {
 
         {active === "usage" && (
           <section className="grid gap-6 md:grid-cols-1">
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-5">
+            <div className="space-y-5 rounded-[2rem] border border-white/70 bg-white/80 p-6 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.25)] backdrop-blur-xl">
               <div className="space-y-2">
-                <div className="text-xs font-black uppercase tracking-widest text-slate-400">Usage</div>
+                <div className="text-[10px] font-black uppercase tracking-[0.35em] text-slate-400">Usage</div>
                 <h2 className="text-2xl font-black text-slate-900">LeadIntel Usage Summary</h2>
                 <div className="text-sm text-slate-600 space-y-1">
                   <p>Track your plan and add-on credits in one place.</p>
@@ -449,11 +449,11 @@ export default function ProfileTabs(props: ProfileTabsProps) {
                   <button
                     type="button"
                     onClick={() => setActive("billing")}
-                    className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-blue-700 text-center cursor-pointer"
+                    className="rounded-2xl bg-blue-600 px-5 py-3 text-center text-sm font-black text-white shadow-lg shadow-blue-200 transition-transform hover:-translate-y-0.5 hover:bg-blue-700 cursor-pointer"
                   >
                     Buy credits
                   </button>
-                  <button type="button" className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-bold text-slate-800 hover:bg-slate-50 cursor-pointer">
+                  <button type="button" className="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-bold text-slate-800 transition-colors hover:bg-slate-50 cursor-pointer">
                     Refer a friend for bonus credits
                   </button>
                 </div>
@@ -464,9 +464,9 @@ export default function ProfileTabs(props: ProfileTabsProps) {
 
         {active === "billing" && (
           <section className="grid gap-6 md:grid-cols-1">
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-5">
+            <div className="space-y-5 rounded-[2rem] border border-white/70 bg-white/80 p-6 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.25)] backdrop-blur-xl">
               <div className="space-y-2">
-                <div className="text-xs font-black uppercase tracking-widest text-slate-400">Plan Management</div>
+                <div className="text-[10px] font-black uppercase tracking-[0.35em] text-slate-400">Plan Management</div>
                 <h2 className="text-xl font-black text-slate-900">Manage your plan</h2>
                 <div className="text-sm text-slate-600 space-y-1">
                   <p>

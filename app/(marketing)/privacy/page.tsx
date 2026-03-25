@@ -82,7 +82,7 @@ export default function PrivacyPolicyPage() {
   ];
 
   return (
-    <main className="relative z-10 max-w-4xl mx-auto px-6 pt-20 pb-32">
+    <main className="relative z-10 mx-auto flex w-full max-w-[1680px] flex-col gap-20 px-6 pb-32 pt-16 lg:px-8">
       <motion.div
         initial="hidden"
         animate="visible"
@@ -90,10 +90,10 @@ export default function PrivacyPolicyPage() {
         className="space-y-12"
       >
         {/* Header */}
-        <section className="text-center space-y-6">
+        <section className="mx-auto max-w-4xl space-y-6 rounded-[2.5rem] border border-white/70 bg-white/75 p-8 text-center shadow-[0_24px_80px_-40px_rgba(15,23,42,0.32)] backdrop-blur-2xl md:p-12">
           <motion.div
             variants={itemVariants}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-full text-xs font-black uppercase tracking-widest border border-blue-100"
+            className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-[10px] font-black uppercase tracking-[0.35em] text-blue-600"
           >
             <Shield size={14} />
             Privacy Policy
@@ -101,7 +101,7 @@ export default function PrivacyPolicyPage() {
 
           <motion.h1
             variants={itemVariants}
-            className="text-4xl md:text-5xl font-black text-slate-900 leading-tight tracking-tight"
+            className="text-4xl font-black leading-tight tracking-tight text-slate-900 md:text-5xl"
           >
             Your privacy is{' '}
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
@@ -109,7 +109,7 @@ export default function PrivacyPolicyPage() {
             </span>
           </motion.h1>
 
-          <motion.p variants={itemVariants} className="text-lg text-slate-500 leading-relaxed max-w-2xl mx-auto">
+          <motion.p variants={itemVariants} className="mx-auto max-w-2xl text-lg leading-relaxed text-slate-500">
             We are committed to protecting your personal information and being transparent about what data we collect
             and how we use it.
           </motion.p>
@@ -120,7 +120,7 @@ export default function PrivacyPolicyPage() {
         </section>
 
         {/* Introduction */}
-        <motion.section variants={itemVariants} className="bg-slate-50 rounded-3xl p-8 border border-slate-100">
+        <motion.section variants={itemVariants} className="rounded-[2rem] border border-white/70 bg-white/80 p-8 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.25)] backdrop-blur-xl">
           <p className="text-slate-600 leading-relaxed">
             This Privacy Policy describes how Lead Intel Pro (&quot;we&quot;, &quot;us&quot;, or &quot;our&quot;) collects, uses, and shares
             information about you when you use our website, applications, and services (collectively, the &quot;Services&quot;).
@@ -130,9 +130,9 @@ export default function PrivacyPolicyPage() {
 
         {/* Sections */}
         {sections.map((section, index) => (
-          <motion.section key={index} variants={itemVariants} className="space-y-4">
+          <motion.section key={index} variants={itemVariants} className="space-y-4 rounded-[2rem] border border-white/70 bg-white/75 p-8 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.25)] backdrop-blur-xl">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-100">
                 <section.icon size={20} className="text-blue-600" />
               </div>
               <h2 className="text-2xl font-black text-slate-900">{section.title}</h2>
@@ -149,7 +149,7 @@ export default function PrivacyPolicyPage() {
         ))}
 
         {/* Your Rights */}
-        <motion.section variants={itemVariants} className="bg-slate-900 rounded-3xl p-8 md:p-10 text-white">
+        <motion.section variants={itemVariants} className="rounded-[2.5rem] border border-slate-900/90 bg-slate-950 p-8 text-white shadow-[0_32px_120px_-48px_rgba(15,23,42,0.65)] md:p-10">
           <h2 className="text-2xl font-black mb-6">Your Rights</h2>
           <div className="grid md:grid-cols-2 gap-4">
             {[
@@ -171,14 +171,14 @@ export default function PrivacyPolicyPage() {
         </motion.section>
 
         {/* Contact */}
-        <motion.section variants={itemVariants} className="text-center bg-gradient-to-r from-blue-50 to-indigo-50 rounded-3xl p-10 border border-blue-100">
+        <motion.section variants={itemVariants} className="rounded-[2.5rem] border border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50 p-10 text-center shadow-[0_18px_60px_-36px_rgba(15,23,42,0.25)]">
           <h2 className="text-2xl font-black text-slate-900 mb-4">Questions about privacy?</h2>
           <p className="text-slate-600 mb-6">
             If you have any questions about this Privacy Policy, please contact us.
           </p>
           <a
             href="mailto:privacy@leadintelpro.com"
-            className="inline-flex items-center gap-2 bg-blue-600 text-white font-bold px-6 py-3 rounded-xl hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center gap-2 rounded-2xl bg-blue-600 px-6 py-3 font-black text-white transition-colors hover:bg-blue-700"
           >
             <Mail size={18} />
             privacy@leadintelpro.com

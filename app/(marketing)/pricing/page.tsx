@@ -19,7 +19,7 @@ export default function PricingPage() {
   };
 
   return (
-    <main className="relative z-10 max-w-7xl mx-auto px-6 pt-20 pb-32">
+    <main className="relative z-10 mx-auto flex w-full max-w-[1680px] flex-col gap-20 px-6 pb-32 pt-16 lg:px-8">
       <motion.div
         initial="hidden"
         animate="visible"
@@ -27,31 +27,31 @@ export default function PricingPage() {
         className="space-y-24"
       >
         {/* Hero Section */}
-        <section className="text-center space-y-6 max-w-3xl mx-auto">
-          <motion.div variants={itemVariants} className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-full text-xs font-black uppercase tracking-widest border border-blue-100">
+        <section className="mx-auto max-w-4xl space-y-6 rounded-[2.5rem] border border-white/70 bg-white/75 p-8 text-center shadow-[0_24px_80px_-40px_rgba(15,23,42,0.32)] backdrop-blur-2xl md:p-12">
+          <motion.div variants={itemVariants} className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-[10px] font-black uppercase tracking-[0.35em] text-blue-600">
             <Zap size={14} />
             Simple Pricing
           </motion.div>
 
-          <motion.h1 variants={itemVariants} className="text-5xl md:text-6xl font-black text-slate-900 leading-tight tracking-tight">
+          <motion.h1 variants={itemVariants} className="text-5xl font-black leading-tight tracking-tight text-slate-900 md:text-6xl">
             Pay for what you <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">actually use.</span>
           </motion.h1>
 
-          <motion.p variants={itemVariants} className="text-xl text-slate-500 leading-relaxed">
+          <motion.p variants={itemVariants} className="text-xl leading-relaxed text-slate-500">
             Subscribe to monthly lead intelligence credits that cover sourcing, AI discovery, outreach drafts, and exports. Usage resets every cycle, and you can top up whenever you outpace demand.
           </motion.p>
         </section>
 
         {/* What Counts as Usage */}
-        <motion.section variants={itemVariants} className="max-w-4xl mx-auto">
-          <div className="bg-slate-50 rounded-3xl p-8 md:p-10 border border-slate-100">
-            <h2 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-3">
+        <motion.section variants={itemVariants} className="mx-auto max-w-4xl">
+          <div className="rounded-[2rem] border border-white/70 bg-white/80 p-8 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.25)] backdrop-blur-xl md:p-10">
+            <h2 className="mb-6 flex items-center gap-3 text-xl font-black text-slate-900">
               <Info size={20} className="text-blue-600" />
               What counts as usage?
             </h2>
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid gap-6 md:grid-cols-3">
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center shrink-0">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-100">
                   <Sparkles size={18} className="text-indigo-600" />
                 </div>
                 <div>
@@ -82,14 +82,14 @@ export default function PricingPage() {
         </motion.section>
 
         {/* Pricing Cards */}
-        <motion.section variants={itemVariants} className="space-y-8 max-w-6xl mx-auto">
+        <motion.section variants={itemVariants} className="mx-auto max-w-6xl space-y-8">
           <div className="grid gap-8 md:grid-cols-2">
             {/* Starter Plan */}
-            <div className="relative bg-white rounded-[2rem] p-10 border border-slate-200 shadow-xl hover:shadow-2xl transition-all group">
+            <div className="group relative rounded-[2.5rem] border border-white/70 bg-white/80 p-10 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.32)] transition-all hover:-translate-y-1 hover:shadow-2xl backdrop-blur-xl">
               <div className="flex h-full flex-col gap-8">
                 <div className="space-y-8">
                   <div>
-                    <div className="text-sm font-black text-slate-400 uppercase tracking-widest mb-2">Starter</div>
+                    <div className="mb-2 text-[10px] font-black uppercase tracking-[0.35em] text-slate-400">Starter</div>
                     <div className="text-5xl font-black text-slate-900">
                       $29<span className="text-xl text-slate-400 font-medium">/mo</span>
                     </div>
@@ -117,7 +117,7 @@ export default function PricingPage() {
                     </div>
                   </div>
 
-                  <div className="border-t border-slate-100 pt-6 space-y-3">
+                  <div className="space-y-3 border-t border-slate-100 pt-6">
                     {[
                       'Unlimited sourcing sessions',
                       'Business profile summaries & firmographics',
@@ -136,7 +136,7 @@ export default function PricingPage() {
 
                 <Link
                   href="/login?plan=starter"
-                  className="mt-auto block w-full py-4 rounded-2xl bg-slate-100 text-slate-900 font-bold text-center hover:bg-slate-200 transition-colors group-hover:bg-blue-600 group-hover:text-white"
+                  className="mt-auto block w-full rounded-2xl bg-slate-100 py-4 text-center font-black text-slate-900 transition-colors group-hover:bg-blue-600 group-hover:text-white"
                 >
                   Get Started
                 </Link>
@@ -144,15 +144,15 @@ export default function PricingPage() {
             </div>
 
             {/* Pro Plan */}
-            <div className="relative bg-slate-900 rounded-[2rem] p-10 border-2 border-blue-600 shadow-2xl shadow-blue-200 overflow-hidden">
-              <div className="absolute top-0 right-0 bg-blue-600 text-white text-xs font-bold px-4 py-1.5 rounded-bl-2xl uppercase tracking-wider">
+            <div className="relative overflow-hidden rounded-[2.5rem] border border-blue-500 bg-slate-950 p-10 shadow-[0_32px_120px_-48px_rgba(15,23,42,0.7)]">
+              <div className="absolute right-0 top-0 rounded-bl-2xl bg-blue-600 px-4 py-1.5 text-xs font-black uppercase tracking-wider text-white">
                 Popular
               </div>
 
               <div className="flex h-full flex-col gap-8 text-white">
                 <div className="space-y-8">
                   <div>
-                    <div className="text-sm font-black text-blue-400 uppercase tracking-widest mb-2">Pro</div>
+                    <div className="mb-2 text-[10px] font-black uppercase tracking-[0.35em] text-blue-400">Pro</div>
                     <div className="text-5xl font-black">
                       $79<span className="text-xl text-slate-400 font-medium">/mo</span>
                     </div>
@@ -180,7 +180,7 @@ export default function PricingPage() {
                     </div>
                   </div>
 
-                  <div className="border-t border-slate-700 pt-6 space-y-3">
+                  <div className="space-y-3 border-t border-slate-700 pt-6">
                     {[
                       'Everything in Starter',
                       'Bulk AI discovery (up to 100 leads per batch)',
@@ -198,7 +198,7 @@ export default function PricingPage() {
 
                 <Link
                   href="/login?plan=pro"
-                  className="mt-auto block w-full py-4 rounded-2xl bg-blue-600 text-white font-bold text-center hover:bg-blue-500 transition-colors"
+                  className="mt-auto block w-full rounded-2xl bg-blue-600 py-4 text-center font-black text-white transition-colors hover:bg-blue-500"
                 >
                   Get Started
                 </Link>
@@ -276,16 +276,16 @@ export default function PricingPage() {
         </motion.section>
 
         {/* Add-ons Section */}
-        <motion.section variants={itemVariants} className="max-w-4xl mx-auto">
-          <div className="text-center mb-10">
+        <motion.section variants={itemVariants} className="mx-auto max-w-4xl">
+          <div className="mb-10 text-center">
             <h2 className="text-3xl font-black text-slate-900 tracking-tight">Need more?</h2>
             <p className="text-slate-500 mt-2">Purchase add-ons when you exceed your monthly allowance.</p>
           </div>
 
           <div className="grid gap-6">
-            <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-2xl p-8 border border-indigo-100">
+            <div className="rounded-[2rem] border border-white/70 bg-gradient-to-br from-indigo-50 to-blue-50 p-8 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.25)]">
               <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-600">
                   <Sparkles size={20} className="text-white" />
                 </div>
                 <div>
@@ -299,8 +299,8 @@ export default function PricingPage() {
         </motion.section>
 
         {/* Important Notes */}
-        <motion.section variants={itemVariants} className="max-w-4xl mx-auto">
-          <div className="bg-slate-900 rounded-3xl p-10 text-white">
+        <motion.section variants={itemVariants} className="mx-auto max-w-4xl">
+          <div className="rounded-[2.5rem] border border-slate-900/90 bg-slate-950 p-10 text-white shadow-[0_32px_120px_-48px_rgba(15,23,42,0.65)]">
             <h2 className="text-xl font-black mb-6">Important Notes</h2>
             <div className="grid md:grid-cols-2 gap-x-12 gap-y-4">
               {[

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Sparkles, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
@@ -17,18 +17,24 @@ export default function HeroActions({ user }: HeroActionsProps) {
 
   if (user) {
     return (
-      <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 pt-4">
+      <motion.div variants={itemVariants} className="flex flex-col gap-4 pt-4 sm:flex-row">
         <Link
           href="/sourcer"
-          className="group inline-flex items-center justify-center px-10 py-5 bg-blue-600 text-white rounded-2xl font-black text-lg hover:bg-blue-700 transition-all shadow-2xl shadow-blue-200 hover:-translate-y-1"
+          className="group inline-flex items-center justify-center gap-3 rounded-2xl bg-slate-950 px-8 py-4 text-base font-black text-white shadow-[0_20px_60px_-24px_rgba(15,23,42,0.85)] transition-all hover:-translate-y-0.5 hover:bg-slate-900"
         >
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-white">
+            <Sparkles className="h-4 w-4" />
+          </span>
           Launch Data Sourcing
-          <ChevronRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+          <ChevronRight className="transition-transform group-hover:translate-x-1" />
         </Link>
         <Link
           href="/results"
-          className="inline-flex items-center justify-center px-10 py-5 bg-white text-slate-900 border-2 border-slate-100 rounded-2xl font-black text-lg hover:bg-slate-50 transition-all hover:-translate-y-1 shadow-sm"
+          className="inline-flex items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-8 py-4 text-base font-black text-slate-900 shadow-sm transition-all hover:-translate-y-0.5 hover:border-blue-200 hover:text-blue-600"
         >
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+            <ChevronRight className="h-4 w-4" />
+          </span>
           View Results Dashboard
         </Link>
       </motion.div>
@@ -36,18 +42,24 @@ export default function HeroActions({ user }: HeroActionsProps) {
   }
 
   return (
-    <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 pt-4">
+    <motion.div variants={itemVariants} className="flex flex-col gap-4 pt-4 sm:flex-row">
       <Link
         href="/login"
-         className="group inline-flex items-center justify-center px-10 py-5 bg-blue-600 text-white rounded-2xl font-black text-lg hover:bg-blue-700 transition-all shadow-2xl shadow-blue-200 hover:-translate-y-1"
+         className="group inline-flex items-center justify-center gap-3 rounded-2xl bg-slate-950 px-8 py-4 text-base font-black text-white shadow-[0_20px_60px_-24px_rgba(15,23,42,0.85)] transition-all hover:-translate-y-0.5 hover:bg-slate-900"
       >
+        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-white">
+          <Zap className="h-4 w-4" fill="currentColor" />
+        </span>
         Get Started
-        <ChevronRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+        <ChevronRight className="transition-transform group-hover:translate-x-1" />
       </Link>
       <Link
         href="/pricing"
-        className="inline-flex items-center justify-center px-10 py-5 bg-white text-slate-900 border-2 border-slate-100 rounded-2xl font-black text-lg hover:bg-slate-50 transition-all hover:-translate-y-1 shadow-sm"
+        className="inline-flex items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-8 py-4 text-base font-black text-slate-900 shadow-sm transition-all hover:-translate-y-0.5 hover:border-blue-200 hover:text-blue-600"
       >
+        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+          <ChevronRight className="h-4 w-4" />
+        </span>
         View Pricing
       </Link>
     </motion.div>

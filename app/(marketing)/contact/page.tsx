@@ -43,7 +43,7 @@ export default function ContactPage() {
   ];
 
   return (
-    <main className="relative z-10 max-w-6xl mx-auto px-6 pt-20 pb-32">
+    <main className="relative z-10 mx-auto flex w-full max-w-[1680px] flex-col gap-20 px-6 pb-32 pt-16 lg:px-8">
       <motion.div
         initial="hidden"
         animate="visible"
@@ -51,10 +51,10 @@ export default function ContactPage() {
         className="space-y-16"
       >
         {/* Header */}
-        <section className="text-center space-y-6 max-w-2xl mx-auto">
+        <section className="mx-auto max-w-4xl space-y-6 rounded-[2.5rem] border border-white/70 bg-white/75 p-8 text-center shadow-[0_24px_80px_-40px_rgba(15,23,42,0.32)] backdrop-blur-2xl md:p-12">
           <motion.div
             variants={itemVariants}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-600 rounded-full text-xs font-black uppercase tracking-widest border border-purple-100"
+            className="inline-flex items-center gap-2 rounded-full border border-violet-100 bg-violet-50 px-4 py-2 text-[10px] font-black uppercase tracking-[0.35em] text-violet-600"
           >
             <Mail size={14} />
             Contact Us
@@ -62,10 +62,10 @@ export default function ContactPage() {
 
           <motion.h1
             variants={itemVariants}
-            className="text-4xl md:text-5xl font-black text-slate-900 leading-tight tracking-tight"
+            className="text-4xl font-black leading-tight tracking-tight text-slate-900 md:text-5xl"
           >
             Let&apos;s{' '}
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600">
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-violet-600 to-fuchsia-600">
               talk.
             </span>
           </motion.h1>
@@ -77,33 +77,33 @@ export default function ContactPage() {
         </section>
 
         {/* Contact Methods */}
-        <motion.section variants={itemVariants} className="grid md:grid-cols-3 gap-6">
+        <motion.section variants={itemVariants} className="grid gap-6 md:grid-cols-3">
           {contactMethods.map((method, index) => (
             <a
               key={index}
               href={method.href}
-              className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-lg hover:border-purple-200 transition-all group"
+              className="group rounded-[2rem] border border-white/70 bg-white/80 p-6 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.25)] transition-all hover:-translate-y-1 hover:shadow-xl backdrop-blur-xl"
             >
-              <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mb-4 group-hover:bg-purple-600 transition-colors">
-                <method.icon size={22} className="text-purple-600 group-hover:text-white transition-colors" />
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-violet-100 transition-colors group-hover:bg-violet-600">
+                <method.icon size={22} className="text-violet-600 transition-colors group-hover:text-white" />
               </div>
-              <h3 className="text-lg font-black text-slate-900 mb-1">{method.title}</h3>
-              <p className="text-sm text-slate-500 mb-3">{method.description}</p>
-              <div className="text-purple-600 font-bold text-sm">{method.contact}</div>
+              <h3 className="mb-1 text-lg font-black text-slate-900">{method.title}</h3>
+              <p className="mb-3 text-sm text-slate-500">{method.description}</p>
+              <div className="text-sm font-black text-violet-600">{method.contact}</div>
             </a>
           ))}
         </motion.section>
 
         {/* Info Grid */}
-        <motion.section variants={itemVariants} className="grid md:grid-cols-2 gap-8">
+        <motion.section variants={itemVariants} className="grid gap-8 md:grid-cols-2">
           <div className="space-y-6">
-            <div className="rounded-3xl bg-white border border-slate-100 shadow-sm p-8">
+            <div className="rounded-[2rem] border border-white/70 bg-white/80 p-8 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.25)] backdrop-blur-xl">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
-                  <Clock size={18} className="text-purple-600" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-100">
+                  <Clock size={18} className="text-violet-600" />
                 </div>
                 <div>
-                  <p className="text-xs font-black uppercase tracking-[0.4em] text-slate-400">Response time</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Response time</p>
                   <p className="text-lg font-black text-slate-900">Under 24 hours</p>
                 </div>
               </div>
@@ -114,13 +114,13 @@ export default function ContactPage() {
             </div>
           </div>
 
-          <div className="rounded-3xl bg-white border border-slate-100 shadow-sm p-8 space-y-4">
+          <div className="space-y-4 rounded-[2rem] border border-white/70 bg-white/80 p-8 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.25)] backdrop-blur-xl">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
-                <Sparkles size={18} className="text-purple-600" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-100">
+                <Sparkles size={18} className="text-violet-600" />
               </div>
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.4em] text-slate-400">Company info</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Company info</p>
                 <p className="text-lg font-black text-slate-900">Lead Intel Pro</p>
               </div>
             </div>

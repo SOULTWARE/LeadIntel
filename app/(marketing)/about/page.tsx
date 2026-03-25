@@ -49,7 +49,7 @@ export default function AboutPage() {
   ];
 
   return (
-    <main className="relative z-10 max-w-6xl mx-auto px-6 pt-20 pb-32">
+    <main className="relative z-10 mx-auto flex w-full max-w-[1680px] flex-col gap-20 px-6 pb-32 pt-16 lg:px-8">
       <motion.div
         initial="hidden"
         animate="visible"
@@ -57,10 +57,10 @@ export default function AboutPage() {
         className="space-y-24"
       >
         {/* Hero Section */}
-        <section className="text-center space-y-6 max-w-3xl mx-auto">
+        <section className="mx-auto max-w-4xl space-y-6 rounded-[2.5rem] border border-white/70 bg-white/75 p-8 text-center shadow-[0_24px_80px_-40px_rgba(15,23,42,0.32)] backdrop-blur-2xl md:p-12">
           <motion.div
             variants={itemVariants}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 text-green-600 rounded-full text-xs font-black uppercase tracking-widest border border-green-100"
+            className="inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-4 py-2 text-[10px] font-black uppercase tracking-[0.35em] text-emerald-600"
           >
             <Zap size={14} />
             About Us
@@ -68,25 +68,25 @@ export default function AboutPage() {
 
           <motion.h1
             variants={itemVariants}
-            className="text-4xl md:text-6xl font-black text-slate-900 leading-tight tracking-tight"
+            className="text-4xl font-black leading-tight tracking-tight text-slate-900 md:text-6xl"
           >
             Making outbound{' '}
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-green-600 to-teal-600">
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-teal-600">
               smarter.
             </span>
           </motion.h1>
 
-          <motion.p variants={itemVariants} className="text-xl text-slate-500 leading-relaxed">
+          <motion.p variants={itemVariants} className="text-xl leading-relaxed text-slate-500">
             Lead Intel Pro was born from a simple frustration: traditional lead generation is broken. Too much time
             wasted on unqualified prospects, too little insight into who&apos;s actually a fit.
           </motion.p>
         </section>
 
         {/* Story Section */}
-        <motion.section variants={itemVariants} className="grid md:grid-cols-2 gap-12 items-center">
+        <motion.section variants={itemVariants} className="grid items-center gap-8 rounded-[2.5rem] border border-white/70 bg-white/75 p-8 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.32)] backdrop-blur-2xl md:grid-cols-2 md:p-12">
           <div className="space-y-6">
             <h2 className="text-3xl font-black text-slate-900">Our Story</h2>
-            <div className="space-y-4 text-slate-600 leading-relaxed">
+            <div className="space-y-4 leading-relaxed text-slate-600">
               <p>
                 We spent years in the trenches of outbound sales and marketing. Hours upon hours manually researching
                 companies, trying to figure out which businesses might actually benefit from reaching out.
@@ -101,7 +101,7 @@ export default function AboutPage() {
               </p>
             </div>
           </div>
-          <div className="bg-gradient-to-br from-green-50 to-teal-50 rounded-3xl p-10 border border-green-100">
+          <div className="rounded-[2rem] border border-emerald-100 bg-gradient-to-br from-emerald-50 to-teal-50 p-10 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.22)]">
             <div className="space-y-8">
               <Globe size={48} className="text-green-600" />
               <blockquote className="text-2xl font-bold text-slate-900 leading-snug">
@@ -114,7 +114,7 @@ export default function AboutPage() {
         </motion.section>
 
         {/* Values Section */}
-        <motion.section variants={itemVariants} className="space-y-10">
+        <motion.section variants={itemVariants} className="space-y-10 rounded-[2.5rem] border border-white/70 bg-white/75 p-8 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.32)] backdrop-blur-2xl md:p-12">
           <div className="text-center">
             <h2 className="text-3xl font-black text-slate-900 mb-4">What Drives Us</h2>
             <p className="text-slate-500 max-w-xl mx-auto">
@@ -122,15 +122,15 @@ export default function AboutPage() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {values.map((value, index) => (
               <motion.div
                 key={index}
                 variants={itemVariants}
-                className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-lg transition-shadow"
+                className="rounded-[2rem] border border-slate-200 bg-white/90 p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl"
               >
-                <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mb-4">
-                  <value.icon size={22} className="text-green-600" />
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-100">
+                  <value.icon size={22} className="text-emerald-600" />
                 </div>
                 <h3 className="text-lg font-black text-slate-900 mb-2">{value.title}</h3>
                 <p className="text-sm text-slate-500 leading-relaxed">{value.description}</p>
@@ -140,7 +140,7 @@ export default function AboutPage() {
         </motion.section>
 
         {/* Stats Section */}
-        <motion.section variants={itemVariants} className="bg-slate-900 rounded-3xl p-10 md:p-16">
+        <motion.section variants={itemVariants} className="rounded-[2.5rem] border border-slate-900/90 bg-slate-950 p-10 shadow-[0_32px_120px_-48px_rgba(15,23,42,0.65)] md:p-16">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
               <div key={index} className="text-center">
@@ -152,7 +152,7 @@ export default function AboutPage() {
         </motion.section>
 
         {/* Mission Section */}
-        <motion.section variants={itemVariants} className="text-center max-w-3xl mx-auto space-y-6">
+        <motion.section variants={itemVariants} className="mx-auto max-w-3xl space-y-6 rounded-[2.5rem] border border-white/70 bg-white/75 p-8 text-center shadow-[0_24px_80px_-40px_rgba(15,23,42,0.32)] backdrop-blur-2xl md:p-12">
           <TrendingUp size={40} className="text-green-600 mx-auto" />
           <h2 className="text-3xl font-black text-slate-900">Our Mission</h2>
           <p className="text-xl text-slate-500 leading-relaxed">
@@ -163,14 +163,14 @@ export default function AboutPage() {
 
         {/* CTA Section */}
         <motion.section variants={itemVariants} className="text-center">
-          <div className="bg-gradient-to-r from-green-600 to-teal-600 rounded-3xl p-12 text-white">
+          <div className="rounded-[2.5rem] border border-emerald-200/50 bg-gradient-to-r from-emerald-600 to-teal-600 p-12 text-white shadow-[0_32px_120px_-48px_rgba(15,23,42,0.5)]">
             <h2 className="text-3xl font-black mb-4">Ready to work smarter?</h2>
             <p className="text-green-100 mb-8 max-w-lg mx-auto">
               Join hundreds of teams already using Lead Intel Pro to find and connect with their ideal customers.
             </p>
             <Link
               href="/login"
-              className="inline-flex items-center gap-2 bg-white text-green-600 font-bold px-8 py-4 rounded-2xl hover:bg-green-50 transition-colors"
+              className="inline-flex items-center gap-2 rounded-2xl bg-white px-8 py-4 font-black text-emerald-600 transition-colors hover:bg-green-50"
             >
               Get Started Free
               <ArrowRight size={18} />

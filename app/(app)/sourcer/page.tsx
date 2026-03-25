@@ -372,7 +372,7 @@ export default function SourcerPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans flex flex-col justify-between">
+    <div className="space-y-8">
       <InternalLayoutSetter
         title="Data Sourcing"
         icon={<Search className="w-4 h-4" />}
@@ -394,7 +394,7 @@ export default function SourcerPage() {
           </div>
         )}
       />
-      <main className="max-w-7xl mx-auto px-6 py-12">
+      <div className="max-w-7xl mx-auto px-6 py-12">
         <div className="max-w-4xl mx-auto">
           {/* Main Tab Controls */}
           <div className="flex gap-2 bg-slate-200/50 p-1.5 rounded-2xl mb-12 w-fit mx-auto border border-slate-200 shadow-inner">
@@ -1029,19 +1029,7 @@ export default function SourcerPage() {
             )}
           </AnimatePresence>
         </div>
-      </main>
-
-      <footer className="mt-20 border-t border-slate-200 py-16 bg-white bottom-0 w-full">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-8">
-           <div className="bg-slate-50 px-4 py-2 rounded-full text-slate-400 text-xs font-bold tracking-widest uppercase">
-             Generated Intelligence Engine 2025
-           </div>
-           <div className="flex gap-10 text-slate-400 text-xs font-black uppercase tracking-widest">
-             <Link href="/contact" className="hover:text-blue-600 transition-colors">Support</Link>
-             <Link href="/privacy" className="hover:text-blue-600 transition-colors">Privacy</Link>
-          </div>
-        </div>
-      </footer>
+      </div>
     </div>
   );
 }

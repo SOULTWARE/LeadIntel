@@ -26,12 +26,12 @@ export function LandingHero({ user }: { user: SupabaseUser | null }) {
       initial="hidden"
       animate="visible"
       variants={containerVariants}
-      className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center mb-32"
+      className="grid items-center gap-16 lg:grid-cols-[1.05fr_0.95fr]"
     >
-      <section className="space-y-10">
+      <section className="space-y-8 rounded-[2.75rem] border border-white/70 bg-white/75 p-8 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.32)] backdrop-blur-2xl md:p-12">
         <motion.div
           variants={itemVariants}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-full text-xs font-black uppercase tracking-widest border border-blue-100"
+          className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-[10px] font-black uppercase tracking-[0.35em] text-blue-600"
         >
           <Sparkles size={14} />
           AI-Powered Intelligence
@@ -39,23 +39,38 @@ export function LandingHero({ user }: { user: SupabaseUser | null }) {
 
         <motion.h1
           variants={itemVariants}
-          className="text-6xl md:text-7xl font-black text-slate-900 leading-[1.05] tracking-tight"
+          className="max-w-3xl text-5xl font-black leading-[1.02] tracking-tight text-slate-900 md:text-7xl"
         >
           Verified business data as your{' '}
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">Growth Engine.</span>
+          <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 bg-clip-text text-transparent">
+            Growth Engine.
+          </span>
         </motion.h1>
 
-        <motion.p variants={itemVariants} className="text-xl text-slate-500 leading-relaxed max-w-lg">
+        <motion.p variants={itemVariants} className="max-w-xl text-lg leading-8 text-slate-500 md:text-xl">
           Source licensed, high-precision business leads and use advanced AI to verify compatibility automatically. Stop cold calling,
-          start closing.
+          start closing with a cleaner, more confident workflow.
         </motion.p>
+
+        <motion.div variants={itemVariants} className="grid gap-3 sm:grid-cols-3">
+          {[
+            { label: 'Verified sourcing', value: 'Hunter-first' },
+            { label: 'AI enrichment', value: 'Compatibility scoring' },
+            { label: 'Outbound ready', value: 'Draft + export' },
+          ].map((stat) => (
+            <div key={stat.label} className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
+              <div className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">{stat.label}</div>
+              <div className="mt-2 text-sm font-black tracking-tight text-slate-900">{stat.value}</div>
+            </div>
+          ))}
+        </motion.div>
 
         <HeroActions user={user} />
       </section>
 
       <motion.div variants={itemVariants} className="relative">
-        <div className="absolute -inset-4 bg-gradient-to-tr from-blue-100 to-indigo-100 rounded-[3rem] blur-2xl opacity-50 animate-pulse" />
-        <div className="relative bg-white border border-slate-200 rounded-[2.5rem] shadow-2xl overflow-hidden group aspect-[4/3]">
+        <div className="absolute -inset-4 rounded-[3rem] bg-gradient-to-tr from-blue-100 to-indigo-100 opacity-60 blur-2xl animate-pulse" />
+        <div className="relative aspect-[4/3] overflow-hidden rounded-[2.75rem] border border-slate-200/70 bg-white/80 shadow-[0_32px_120px_-48px_rgba(15,23,42,0.55)] backdrop-blur-xl group">
           <div className="absolute inset-0">
             <div className="relative left-1/2 -translate-x-1/2 origin-top scale-[0.72] w-[138.89%] h-[138.89%]">
               <div className="bg-[#f8fafc]">

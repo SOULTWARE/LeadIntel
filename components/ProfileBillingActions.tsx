@@ -177,23 +177,23 @@ export default function ProfileBillingActions({
               type="button"
               onClick={handleClick}
               disabled={isProcessing || isCurrentPlan}
-              className={`rounded-2xl border px-6 py-5 text-left shadow-sm transition ${
+              className={`rounded-[2rem] border px-6 py-5 text-left shadow-sm transition-transform hover:-translate-y-0.5 ${
                 plan === "pro"
-                  ? "border-blue-600 bg-slate-900 text-white hover:bg-slate-800"
+                  ? "border-blue-500 bg-slate-950 text-white shadow-[0_24px_80px_-40px_rgba(15,23,42,0.65)] hover:bg-slate-900"
                   : "border-slate-200 bg-white hover:border-blue-200 hover:shadow-md"
               } ${isCurrentPlan ? "opacity-70" : ""}`}
             >
-              <div className="text-xs font-black uppercase tracking-widest text-slate-400">
+              <div className={`text-[10px] font-black uppercase tracking-[0.35em] ${plan === 'pro' ? 'text-slate-400' : 'text-slate-400'}`}>
                 {details.label}
               </div>
-              <div className="mt-2 text-3xl font-black">{details.price}</div>
-              <div className="text-sm text-slate-500">Monthly subscription</div>
-              <ul className="mt-4 space-y-1 text-xs font-semibold text-slate-500">
+              <div className="mt-2 text-3xl font-black tracking-tight">{details.price}</div>
+              <div className={`text-sm ${plan === 'pro' ? 'text-slate-300' : 'text-slate-500'}`}>Monthly subscription</div>
+              <ul className={`mt-4 space-y-1 text-xs font-semibold ${plan === 'pro' ? 'text-slate-300' : 'text-slate-500'}`}>
                 {details.bullets.map((bullet) => (
                   <li key={bullet}>{bullet}</li>
                 ))}
               </ul>
-              <div className="mt-4 text-sm font-bold text-blue-600">
+              <div className={`mt-4 text-sm font-black ${plan === 'pro' ? 'text-blue-300' : 'text-blue-600'}`}>
                 {isCurrentPlan
                   ? "Current plan"
                   : isProcessing
@@ -218,7 +218,7 @@ export default function ProfileBillingActions({
           type="button"
           onClick={handleAddon}
           disabled={loading !== null}
-          className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-blue-700"
+          className="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-blue-200 transition-transform hover:-translate-y-0.5 hover:bg-blue-700"
         >
           {loading === "addon" ? "Redirecting..." : "Buy add-on"}
         </button>
@@ -229,7 +229,7 @@ export default function ProfileBillingActions({
           type="button"
           onClick={handlePortal}
           disabled={loading !== null}
-          className="w-full rounded-xl border border-slate-200 px-5 py-3 text-sm font-bold text-slate-700 hover:bg-slate-50"
+          className="w-full rounded-2xl border border-slate-200 px-5 py-3 text-sm font-black text-slate-700 transition-colors hover:bg-slate-50"
         >
           {loading === "portal" ? "Opening..." : "Manage plan"}
         </button>
