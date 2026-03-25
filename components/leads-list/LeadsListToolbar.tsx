@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { Filter, Mail, Search, Check, Sparkles } from 'lucide-react';
+import { Mail, Search, Sparkles } from "lucide-react";
 
 type FilterStatus = string;
 
@@ -8,9 +8,6 @@ export function LeadsListToolbar(props: {
   searchQuery: string;
   onSearchQueryChange: (value: string) => void;
   filterStatus: FilterStatus;
-  isFilterMenuOpen: boolean;
-  onToggleFilterMenu: () => void;
-  onCloseFilterMenu: () => void;
   onSelectFilterStatus: (status: FilterStatus) => void;
   selectedCount: number;
   isFindingBatch: boolean;
@@ -25,9 +22,6 @@ export function LeadsListToolbar(props: {
     searchQuery,
     onSearchQueryChange,
     filterStatus,
-    isFilterMenuOpen,
-    onToggleFilterMenu,
-    onCloseFilterMenu,
     onSelectFilterStatus,
     selectedCount,
     isFindingBatch,
@@ -40,102 +34,96 @@ export function LeadsListToolbar(props: {
   } = props;
 
   return (
-    <div className="mb-8 space-y-5 rounded-[2rem] border border-white/70 bg-white/80 p-6 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.28)] backdrop-blur-xl md:p-8">
-      <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-        <div className="relative w-full md:w-96 group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 group-focus-within:text-blue-600 transition-colors" />
-          <input
-            type="text"
-            placeholder="Search leads by name or type..."
-            value={searchQuery}
-            onChange={(e) => onSearchQueryChange(e.target.value)}
-            className="w-full rounded-2xl border border-slate-200 bg-white/90 py-4 pl-11 pr-4 text-sm font-medium outline-none transition-all focus:border-blue-200 focus:ring-4 focus:ring-blue-100"
-          />
+    <div className="surface space-y-5 p-5 lg:p-6">
+      <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_220px] xl:flex-1">
+          <div className="relative w-full">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search leads by name, type, or address"
+              value={searchQuery}
+              onChange={(e) => onSearchQueryChange(e.target.value)}
+              className="field-input pl-10"
+            />
+          </div>
+
+          <label className="space-y-2">
+            <span className="section-label">Recommendation</span>
+            <select
+              value={filterStatus}
+              onChange={(event) => onSelectFilterStatus(event.target.value)}
+              className="field-select"
+            >
+              <option value="all">All recommendations</option>
+              <option value="Highly Recommended">Highly Recommended</option>
+              <option value="Recommended">Recommended</option>
+              <option value="Potential">Potential</option>
+            </select>
+          </label>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="relative">
-            <button
-              onClick={onToggleFilterMenu}
-              className={`flex cursor-pointer items-center gap-2 rounded-2xl border px-5 py-4 text-sm font-black transition-all ${filterStatus !== 'all' ? 'border-blue-200 bg-blue-50 text-blue-600 shadow-sm' : 'border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:bg-slate-50'}`}
-            >
-              <Filter className="w-4 h-4" />
-              {filterStatus === 'all' ? 'Filters' : filterStatus}
-            </button>
-
-            {isFilterMenuOpen && (
-              <>
-                <div className="fixed inset-0 z-10" onClick={onCloseFilterMenu} />
-                <div className="absolute right-0 z-20 mt-2 w-64 overflow-hidden rounded-2xl border border-slate-200 bg-white/95 py-2 shadow-2xl shadow-slate-200/50 backdrop-blur-xl animate-in fade-in zoom-in duration-200">
-                  <div className="mb-2 border-b border-slate-100 px-4 py-2">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Filter by Recommendation</span>
-                  </div>
-                  {['all', 'Highly Recommended', 'Recommended', 'Potential'].map((status) => (
-                    <button
-                      key={status}
-                      onClick={() => onSelectFilterStatus(status)}
-                      className={`flex w-full cursor-pointer items-center justify-between px-5 py-3 text-left text-sm font-bold transition-colors ${filterStatus === status ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'}`}
-                    >
-                      {status.charAt(0).toUpperCase() + status.slice(1)}
-                      {filterStatus === status && <Check className="w-4 h-4" />}
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-
-          <div className="relative">
-            <button
-              type="button"
-              onClick={onFindEmailsBatch}
-              disabled={selectedCount === 0 || isFindingBatch}
-              className={`flex items-center gap-2 rounded-2xl border px-5 py-4 text-sm font-black transition-all ${
-                selectedCount > 0 && !isFindingBatch
-                  ? 'border-slate-950 bg-slate-950 text-white shadow-lg shadow-slate-900/10 hover:-translate-y-0.5 cursor-pointer'
-                  : 'border-slate-200 bg-white text-slate-400 opacity-60 cursor-not-allowed'
-              }`}
-            >
-              <Mail className="w-4 h-4" />
-              {isFindingBatch ? 'Searching...' : `Find Email${selectedCount > 1 ? 's' : ''}`}
-            </button>
-          </div>
-
+        <div className="flex flex-wrap items-center gap-3 xl:justify-end">
+          <span className="chip-muted">{selectedCount} selected</span>
+          <button
+            type="button"
+            onClick={onFindEmailsBatch}
+            disabled={selectedCount === 0 || isFindingBatch}
+            className="btn-secondary"
+          >
+            <Mail className="h-4 w-4" />
+            {isFindingBatch
+              ? "Searching..."
+              : `Find Email${selectedCount > 1 ? "s" : ""}`}
+          </button>
           <button
             onClick={onExport}
             disabled={selectedCount === 0}
-            className="flex cursor-pointer items-center gap-2 rounded-2xl bg-slate-950 px-5 py-4 text-sm font-black text-white shadow-lg shadow-slate-900/10 transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
+            className="btn-primary"
           >
-            Export {selectedCount > 0 ? `(${selectedCount})` : 'Selected'}
+            Export {selectedCount > 0 ? `(${selectedCount})` : "Selected"}
           </button>
         </div>
       </div>
 
-      <div className="rounded-[1.75rem] border border-slate-200 bg-white/90 p-6 shadow-sm">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center">
-          <div className="flex-1 w-full">
-            <label className="mb-2 block text-[10px] font-black uppercase tracking-[0.35em] text-slate-400">Contact Purpose</label>
+      <div className="surface-muted space-y-4 p-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
+          <div className="flex-1 space-y-2">
+            <div className="section-label">Contact purpose</div>
             <textarea
               value={leadPurpose}
               onChange={(e) => onLeadPurposeChange(e.target.value)}
-              placeholder="Describe why you're contacting these leads..."
-              rows={2}
-              className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium outline-none focus:border-blue-200 focus:ring-4 focus:ring-blue-100"
+              placeholder="Describe the problem you want the AI to evaluate against this lead set."
+              rows={3}
+              className="field-textarea min-h-24"
             />
+            <p className="field-hint">
+              AI Enhance scores fit, identifies pain points, and drafts hooks
+              using this prompt as the qualification brief.
+            </p>
           </div>
-          <button
-            type="button"
-            onClick={onEnhanceSelected}
-            disabled={selectedCount === 0 || isEnhancing}
-            className="inline-flex cursor-pointer items-center gap-2 rounded-2xl bg-indigo-600 px-6 py-4 text-sm font-black text-white shadow-lg shadow-indigo-200 transition-transform hover:-translate-y-0.5 hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
-          >
-            <Sparkles className={`w-4 h-4 ${isEnhancing ? 'animate-spin' : ''}`} />
-            {isEnhancing ? 'Enhancing…' : `AI Enhance (${selectedCount})`}
-          </button>
+
+          <div className="grid gap-3 lg:w-56">
+            <button
+              type="button"
+              onClick={onEnhanceSelected}
+              disabled={selectedCount === 0 || isEnhancing}
+              className="btn-accent justify-center"
+            >
+              <Sparkles
+                className={`h-4 w-4 ${isEnhancing ? "animate-spin" : ""}`}
+              />
+              {isEnhancing ? "Enhancing..." : `AI Enhance (${selectedCount})`}
+            </button>
+            <div className="surface border-slate-200 bg-white p-4">
+              <div className="section-label">Workflow</div>
+              <p className="mt-2 text-sm text-slate-600">
+                Search to selection to enrichment to contact discovery to
+                export.
+              </p>
+            </div>
+          </div>
         </div>
-        <p className="mt-3 text-xs text-slate-500">
-          AI Enhance enriches selected leads with compatibility scores, hooks, and messaging insights using the provided contact purpose.
-        </p>
       </div>
     </div>
   );

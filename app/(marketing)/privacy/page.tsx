@@ -1,9 +1,16 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import { Shield, Lock, Eye, Database, Mail, Trash2 } from 'lucide-react';
+import { motion } from "framer-motion";
+import { Shield, Lock, Eye, Database, Mail, Trash2 } from "lucide-react";
+import PrivacyPageContent from "@/components/marketing/PrivacyPageContent";
 
 export default function PrivacyPolicyPage() {
+  return <PrivacyPageContent />;
+}
+
+void LegacyPrivacyPolicyPage;
+
+function LegacyPrivacyPolicyPage() {
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -20,63 +27,63 @@ export default function PrivacyPolicyPage() {
   const sections = [
     {
       icon: Database,
-      title: 'Information We Collect',
+      title: "Information We Collect",
       content: [
-        'Account information (email, name) when you register',
-        'Usage data and analytics to improve our services',
-        'Lead data you scrape and store within the platform',
-        'Payment information processed securely through our payment provider',
+        "Account information (email, name) when you register",
+        "Usage data and analytics to improve our services",
+        "Lead data you scrape and store within the platform",
+        "Payment information processed securely through our payment provider",
       ],
     },
     {
       icon: Eye,
-      title: 'How We Use Your Information',
+      title: "How We Use Your Information",
       content: [
-        'To provide and maintain our lead intelligence services',
-        'To process transactions and send related information',
-        'To send technical notices, updates, and support messages',
-        'To monitor and analyze usage trends and improve the platform',
-        'To detect, prevent, and address technical issues',
+        "To provide and maintain our lead intelligence services",
+        "To process transactions and send related information",
+        "To send technical notices, updates, and support messages",
+        "To monitor and analyze usage trends and improve the platform",
+        "To detect, prevent, and address technical issues",
       ],
     },
     {
       icon: Shield,
-      title: 'Data Protection',
+      title: "Data Protection",
       content: [
-        'All data is encrypted in transit using TLS 1.3',
-        'Database encryption at rest for sensitive information',
-        'Regular security audits and penetration testing',
-        'Access controls and authentication for all team members',
-        'Compliant with GDPR and other privacy regulations',
+        "All data is encrypted in transit using TLS 1.3",
+        "Database encryption at rest for sensitive information",
+        "Regular security audits and penetration testing",
+        "Access controls and authentication for all team members",
+        "Compliant with GDPR and other privacy regulations",
       ],
     },
     {
       icon: Lock,
-      title: 'Data Sharing',
+      title: "Data Sharing",
       content: [
-        'We do not sell your personal information to third parties',
-        'Data may be shared with service providers essential to operations',
-        'We may disclose information when required by law',
-        'Business transfers may include transfer of user data',
+        "We do not sell your personal information to third parties",
+        "Data may be shared with service providers essential to operations",
+        "We may disclose information when required by law",
+        "Business transfers may include transfer of user data",
       ],
     },
     {
       icon: Mail,
-      title: 'Communications',
+      title: "Communications",
       content: [
-        'Transactional emails related to your account and service',
-        'Optional marketing communications (you can opt-out anytime)',
-        'Important service announcements and security updates',
+        "Transactional emails related to your account and service",
+        "Optional marketing communications (you can opt-out anytime)",
+        "Important service announcements and security updates",
       ],
     },
     {
       icon: Trash2,
-      title: 'Data Retention & Deletion',
+      title: "Data Retention & Deletion",
       content: [
-        'Account data retained while your account is active',
-        'You can request deletion of your data at any time',
-        'Some data may be retained for legal or compliance purposes',
-        'Backups are purged within 30 days of deletion request',
+        "Account data retained while your account is active",
+        "You can request deletion of your data at any time",
+        "Some data may be retained for legal or compliance purposes",
+        "Backups are purged within 30 days of deletion request",
       ],
     },
   ];
@@ -103,15 +110,18 @@ export default function PrivacyPolicyPage() {
             variants={itemVariants}
             className="text-4xl font-black leading-tight tracking-tight text-slate-900 md:text-5xl"
           >
-            Your privacy is{' '}
+            Your privacy is{" "}
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
               our priority.
             </span>
           </motion.h1>
 
-          <motion.p variants={itemVariants} className="mx-auto max-w-2xl text-lg leading-relaxed text-slate-500">
-            We are committed to protecting your personal information and being transparent about what data we collect
-            and how we use it.
+          <motion.p
+            variants={itemVariants}
+            className="mx-auto max-w-2xl text-lg leading-relaxed text-slate-500"
+          >
+            We are committed to protecting your personal information and being
+            transparent about what data we collect and how we use it.
           </motion.p>
 
           <motion.p variants={itemVariants} className="text-sm text-slate-400">
@@ -120,22 +130,34 @@ export default function PrivacyPolicyPage() {
         </section>
 
         {/* Introduction */}
-        <motion.section variants={itemVariants} className="rounded-[2rem] border border-white/70 bg-white/80 p-8 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.25)] backdrop-blur-xl">
+        <motion.section
+          variants={itemVariants}
+          className="rounded-[2rem] border border-white/70 bg-white/80 p-8 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.25)] backdrop-blur-xl"
+        >
           <p className="text-slate-600 leading-relaxed">
-            This Privacy Policy describes how Lead Intel Pro (&quot;we&quot;, &quot;us&quot;, or &quot;our&quot;) collects, uses, and shares
-            information about you when you use our website, applications, and services (collectively, the &quot;Services&quot;).
-            By using our Services, you agree to the collection and use of information in accordance with this policy.
+            This Privacy Policy describes how Lead Intel Pro (&quot;we&quot;,
+            &quot;us&quot;, or &quot;our&quot;) collects, uses, and shares
+            information about you when you use our website, applications, and
+            services (collectively, the &quot;Services&quot;). By using our
+            Services, you agree to the collection and use of information in
+            accordance with this policy.
           </p>
         </motion.section>
 
         {/* Sections */}
         {sections.map((section, index) => (
-          <motion.section key={index} variants={itemVariants} className="space-y-4 rounded-[2rem] border border-white/70 bg-white/75 p-8 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.25)] backdrop-blur-xl">
+          <motion.section
+            key={index}
+            variants={itemVariants}
+            className="space-y-4 rounded-[2rem] border border-white/70 bg-white/75 p-8 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.25)] backdrop-blur-xl"
+          >
             <div className="flex items-center gap-4">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-100">
                 <section.icon size={20} className="text-blue-600" />
               </div>
-              <h2 className="text-2xl font-black text-slate-900">{section.title}</h2>
+              <h2 className="text-2xl font-black text-slate-900">
+                {section.title}
+              </h2>
             </div>
             <ul className="space-y-3 pl-16">
               {section.content.map((item, i) => (
@@ -149,18 +171,21 @@ export default function PrivacyPolicyPage() {
         ))}
 
         {/* Your Rights */}
-        <motion.section variants={itemVariants} className="rounded-[2.5rem] border border-slate-900/90 bg-slate-950 p-8 text-white shadow-[0_32px_120px_-48px_rgba(15,23,42,0.65)] md:p-10">
+        <motion.section
+          variants={itemVariants}
+          className="rounded-[2.5rem] border border-slate-900/90 bg-slate-950 p-8 text-white shadow-[0_32px_120px_-48px_rgba(15,23,42,0.65)] md:p-10"
+        >
           <h2 className="text-2xl font-black mb-6">Your Rights</h2>
           <div className="grid md:grid-cols-2 gap-4">
             {[
-              'Right to access your personal data',
-              'Right to correct inaccurate data',
-              'Right to delete your data',
-              'Right to data portability',
-              'Right to restrict processing',
-              'Right to object to processing',
-              'Right to withdraw consent',
-              'Right to lodge a complaint',
+              "Right to access your personal data",
+              "Right to correct inaccurate data",
+              "Right to delete your data",
+              "Right to data portability",
+              "Right to restrict processing",
+              "Right to object to processing",
+              "Right to withdraw consent",
+              "Right to lodge a complaint",
             ].map((right, i) => (
               <div key={i} className="flex items-center gap-3 text-slate-300">
                 <div className="w-2 h-2 bg-blue-500 rounded-full shrink-0" />
@@ -171,10 +196,16 @@ export default function PrivacyPolicyPage() {
         </motion.section>
 
         {/* Contact */}
-        <motion.section variants={itemVariants} className="rounded-[2.5rem] border border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50 p-10 text-center shadow-[0_18px_60px_-36px_rgba(15,23,42,0.25)]">
-          <h2 className="text-2xl font-black text-slate-900 mb-4">Questions about privacy?</h2>
+        <motion.section
+          variants={itemVariants}
+          className="rounded-[2.5rem] border border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50 p-10 text-center shadow-[0_18px_60px_-36px_rgba(15,23,42,0.25)]"
+        >
+          <h2 className="text-2xl font-black text-slate-900 mb-4">
+            Questions about privacy?
+          </h2>
           <p className="text-slate-600 mb-6">
-            If you have any questions about this Privacy Policy, please contact us.
+            If you have any questions about this Privacy Policy, please contact
+            us.
           </p>
           <a
             href="mailto:privacy@leadintelpro.com"

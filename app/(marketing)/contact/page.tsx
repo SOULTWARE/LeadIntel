@@ -1,10 +1,16 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import { Mail, MessageSquare, HelpCircle, Clock, Sparkles } from 'lucide-react';
+import { motion } from "framer-motion";
+import { Mail, MessageSquare, HelpCircle, Clock, Sparkles } from "lucide-react";
+import ContactPageContent from "@/components/marketing/ContactPageContent";
 
 export default function ContactPage() {
+  return <ContactPageContent />;
+}
 
+void LegacyContactPage;
+
+function LegacyContactPage() {
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -21,24 +27,24 @@ export default function ContactPage() {
   const contactMethods = [
     {
       icon: Mail,
-      title: 'Email Support',
-      description: 'Get help with your account or technical issues',
-      contact: 'support@leadintelpro.com',
-      href: 'mailto:support@leadintelpro.com',
+      title: "Email Support",
+      description: "Get help with your account or technical issues",
+      contact: "support@leadintelpro.com",
+      href: "mailto:support@leadintelpro.com",
     },
     {
       icon: MessageSquare,
-      title: 'Sales Inquiries',
-      description: 'Questions about pricing or enterprise plans',
-      contact: 'sales@leadintelpro.com',
-      href: 'mailto:sales@leadintelpro.com',
+      title: "Sales Inquiries",
+      description: "Questions about pricing or enterprise plans",
+      contact: "sales@leadintelpro.com",
+      href: "mailto:sales@leadintelpro.com",
     },
     {
       icon: HelpCircle,
-      title: 'General Questions',
-      description: 'Partnerships, press, and other inquiries',
-      contact: 'hello@leadintelpro.com',
-      href: 'mailto:hello@leadintelpro.com',
+      title: "General Questions",
+      description: "Partnerships, press, and other inquiries",
+      contact: "hello@leadintelpro.com",
+      href: "mailto:hello@leadintelpro.com",
     },
   ];
 
@@ -64,20 +70,26 @@ export default function ContactPage() {
             variants={itemVariants}
             className="text-4xl font-black leading-tight tracking-tight text-slate-900 md:text-5xl"
           >
-            Let&apos;s{' '}
+            Let&apos;s{" "}
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-violet-600 to-fuchsia-600">
               talk.
             </span>
           </motion.h1>
 
-          <motion.p variants={itemVariants} className="text-lg text-slate-500 leading-relaxed">
-            Have questions about Lead Intel Pro? We&apos;d love to hear from you. Our team typically responds within 24
-            hours.
+          <motion.p
+            variants={itemVariants}
+            className="text-lg text-slate-500 leading-relaxed"
+          >
+            Have questions about Lead Intel Pro? We&apos;d love to hear from
+            you. Our team typically responds within 24 hours.
           </motion.p>
         </section>
 
         {/* Contact Methods */}
-        <motion.section variants={itemVariants} className="grid gap-6 md:grid-cols-3">
+        <motion.section
+          variants={itemVariants}
+          className="grid gap-6 md:grid-cols-3"
+        >
           {contactMethods.map((method, index) => (
             <a
               key={index}
@@ -85,17 +97,29 @@ export default function ContactPage() {
               className="group rounded-[2rem] border border-white/70 bg-white/80 p-6 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.25)] transition-all hover:-translate-y-1 hover:shadow-xl backdrop-blur-xl"
             >
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-violet-100 transition-colors group-hover:bg-violet-600">
-                <method.icon size={22} className="text-violet-600 transition-colors group-hover:text-white" />
+                <method.icon
+                  size={22}
+                  className="text-violet-600 transition-colors group-hover:text-white"
+                />
               </div>
-              <h3 className="mb-1 text-lg font-black text-slate-900">{method.title}</h3>
-              <p className="mb-3 text-sm text-slate-500">{method.description}</p>
-              <div className="text-sm font-black text-violet-600">{method.contact}</div>
+              <h3 className="mb-1 text-lg font-black text-slate-900">
+                {method.title}
+              </h3>
+              <p className="mb-3 text-sm text-slate-500">
+                {method.description}
+              </p>
+              <div className="text-sm font-black text-violet-600">
+                {method.contact}
+              </div>
             </a>
           ))}
         </motion.section>
 
         {/* Info Grid */}
-        <motion.section variants={itemVariants} className="grid gap-8 md:grid-cols-2">
+        <motion.section
+          variants={itemVariants}
+          className="grid gap-8 md:grid-cols-2"
+        >
           <div className="space-y-6">
             <div className="rounded-[2rem] border border-white/70 bg-white/80 p-8 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.25)] backdrop-blur-xl">
               <div className="flex items-center gap-3">
@@ -103,13 +127,17 @@ export default function ContactPage() {
                   <Clock size={18} className="text-violet-600" />
                 </div>
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Response time</p>
-                  <p className="text-lg font-black text-slate-900">Under 24 hours</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">
+                    Response time
+                  </p>
+                  <p className="text-lg font-black text-slate-900">
+                    Under 24 hours
+                  </p>
                 </div>
               </div>
               <p className="text-slate-600 mt-4">
-                Our inboxes are reviewed every weekday. Enterprise customers receive priority handling and direct Slack
-                access.
+                Our inboxes are reviewed every weekday. Enterprise customers
+                receive priority handling and direct Slack access.
               </p>
             </div>
           </div>
@@ -120,13 +148,18 @@ export default function ContactPage() {
                 <Sparkles size={18} className="text-violet-600" />
               </div>
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Company info</p>
-                <p className="text-lg font-black text-slate-900">Lead Intel Pro</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">
+                  Company info
+                </p>
+                <p className="text-lg font-black text-slate-900">
+                  Lead Intel Pro
+                </p>
               </div>
             </div>
             <p className="text-slate-600">
-              Built by Soultware. For security reasons we don&apos;t publish office addresses publicly—reach out through any
-              of the inboxes above and we&apos;ll share details as needed.
+              Built by Soultware. For security reasons we don&apos;t publish
+              office addresses publicly—reach out through any of the inboxes
+              above and we&apos;ll share details as needed.
             </p>
           </div>
         </motion.section>

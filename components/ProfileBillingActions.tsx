@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -6,7 +6,9 @@ import { toast } from "sonner";
 
 type PlanName = "starter" | "pro";
 
-async function safeParseJson(response: Response): Promise<Record<string, unknown> | null> {
+async function safeParseJson(
+  response: Response,
+): Promise<Record<string, unknown> | null> {
   const text = await response.text();
   if (!text) return null;
 
@@ -17,16 +19,27 @@ async function safeParseJson(response: Response): Promise<Record<string, unknown
   }
 }
 
-const PLAN_DETAILS: Record<PlanName, { label: string; price: string; bullets: string[] }> = {
+const PLAN_DETAILS: Record<
+  PlanName,
+  { label: string; price: string; bullets: string[] }
+> = {
   starter: {
     label: "Starter",
     price: "$29",
-    bullets: ["1,000 Enhanced Leads", "1,000 Email Discoveries", "50 max leads per search"],
+    bullets: [
+      "1,000 Enhanced Leads",
+      "1,000 Email Discoveries",
+      "50 max leads per search",
+    ],
   },
   pro: {
     label: "Pro",
     price: "$79",
-    bullets: ["5,000 Enhanced Leads", "5,000 Email Discoveries", "200 max leads per search"],
+    bullets: [
+      "5,000 Enhanced Leads",
+      "5,000 Email Discoveries",
+      "200 max leads per search",
+    ],
   },
 };
 
@@ -39,7 +52,8 @@ async function startCheckout(type: "subscription" | "addon", plan?: PlanName) {
 
   const data = await safeParseJson(response);
   const success = data?.success === true;
-  const error = typeof data?.error === "string" ? data.error : "Checkout failed";
+  const error =
+    typeof data?.error === "string" ? data.error : "Checkout failed";
 
   if (!response.ok || !success) {
     throw new Error(error);
@@ -57,7 +71,10 @@ async function openPortal() {
   const response = await fetch("/api/billing/portal", { method: "POST" });
   const data = await safeParseJson(response);
   const success = data?.success === true;
-  const error = typeof data?.error === "string" ? data.error : "Unable to open billing portal";
+  const error =
+    typeof data?.error === "string"
+      ? data.error
+      : "Unable to open billing portal";
 
   if (!response.ok || !success) {
     throw new Error(error);
@@ -80,7 +97,9 @@ export default function ProfileBillingActions({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [loading, setLoading] = useState<null | "starter" | "pro" | "addon" | "portal">(null);
+  const [loading, setLoading] = useState<
+    null | "starter" | "pro" | "addon" | "portal"
+  >(null);
   const autoStartedRef = useRef(false);
   const [changingPlan, setChangingPlan] = useState<PlanName | null>(null);
   const [localPlan, setLocalPlan] = useState<PlanName | null>(currentPlan);
@@ -124,7 +143,9 @@ export default function ProfileBillingActions({
     try {
       await openPortal();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Unable to open portal");
+      toast.error(
+        error instanceof Error ? error.message : "Unable to open portal",
+      );
       setLoading(null);
     }
   };
@@ -139,7 +160,8 @@ export default function ProfileBillingActions({
       });
       const data = await safeParseJson(response);
       const success = data?.success === true;
-      const error = typeof data?.error === "string" ? data.error : "Unable to change plan";
+      const error =
+        typeof data?.error === "string" ? data.error : "Unable to change plan";
 
       if (!response.ok || !success) {
         throw new Error(error);
@@ -149,7 +171,9 @@ export default function ProfileBillingActions({
       setLocalPlan(plan);
       router.refresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Unable to change plan");
+      toast.error(
+        error instanceof Error ? error.message : "Unable to change plan",
+      );
     } finally {
       setChangingPlan(null);
     }
@@ -161,7 +185,9 @@ export default function ProfileBillingActions({
         {(["starter", "pro"] as PlanName[]).map((plan) => {
           const details = PLAN_DETAILS[plan];
           const isCurrentPlan = hasPlan && localPlan === plan;
-          const isProcessing = (!hasPlan && loading === plan) || (hasPlan && changingPlan === plan);
+          const isProcessing =
+            (!hasPlan && loading === plan) ||
+            (hasPlan && changingPlan === plan);
 
           const handleClick = () => {
             if (hasPlan) {
@@ -177,23 +203,35 @@ export default function ProfileBillingActions({
               type="button"
               onClick={handleClick}
               disabled={isProcessing || isCurrentPlan}
-              className={`rounded-[2rem] border px-6 py-5 text-left shadow-sm transition-transform hover:-translate-y-0.5 ${
+              className={`rounded-lg border px-6 py-5 text-left transition-colors ${
                 plan === "pro"
-                  ? "border-blue-500 bg-slate-950 text-white shadow-[0_24px_80px_-40px_rgba(15,23,42,0.65)] hover:bg-slate-900"
-                  : "border-slate-200 bg-white hover:border-blue-200 hover:shadow-md"
+                  ? "border-slate-950 bg-slate-950 text-white hover:bg-slate-900"
+                  : "border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/40"
               } ${isCurrentPlan ? "opacity-70" : ""}`}
             >
-              <div className={`text-[10px] font-black uppercase tracking-[0.35em] ${plan === 'pro' ? 'text-slate-400' : 'text-slate-400'}`}>
+              <div
+                className={`section-label ${plan === "pro" ? "text-slate-400" : ""}`}
+              >
                 {details.label}
               </div>
-              <div className="mt-2 text-3xl font-black tracking-tight">{details.price}</div>
-              <div className={`text-sm ${plan === 'pro' ? 'text-slate-300' : 'text-slate-500'}`}>Monthly subscription</div>
-              <ul className={`mt-4 space-y-1 text-xs font-semibold ${plan === 'pro' ? 'text-slate-300' : 'text-slate-500'}`}>
+              <div className="mt-2 text-3xl font-semibold tracking-tight">
+                {details.price}
+              </div>
+              <div
+                className={`text-sm ${plan === "pro" ? "text-slate-300" : "text-slate-500"}`}
+              >
+                Monthly subscription
+              </div>
+              <ul
+                className={`mt-4 space-y-1 text-xs font-semibold ${plan === "pro" ? "text-slate-300" : "text-slate-500"}`}
+              >
                 {details.bullets.map((bullet) => (
                   <li key={bullet}>{bullet}</li>
                 ))}
               </ul>
-              <div className={`mt-4 text-sm font-black ${plan === 'pro' ? 'text-blue-300' : 'text-blue-600'}`}>
+              <div
+                className={`mt-4 text-sm font-semibold ${plan === "pro" ? "text-blue-300" : "text-blue-700"}`}
+              >
                 {isCurrentPlan
                   ? "Current plan"
                   : isProcessing
@@ -209,16 +247,20 @@ export default function ProfileBillingActions({
         })}
       </div>
 
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
+      <div className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white px-6 py-5 md:flex-row md:items-center md:justify-between">
         <div>
-          <div className="text-sm font-black text-slate-900">Add-on credits</div>
-          <div className="text-sm text-slate-500">500 credits for $10 (expires in 3 months)</div>
+          <div className="text-sm font-semibold text-slate-900">
+            Add-on credits
+          </div>
+          <div className="text-sm text-slate-500">
+            500 credits for $10 (expires in 3 months)
+          </div>
         </div>
         <button
           type="button"
           onClick={handleAddon}
           disabled={loading !== null}
-          className="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-blue-200 transition-transform hover:-translate-y-0.5 hover:bg-blue-700"
+          className="btn-accent"
         >
           {loading === "addon" ? "Redirecting..." : "Buy add-on"}
         </button>
@@ -229,7 +271,7 @@ export default function ProfileBillingActions({
           type="button"
           onClick={handlePortal}
           disabled={loading !== null}
-          className="w-full rounded-2xl border border-slate-200 px-5 py-3 text-sm font-black text-slate-700 transition-colors hover:bg-slate-50"
+          className="btn-secondary w-full"
         >
           {loading === "portal" ? "Opening..." : "Manage plan"}
         </button>

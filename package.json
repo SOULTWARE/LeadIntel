@@ -18,6 +18,8 @@
     "db:reset": "prisma migrate reset"
   },
   "dependencies": {
+    "@polar-sh/nextjs": "latest",
+    "@polar-sh/sdk": "^0.42.5",
     "@prisma/adapter-pg": "^7.1.0",
     "@prisma/client": "^7.1.0",
     "@supabase/ssr": "^0.8.0",
@@ -31,8 +33,6 @@
     "react": "19.2.1",
     "react-dom": "19.2.1",
     "sonner": "^2.0.7",
-    "@polar-sh/nextjs": "latest",
-    "@polar-sh/sdk": "^0.42.5",
     "zod": "^4.2.1"
   },
   "devDependencies": {
@@ -42,7 +42,7 @@
     "@types/pg": "^8.16.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "baseline-browser-mapping": "^2.9.19",
+    "baseline-browser-mapping": "^2.10.10",
     "eslint": "^9",
     "eslint-config-next": "16.0.10",
     "prisma": "^7.1.0",

@@ -1,10 +1,17 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { Check, Sparkles, Zap, Mail, Search, Info } from 'lucide-react';
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { Check, Sparkles, Zap, Mail, Search, Info } from "lucide-react";
+import PricingPageContent from "@/components/marketing/PricingPageContent";
 
 export default function PricingPage() {
+  return <PricingPageContent />;
+}
+
+void LegacyPricingPage;
+
+function LegacyPricingPage() {
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -28,17 +35,31 @@ export default function PricingPage() {
       >
         {/* Hero Section */}
         <section className="mx-auto max-w-4xl space-y-6 rounded-[2.5rem] border border-white/70 bg-white/75 p-8 text-center shadow-[0_24px_80px_-40px_rgba(15,23,42,0.32)] backdrop-blur-2xl md:p-12">
-          <motion.div variants={itemVariants} className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-[10px] font-black uppercase tracking-[0.35em] text-blue-600">
+          <motion.div
+            variants={itemVariants}
+            className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-[10px] font-black uppercase tracking-[0.35em] text-blue-600"
+          >
             <Zap size={14} />
             Simple Pricing
           </motion.div>
 
-          <motion.h1 variants={itemVariants} className="text-5xl font-black leading-tight tracking-tight text-slate-900 md:text-6xl">
-            Pay for what you <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">actually use.</span>
+          <motion.h1
+            variants={itemVariants}
+            className="text-5xl font-black leading-tight tracking-tight text-slate-900 md:text-6xl"
+          >
+            Pay for what you{" "}
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+              actually use.
+            </span>
           </motion.h1>
 
-          <motion.p variants={itemVariants} className="text-xl leading-relaxed text-slate-500">
-            Subscribe to monthly lead intelligence credits that cover sourcing, AI discovery, outreach drafts, and exports. Usage resets every cycle, and you can top up whenever you outpace demand.
+          <motion.p
+            variants={itemVariants}
+            className="text-xl leading-relaxed text-slate-500"
+          >
+            Subscribe to monthly lead intelligence credits that cover sourcing,
+            AI discovery, outreach drafts, and exports. Usage resets every
+            cycle, and you can top up whenever you outpace demand.
           </motion.p>
         </section>
 
@@ -55,8 +76,13 @@ export default function PricingPage() {
                   <Sparkles size={18} className="text-indigo-600" />
                 </div>
                 <div>
-                  <div className="font-bold text-slate-900 mb-1">AI discovery & scoring</div>
-                  <p className="text-sm text-slate-500">Each credit unlocks a business summary, pain points, compatibility score, and outreach hooks.</p>
+                  <div className="font-bold text-slate-900 mb-1">
+                    AI discovery & scoring
+                  </div>
+                  <p className="text-sm text-slate-500">
+                    Each credit unlocks a business summary, pain points,
+                    compatibility score, and outreach hooks.
+                  </p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
@@ -64,8 +90,13 @@ export default function PricingPage() {
                   <Search size={18} className="text-blue-600" />
                 </div>
                 <div>
-                  <div className="font-bold text-slate-900 mb-1">Lead generation request</div>
-                  <p className="text-sm text-slate-500">Pull a verified business with firmographics before asking the AI to enrich it.</p>
+                  <div className="font-bold text-slate-900 mb-1">
+                    Lead generation request
+                  </div>
+                  <p className="text-sm text-slate-500">
+                    Pull a verified business with firmographics before asking
+                    the AI to enrich it.
+                  </p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
@@ -73,8 +104,13 @@ export default function PricingPage() {
                   <Mail size={18} className="text-rose-600" />
                 </div>
                 <div>
-                  <div className="font-bold text-slate-900 mb-1">AI outreach draft</div>
-                  <p className="text-sm text-slate-500">Generate a ready-to-edit email draft for the lead you just enriched.</p>
+                  <div className="font-bold text-slate-900 mb-1">
+                    AI outreach draft
+                  </div>
+                  <p className="text-sm text-slate-500">
+                    Generate a ready-to-edit email draft for the lead you just
+                    enriched.
+                  </p>
                 </div>
               </div>
             </div>
@@ -82,18 +118,29 @@ export default function PricingPage() {
         </motion.section>
 
         {/* Pricing Cards */}
-        <motion.section variants={itemVariants} className="mx-auto max-w-6xl space-y-8">
+        <motion.section
+          variants={itemVariants}
+          className="mx-auto max-w-6xl space-y-8"
+        >
           <div className="grid gap-8 md:grid-cols-2">
             {/* Starter Plan */}
             <div className="group relative rounded-[2.5rem] border border-white/70 bg-white/80 p-10 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.32)] transition-all hover:-translate-y-1 hover:shadow-2xl backdrop-blur-xl">
               <div className="flex h-full flex-col gap-8">
                 <div className="space-y-8">
                   <div>
-                    <div className="mb-2 text-[10px] font-black uppercase tracking-[0.35em] text-slate-400">Starter</div>
-                    <div className="text-5xl font-black text-slate-900">
-                      $29<span className="text-xl text-slate-400 font-medium">/mo</span>
+                    <div className="mb-2 text-[10px] font-black uppercase tracking-[0.35em] text-slate-400">
+                      Starter
                     </div>
-                    <p className="text-slate-500 mt-3">For solo founders and small teams testing outbound or running light campaigns.</p>
+                    <div className="text-5xl font-black text-slate-900">
+                      $29
+                      <span className="text-xl text-slate-400 font-medium">
+                        /mo
+                      </span>
+                    </div>
+                    <p className="text-slate-500 mt-3">
+                      For solo founders and small teams testing outbound or
+                      running light campaigns.
+                    </p>
                   </div>
 
                   <div className="space-y-4">
@@ -119,14 +166,17 @@ export default function PricingPage() {
 
                   <div className="space-y-3 border-t border-slate-100 pt-6">
                     {[
-                      'Unlimited sourcing sessions',
-                      'Business profile summaries & firmographics',
-                      'Pain-point reasoning & compatibility scoring',
-                      'AI outreach hooks plus ready-to-edit drafts',
-                      'Manual lead selection workflow',
-                      'CSV export of selected leads',
+                      "Unlimited sourcing sessions",
+                      "Business profile summaries & firmographics",
+                      "Pain-point reasoning & compatibility scoring",
+                      "AI outreach hooks plus ready-to-edit drafts",
+                      "Manual lead selection workflow",
+                      "CSV export of selected leads",
                     ].map((feature) => (
-                      <div key={feature} className="flex items-center gap-3 text-sm text-slate-600">
+                      <div
+                        key={feature}
+                        className="flex items-center gap-3 text-sm text-slate-600"
+                      >
                         <Check size={16} className="text-green-500" />
                         {feature}
                       </div>
@@ -152,11 +202,19 @@ export default function PricingPage() {
               <div className="flex h-full flex-col gap-8 text-white">
                 <div className="space-y-8">
                   <div>
-                    <div className="mb-2 text-[10px] font-black uppercase tracking-[0.35em] text-blue-400">Pro</div>
-                    <div className="text-5xl font-black">
-                      $79<span className="text-xl text-slate-400 font-medium">/mo</span>
+                    <div className="mb-2 text-[10px] font-black uppercase tracking-[0.35em] text-blue-400">
+                      Pro
                     </div>
-                    <p className="text-slate-400 mt-3">For agencies and teams running consistent outbound campaigns at scale.</p>
+                    <div className="text-5xl font-black">
+                      $79
+                      <span className="text-xl text-slate-400 font-medium">
+                        /mo
+                      </span>
+                    </div>
+                    <p className="text-slate-400 mt-3">
+                      For agencies and teams running consistent outbound
+                      campaigns at scale.
+                    </p>
                   </div>
 
                   <div className="space-y-4">
@@ -182,13 +240,16 @@ export default function PricingPage() {
 
                   <div className="space-y-3 border-t border-slate-700 pt-6">
                     {[
-                      'Everything in Starter',
-                      'Bulk AI discovery (up to 100 leads per batch)',
-                      'Automated outreach drafts for every lead',
-                      'Priority data sourcing queue',
-                      'Faster AI processing & scoring',
+                      "Everything in Starter",
+                      "Bulk AI discovery (up to 100 leads per batch)",
+                      "Automated outreach drafts for every lead",
+                      "Priority data sourcing queue",
+                      "Faster AI processing & scoring",
                     ].map((feature) => (
-                      <div key={feature} className="flex items-center gap-3 text-sm text-slate-300">
+                      <div
+                        key={feature}
+                        className="flex items-center gap-3 text-sm text-slate-300"
+                      >
                         <Check size={16} className="text-blue-400" />
                         {feature}
                       </div>
@@ -278,8 +339,12 @@ export default function PricingPage() {
         {/* Add-ons Section */}
         <motion.section variants={itemVariants} className="mx-auto max-w-4xl">
           <div className="mb-10 text-center">
-            <h2 className="text-3xl font-black text-slate-900 tracking-tight">Need more?</h2>
-            <p className="text-slate-500 mt-2">Purchase add-ons when you exceed your monthly allowance.</p>
+            <h2 className="text-3xl font-black text-slate-900 tracking-tight">
+              Need more?
+            </h2>
+            <p className="text-slate-500 mt-2">
+              Purchase add-ons when you exceed your monthly allowance.
+            </p>
           </div>
 
           <div className="grid gap-6">
@@ -289,11 +354,19 @@ export default function PricingPage() {
                   <Sparkles size={20} className="text-white" />
                 </div>
                 <div>
-                  <div className="font-black text-slate-900">+500 Lead intelligence credits</div>
-                  <div className="text-sm text-slate-500">One-time · $10 · Expires in 3 months</div>
+                  <div className="font-black text-slate-900">
+                    +500 Lead intelligence credits
+                  </div>
+                  <div className="text-sm text-slate-500">
+                    One-time · $10 · Expires in 3 months
+                  </div>
                 </div>
               </div>
-              <p className="text-sm text-slate-600">Use add-on credits for additional sourcing, AI discoveries, outreach drafts, and CSV exports after your base allowance is exhausted.</p>
+              <p className="text-sm text-slate-600">
+                Use add-on credits for additional sourcing, AI discoveries,
+                outreach drafts, and CSV exports after your base allowance is
+                exhausted.
+              </p>
             </div>
           </div>
         </motion.section>
@@ -304,14 +377,17 @@ export default function PricingPage() {
             <h2 className="text-xl font-black mb-6">Important Notes</h2>
             <div className="grid md:grid-cols-2 gap-x-12 gap-y-4">
               {[
-                'Monthly usage resets automatically on renewal',
-                'Unused monthly usage does not roll over',
-                'Re-enhancing the same lead is free',
-                'AI email drafts are generated using a separate credit',
-                'Add-ons are used after monthly allowance',
-                'CSV exports reflect whatever you select in the workspace',
+                "Monthly usage resets automatically on renewal",
+                "Unused monthly usage does not roll over",
+                "Re-enhancing the same lead is free",
+                "AI email drafts are generated using a separate credit",
+                "Add-ons are used after monthly allowance",
+                "CSV exports reflect whatever you select in the workspace",
               ].map((note, i) => (
-                <div key={i} className="flex items-center gap-3 text-sm text-slate-300">
+                <div
+                  key={i}
+                  className="flex items-center gap-3 text-sm text-slate-300"
+                >
                   <div className="w-1.5 h-1.5 bg-blue-500 rounded-full shrink-0" />
                   {note}
                 </div>

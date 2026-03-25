@@ -10,7 +10,9 @@ type DeleteAccountButtonProps = {
   email: string;
 };
 
-export default function DeleteAccountButton({ email }: DeleteAccountButtonProps) {
+export default function DeleteAccountButton({
+  email,
+}: DeleteAccountButtonProps) {
   const [confirming, setConfirming] = useState(false);
   const [confirmationText, setConfirmationText] = useState("");
   const [loading, setLoading] = useState(false);
@@ -47,7 +49,9 @@ export default function DeleteAccountButton({ email }: DeleteAccountButtonProps)
       router.replace("/");
       router.refresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to delete account");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete account",
+      );
     } finally {
       setLoading(false);
     }
@@ -58,7 +62,7 @@ export default function DeleteAccountButton({ email }: DeleteAccountButtonProps)
       <button
         type="button"
         onClick={() => setConfirming(true)}
-        className="w-full rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-black text-rose-600 transition-transform hover:-translate-y-0.5 hover:bg-rose-100"
+        className="btn border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 w-full"
       >
         Delete account
       </button>
@@ -66,15 +70,16 @@ export default function DeleteAccountButton({ email }: DeleteAccountButtonProps)
   }
 
   return (
-    <div className="space-y-4 rounded-2xl border border-rose-100 bg-white p-4 shadow-sm">
+    <div className="space-y-4 rounded-lg border border-rose-200 bg-white p-4">
       <p className="text-sm text-slate-600">
-        This will permanently remove {email}. Type <span className="font-semibold text-rose-600">DELETE</span> to confirm.
+        This will permanently remove {email}. Type{" "}
+        <span className="font-semibold text-rose-600">DELETE</span> to confirm.
       </p>
       <input
         type="text"
         value={confirmationText}
         onChange={(event) => setConfirmationText(event.target.value)}
-        className="w-full rounded-2xl border border-rose-200 px-4 py-3 text-sm outline-none focus:border-rose-500"
+        className="field-input border-rose-200 focus:border-rose-500 focus:ring-rose-100"
         placeholder="DELETE"
       />
       <div className="flex flex-wrap gap-3">
@@ -82,7 +87,7 @@ export default function DeleteAccountButton({ email }: DeleteAccountButtonProps)
           type="button"
           onClick={handleDelete}
           disabled={loading}
-          className="flex-1 rounded-2xl bg-rose-600 px-4 py-3 text-sm font-black text-white transition-transform hover:-translate-y-0.5 hover:bg-rose-700 disabled:opacity-60"
+          className="btn-danger flex-1"
         >
           {loading ? "Deleting..." : "Confirm deletion"}
         </button>
@@ -90,7 +95,7 @@ export default function DeleteAccountButton({ email }: DeleteAccountButtonProps)
           type="button"
           onClick={reset}
           disabled={loading}
-          className="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50"
+          className="btn-secondary"
         >
           Cancel
         </button>

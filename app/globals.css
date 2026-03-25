@@ -1,1 +1,214 @@
 @import "tailwindcss";
+
+:root {
+    --background: #f3f5f7;
+    --foreground: #0f172a;
+    --panel: #ffffff;
+    --panel-muted: #f8fafc;
+    --panel-strong: #0f172a;
+    --line: #d9e0e7;
+    --line-strong: #bcc6d3;
+    --accent: #2563eb;
+    --accent-soft: #dbeafe;
+    --accent-strong: #1d4ed8;
+    --success: #15803d;
+    --warning: #c2410c;
+    --danger: #b91c1c;
+}
+
+@layer base {
+    * {
+        border-color: var(--line);
+    }
+
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        min-height: 100vh;
+        background-color: var(--background);
+        background-image:
+            linear-gradient(rgba(15, 23, 42, 0.04) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(15, 23, 42, 0.04) 1px, transparent 1px);
+        background-position: center top;
+        background-size: 72px 72px;
+        color: var(--foreground);
+        font-family: "Aptos", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background:
+            radial-gradient(
+                circle at top,
+                rgba(255, 255, 255, 0.55),
+                transparent 40%
+            ),
+            linear-gradient(
+                180deg,
+                rgba(243, 245, 247, 0.2) 0%,
+                rgba(243, 245, 247, 0.88) 55%,
+                rgba(243, 245, 247, 1) 100%
+            );
+        z-index: -1;
+    }
+
+    a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+        font: inherit;
+    }
+
+    ::selection {
+        background: rgba(37, 99, 235, 0.16);
+        color: var(--foreground);
+    }
+}
+
+@layer components {
+    .page-shell {
+        @apply mx-auto w-full max-w-[1600px] px-4 md:px-6 lg:px-8;
+    }
+
+    .page-stack {
+        @apply flex flex-col gap-6;
+    }
+
+    .surface {
+        @apply rounded-lg border bg-white;
+    }
+
+    .surface-muted {
+        @apply rounded-lg border bg-slate-50;
+    }
+
+    .surface-dark {
+        @apply rounded-lg border border-slate-800 bg-slate-950 text-white;
+    }
+
+    .surface-inset {
+        @apply rounded-lg border border-dashed bg-slate-50;
+    }
+
+    .section-label {
+        @apply text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500;
+    }
+
+    .section-title {
+        @apply text-3xl font-semibold tracking-tight text-slate-950 md:text-4xl;
+    }
+
+    .section-copy {
+        @apply text-sm leading-6 text-slate-600 md:text-base;
+    }
+
+    .eyebrow {
+        @apply inline-flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-600;
+    }
+
+    .chip {
+        @apply inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em];
+    }
+
+    .chip-muted {
+        @apply inline-flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-600;
+    }
+
+    .chip-accent {
+        @apply inline-flex items-center gap-2 rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-blue-700;
+    }
+
+    .chip-success {
+        @apply inline-flex items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-emerald-700;
+    }
+
+    .chip-warning {
+        @apply inline-flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-amber-700;
+    }
+
+    .btn {
+        @apply inline-flex items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+    }
+
+    .btn-primary {
+        @apply inline-flex items-center justify-center gap-2 rounded-md border border-slate-950 bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50;
+    }
+
+    .btn-secondary {
+        @apply inline-flex items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50;
+    }
+
+    .btn-accent {
+        @apply inline-flex items-center justify-center gap-2 rounded-md border border-blue-700 bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50;
+    }
+
+    .btn-ghost {
+        @apply inline-flex items-center justify-center gap-2 rounded-md border border-transparent bg-transparent px-4 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:border-slate-300 hover:bg-white hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50;
+    }
+
+    .btn-danger {
+        @apply inline-flex items-center justify-center gap-2 rounded-md border border-rose-700 bg-rose-700 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-rose-600 disabled:cursor-not-allowed disabled:opacity-50;
+    }
+
+    .field-label {
+        @apply text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-600;
+    }
+
+    .field-hint {
+        @apply text-xs leading-5 text-slate-500;
+    }
+
+    .field-input {
+        @apply w-full rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100;
+    }
+
+    .field-textarea {
+        @apply w-full min-h-28 resize-y rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100;
+    }
+
+    .field-select {
+        @apply w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100;
+    }
+
+    .table-frame {
+        @apply overflow-hidden rounded-lg border bg-white;
+    }
+
+    .table-header {
+        @apply border-b bg-slate-50;
+    }
+
+    .table-cell-label {
+        @apply text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500;
+    }
+
+    .table-row {
+        @apply border-b transition-colors hover:bg-slate-50;
+    }
+
+    .metric-card {
+        @apply rounded-lg border bg-white p-5;
+    }
+
+    .metric-label {
+        @apply text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500;
+    }
+
+    .metric-value {
+        @apply mt-2 text-3xl font-semibold tracking-tight text-slate-950;
+    }
+
+    .metric-copy {
+        @apply mt-2 text-sm text-slate-600;
+    }
+}

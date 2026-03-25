@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -44,14 +44,15 @@ export default function CreditBalanceBanner() {
   if (summary.total >= 10) return null;
 
   return (
-    <div className="border-b border-amber-200/60 bg-amber-50/90 backdrop-blur-xl">
-      <div className="mx-auto flex w-full max-w-[1680px] flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:justify-between md:px-6">
+    <div className="border-b border-amber-200 bg-amber-50">
+      <div className="page-shell flex flex-col gap-3 py-3 md:flex-row md:items-center md:justify-between">
         <div className="text-sm font-semibold text-amber-900">
-          Low credits alert: {summary.total} remaining. Top up to keep running jobs.
+          Low credits alert: {summary.total} remaining. Top up to keep running
+          jobs.
         </div>
         <Link
           href="/profile"
-          className="inline-flex items-center justify-center rounded-xl border border-amber-200 bg-white/80 px-4 py-2 text-sm font-black text-amber-900 transition-transform hover:-translate-y-0.5"
+          className="btn border-amber-300 bg-white text-amber-900 hover:bg-amber-100"
         >
           Buy add-on credits
         </Link>
