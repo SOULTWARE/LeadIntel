@@ -85,13 +85,16 @@ export function LeadsListToolbar(props: {
             )}
           </div>
 
-          <div className="relative" title="Coming soon: Email discovery launches next release.">
+          <div className="relative">
             <button
               type="button"
               onClick={onFindEmailsBatch}
-              disabled
-              aria-disabled="true"
-              className="flex items-center gap-2 px-6 py-4 rounded-2xl text-sm font-bold transition-all shadow-sm bg-white border border-slate-200 text-slate-400 opacity-60 cursor-not-allowed"
+              disabled={selectedCount === 0 || isFindingBatch}
+              className={`flex items-center gap-2 px-6 py-4 rounded-2xl text-sm font-bold transition-all shadow-sm border ${
+                selectedCount > 0 && !isFindingBatch
+                  ? 'bg-slate-900 border-slate-900 text-white hover:bg-slate-800 cursor-pointer'
+                  : 'bg-white border-slate-200 text-slate-400 opacity-60 cursor-not-allowed'
+              }`}
             >
               <Mail className="w-4 h-4" />
               {isFindingBatch ? 'Searching...' : `Find Email${selectedCount > 1 ? 's' : ''}`}

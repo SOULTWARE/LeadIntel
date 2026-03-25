@@ -1,10 +1,10 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { prisma } from "@/db";
 import { creditsService } from "@/services/creditsService";
 import InternalLayoutSetter from "@/components/InternalLayoutSetter";
 import ProfileTabs from "@/components/ProfileTabs";
 import ProfileBillingActions from "@/components/ProfileBillingActions";
+import { resolveProfileBillingState } from "@/lib/polar/profile";
 import { User as UserIcon } from "lucide-react";
 
 async function getProfileData() {
@@ -17,18 +17,14 @@ async function getProfileData() {
     redirect("/login");
   }
 
-  const plan = await prisma.userPlan.findUnique({ where: { userId: user.id } });
-  const subscription = await prisma.polarSubscription.findFirst({
-    where: { userId: user.id },
-    orderBy: { createdAt: "desc" },
-  });
+  const billingState = await resolveProfileBillingState(user.id, user.email);
   const baseBalance = await creditsService.getBalance(user.id);
   const addonBalance = await creditsService.getAddonBalance(user.id);
 
   return {
     user,
-    plan,
-    subscription,
+    plan: billingState.plan,
+    subscription: billingState.subscription,
     baseBalance,
     addonBalance,
   };
