@@ -5,9 +5,21 @@ import { useSyncExternalStore } from "react";
 const LOCATION_HASH_CHANGE_EVENT = "lead-intel:location-hash-change";
 
 let hasPatchedHistory = false;
+let pendingLocationHashChangeTimeout: number | null = null;
 
 function dispatchLocationHashChange() {
+  pendingLocationHashChangeTimeout = null;
   window.dispatchEvent(new Event(LOCATION_HASH_CHANGE_EVENT));
+}
+
+function scheduleLocationHashChange() {
+  if (pendingLocationHashChangeTimeout !== null) return;
+
+  // Defer subscriber updates until after navigation settles so we don't
+  // trigger React updates during Next.js insertion effects.
+  pendingLocationHashChangeTimeout = window.setTimeout(() => {
+    dispatchLocationHashChange();
+  }, 0);
 }
 
 function ensureHistoryEvents() {
@@ -15,18 +27,18 @@ function ensureHistoryEvents() {
 
   hasPatchedHistory = true;
 
-  const originalPushState = window.history.pushState.bind(window.history);
-  const originalReplaceState = window.history.replaceState.bind(window.history);
+  const nativePushState = History.prototype.pushState;
+  const nativeReplaceState = History.prototype.replaceState;
 
   window.history.pushState = function pushState(...args) {
-    const result = originalPushState(...args);
-    dispatchLocationHashChange();
+    const result = nativePushState.apply(window.history, args);
+    scheduleLocationHashChange();
     return result;
   };
 
   window.history.replaceState = function replaceState(...args) {
-    const result = originalReplaceState(...args);
-    dispatchLocationHashChange();
+    const result = nativeReplaceState.apply(window.history, args);
+    scheduleLocationHashChange();
     return result;
   };
 }
