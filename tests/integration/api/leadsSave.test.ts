@@ -13,8 +13,26 @@ vi.mock("@/db", () => ({
     session: {
       create: vi.fn(),
     },
+    campaign: {
+      upsert: vi.fn(),
+    },
+    search: {
+      create: vi.fn(),
+    },
+    leadBatch: {
+      upsert: vi.fn(),
+    },
+    company: {
+      findUnique: vi.fn(),
+      findFirst: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
+    },
     lead: {
       upsert: vi.fn(),
+      findFirst: vi.fn(),
+      create: vi.fn(),
+      update: vi.fn(),
     },
   },
 }));
@@ -68,7 +86,16 @@ describe("/api/leads/save", () => {
       },
     } as Awaited<ReturnType<typeof createClient>>);
 
-    vi.mocked(prisma.session.create).mockResolvedValue({ id: "session-1" } as never);
+    vi.mocked(prisma.session.create).mockResolvedValue({
+      id: "session-1",
+    } as never);
+    vi.mocked(prisma.search.create).mockResolvedValue({
+      id: "search-1",
+    } as never);
+    vi.mocked(prisma.company.findFirst).mockResolvedValue(null);
+    vi.mocked(prisma.company.create).mockResolvedValue({
+      id: "company-1",
+    } as never);
     vi.mocked(prisma.lead.upsert).mockResolvedValue({ id: "lead-1" } as never);
 
     const req = new NextRequest("http://localhost:3000/api/leads/save", {
@@ -86,6 +113,8 @@ describe("/api/leads/save", () => {
     expect(res.status).toBe(200);
     expect(json.data.count).toBe(1);
     expect(prisma.session.create).toHaveBeenCalled();
+    expect(prisma.search.create).toHaveBeenCalled();
+    expect(prisma.company.create).toHaveBeenCalled();
     expect(prisma.lead.upsert).toHaveBeenCalled();
   });
 });

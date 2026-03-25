@@ -1,9 +1,12 @@
-import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { creditsService, InsufficientCreditsError } from '@/services/creditsService';
-import { CreditAction, getCreditCost } from '@/lib/credits/costs';
-import { prisma } from '@/db';
-import { z } from 'zod';
+import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+import {
+  creditsService,
+  InsufficientCreditsError,
+} from "@/services/creditsService";
+import { CreditAction, getCreditCost } from "@/lib/credits/costs";
+import { prisma } from "@/db";
+import { z } from "zod";
 
 const GenerateEmailRequestSchema = z.object({
   lead: z
@@ -14,36 +17,56 @@ const GenerateEmailRequestSchema = z.object({
       compatibilityHooks: z.array(z.string()).nullish(),
       identifiedProblems: z.array(z.string()).nullish(),
       searchQuery: z.string().nullish(),
+      primaryContact: z
+        .object({
+          fullName: z.string().nullish(),
+          roleTitle: z.string().nullish(),
+          email: z.string().nullish(),
+        })
+        .nullish(),
     })
     .passthrough(),
   leadPurpose: z.string().nullish(),
 });
 
 function extractLeadId(value: unknown): string | null {
-  if (typeof value !== 'object' || value === null) return null;
+  if (typeof value !== "object" || value === null) return null;
   const candidate = value as { id?: unknown };
-  return typeof candidate.id === 'string' && candidate.id.length > 0 ? candidate.id : null;
+  return typeof candidate.id === "string" && candidate.id.length > 0
+    ? candidate.id
+    : null;
 }
 
 export async function POST(req: Request) {
   try {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 },
+      );
     }
 
     const parsed = GenerateEmailRequestSchema.safeParse(await req.json());
     if (!parsed.success) {
-      return NextResponse.json({ success: false, error: 'Lead data is required' }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: "Lead data is required" },
+        { status: 400 },
+      );
     }
 
     const { lead, leadPurpose } = parsed.data;
 
-    const idempotencyKey = req.headers.get('Idempotency-Key');
+    const idempotencyKey = req.headers.get("Idempotency-Key");
     if (!idempotencyKey) {
-      return NextResponse.json({ success: false, error: 'Missing Idempotency-Key header' }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: "Missing Idempotency-Key header" },
+        { status: 400 },
+      );
     }
 
     const holdAmount = getCreditCost(CreditAction.GENERATE_EMAIL);
@@ -60,7 +83,10 @@ export async function POST(req: Request) {
         });
       } catch (err) {
         if (err instanceof InsufficientCreditsError) {
-          return NextResponse.json({ success: false, error: 'Insufficient credits' }, { status: 402 });
+          return NextResponse.json(
+            { success: false, error: "Insufficient credits" },
+            { status: 402 },
+          );
         }
         throw err;
       }
@@ -72,20 +98,23 @@ Draft a highly personalized, human-sounding email to the following business.
 
 BUSINESS INFO:
 - Name: ${lead.name}
-- Type: ${lead.type || 'N/A'}
-- Description: ${lead.reasoning || 'N/A'}
+- Type: ${lead.type || "N/A"}
+- Description: ${lead.reasoning || "N/A"}
 - Compatibility Hooks: ${JSON.stringify(lead.compatibilityHooks || [])}
 - Identified Problems: ${JSON.stringify(lead.identifiedProblems || [])}
+- Primary Contact: ${lead.primaryContact?.fullName || "Unknown"}
+- Primary Contact Role: ${lead.primaryContact?.roleTitle || "Unknown"}
 
 OUTREACH PURPOSE:
-"${leadPurpose || 'Partnership discussion'}"
+"${leadPurpose || "Partnership discussion"}"
 
 INSTRUCTIONS:
 1. Use an informal but professional tone.
 2. Reference at least one "Compatibility Hook" or "Problem" naturally.
-3. Keep it short (max 150 words).
-4. Include a clear, non-pushy Call to Action.
-5. Provide a Subject Line.
+3. If a primary contact role is provided, aim the message at that role's priorities.
+4. Keep it short (max 150 words).
+5. Include a clear, non-pushy Call to Action.
+6. Provide a Subject Line.
 
 Return ONLY a valid JSON object:
 {
@@ -103,7 +132,11 @@ Return ONLY a valid JSON object:
       body: JSON.stringify({
         model: process.env.AI_MODEL || "gpt-5-nano",
         messages: [
-          { role: "system", content: "You are a personalized outreach expert. Return JSON only." },
+          {
+            role: "system",
+            content:
+              "You are a personalized outreach expert. Return JSON only.",
+          },
           { role: "user", content: prompt },
         ],
         response_format: { type: "json_object" },
@@ -124,7 +157,10 @@ Return ONLY a valid JSON object:
         } catch {}
       }
 
-      return NextResponse.json({ success: false, error: 'Failed to generate email' }, { status: 500 });
+      return NextResponse.json(
+        { success: false, error: "Failed to generate email" },
+        { status: 500 },
+      );
     }
 
     const data = await response.json();
@@ -143,7 +179,9 @@ Return ONLY a valid JSON object:
         },
         select: { emailDraftGeneratedAt: true },
       });
-      generatedAt = updated.emailDraftGeneratedAt?.toISOString() ?? new Date().toISOString();
+      generatedAt =
+        updated.emailDraftGeneratedAt?.toISOString() ??
+        new Date().toISOString();
     }
 
     if (shouldCharge) {
@@ -167,9 +205,11 @@ Return ONLY a valid JSON object:
     console.error("[EmailGen] Error:", error);
 
     try {
-      const idempotencyKey = req.headers.get('Idempotency-Key');
+      const idempotencyKey = req.headers.get("Idempotency-Key");
       const supabase = await createClient();
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user && idempotencyKey) {
         await creditsService.releaseHold({
           userId: user.id,
@@ -179,6 +219,9 @@ Return ONLY a valid JSON object:
       }
     } catch {}
 
-    return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }

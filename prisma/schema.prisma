@@ -28,10 +28,18 @@ model Lead {
 
   // AI Analysis Data
   compatibilityScore Int?
+  qualityScore       Int?
   recommendation     String?
   reasoning          String?
   identifiedProblems Json?   @default("[]")
   compatibilityHooks Json?   @default("[]")
+  decisionMakerRoles Json?   @default("[]")
+  primaryDecisionMakerRole String?
+  warmupSignals      Json?   @default("{}")
+  warmupScore        Int     @default(0)
+  linkedinTouchedAt  DateTime?
+  contentEngagedAt   DateTime?
+  warmIntroRequestedAt DateTime?
 
   // AI Outreach Draft
   emailDraftSubject     String?
@@ -45,6 +53,11 @@ model Lead {
   emailVerificationStatus EmailVerificationStatus @default(UNVERIFIED)
   emailVerifiedAt        DateTime?
   emailVerificationProvider String?
+  sentCount              Int @default(0)
+  bounceCount            Int @default(0)
+  responseCount          Int @default(0)
+  openCount              Int @default(0)
+  clickCount             Int @default(0)
 
   companyId String? @db.Uuid
   company   Company? @relation(fields: [companyId], references: [id])
@@ -52,16 +65,33 @@ model Lead {
   searchId String? @db.Uuid
   search   Search? @relation(fields: [searchId], references: [id])
 
+  campaignId String? @db.Uuid
+  campaign   Campaign? @relation(fields: [campaignId], references: [id])
+
+  batchId String? @db.Uuid
+  batch   LeadBatch? @relation(fields: [batchId], references: [id])
+
+  primaryContactId String? @db.Uuid
+  primaryContact   Contact? @relation("LeadPrimaryContact", fields: [primaryContactId], references: [id], onDelete: SetNull)
+
+  segmentName String?
+
   // Ownership
   userId    String
 
   // Relations
   sessionId String?  @db.Uuid
   session   Session? @relation(fields: [sessionId], references: [id])
+  contacts  Contact[] @relation("LeadContacts")
+  events    OutreachEvent[]
 
   @@index([placeId])
   @@index([searchId])
   @@index([compatibilityScore])
+  @@index([qualityScore])
+  @@index([campaignId])
+  @@index([batchId])
+  @@index([primaryContactId])
   @@map("leads")
 }
 
@@ -128,6 +158,23 @@ enum PlanType {
   PRO
 }
 
+enum BatchStatus {
+  DRAFT
+  READY
+  EXPORTED
+  ACTIVE
+  COMPLETE
+}
+
+enum OutreachEventType {
+  SENT
+  DELIVERED
+  OPEN
+  CLICK
+  REPLY
+  BOUNCE
+}
+
 model Search {
   id        String   @id @default(uuid()) @db.Uuid
   createdAt DateTime @default(now())
@@ -140,9 +187,16 @@ model Search {
   location String
   employeeRangeMin Int?
   employeeRangeMax Int?
+  revenueRange String?
+  targetRoles Json? @default("[]")
+  qualityStrictness Int @default(50)
+  segmentName String?
   keywords Json? @default("[]")
 
   rawInput Json?
+
+  campaignId String? @db.Uuid
+  campaign   Campaign? @relation(fields: [campaignId], references: [id])
 
   leads Lead[]
 
@@ -162,15 +216,141 @@ model Company {
 
   hqLocation String?
   employeeCountEstimate Int?
+  companySize String?
+  revenueRange String?
   industry String?
   industryConfidence Int?
+  linkedinCompanyUrl String?
+  countryCode String?
+  city String?
+  decisionMakerRoleHints Json? @default("[]")
+  lastEnrichedAt DateTime?
 
   sourceJson Json?
 
   leads Lead[]
+  contacts Contact[]
 
   @@index([normalizedName])
   @@map("companies")
+}
+
+model Contact {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+
+  leadId String @db.Uuid
+  lead   Lead   @relation("LeadContacts", fields: [leadId], references: [id], onDelete: Cascade)
+
+  companyId String? @db.Uuid
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  primaryFor Lead[] @relation("LeadPrimaryContact")
+  outreachEvents OutreachEvent[]
+
+  fullName   String?
+  roleTitle  String?
+  department String?
+  seniority  String?
+  linkedinUrl String?
+
+  email String
+  emailVerificationStatus EmailVerificationStatus @default(UNVERIFIED)
+  emailVerifiedAt DateTime?
+  emailVerificationProvider String?
+
+  confidenceScore Int @default(0)
+  source          String?
+  discoveryMethod String?
+  isPrimary       Boolean @default(false)
+  isDecisionMaker Boolean @default(false)
+  notesJson       Json?
+
+  @@unique([leadId, email])
+  @@index([leadId, isPrimary])
+  @@index([companyId, createdAt])
+  @@index([email])
+  @@map("contacts")
+}
+
+model Campaign {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+  name   String
+  segmentName String?
+  description String?
+  qualityStrictness Int @default(50)
+  targetRoles Json? @default("[]")
+
+  searches Search[]
+  leads Lead[]
+  batches LeadBatch[]
+  events OutreachEvent[]
+
+  @@unique([userId, name])
+  @@index([userId, createdAt])
+  @@map("campaigns")
+}
+
+model LeadBatch {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+  name   String
+  code   String
+  status BatchStatus @default(DRAFT)
+  maxLeads Int?
+
+  campaignId String? @db.Uuid
+  campaign   Campaign? @relation(fields: [campaignId], references: [id])
+
+  leads Lead[]
+  events OutreachEvent[]
+
+  @@unique([userId, code])
+  @@index([userId, createdAt])
+  @@map("lead_batches")
+}
+
+model OutreachEvent {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now())
+
+  provider        String
+  externalEventId String
+  messageId       String?
+  type            OutreachEventType
+  occurredAt      DateTime @default(now())
+  email           String?
+  payloadJson     Json?
+
+  leadId String @db.Uuid
+  lead   Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  contactId String? @db.Uuid
+  contact   Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  campaignId String? @db.Uuid
+  campaign   Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+
+  batchId String? @db.Uuid
+  batch   LeadBatch? @relation(fields: [batchId], references: [id], onDelete: SetNull)
+
+  @@unique([provider, externalEventId])
+  @@index([leadId, occurredAt])
+  @@index([contactId, occurredAt])
+  @@index([campaignId, occurredAt])
+  @@index([batchId, occurredAt])
+  @@index([email])
+  @@map("outreach_events")
 }
 
 model Job {

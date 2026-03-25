@@ -1,9 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { POST } from '@/app/api/enhance/batch/route';
-import { aiEnhanceService } from '@/services/aiEnhanceService';
-import { NextRequest } from 'next/server';
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { POST } from "@/app/api/enhance/batch/route";
+import { aiEnhanceService } from "@/services/aiEnhanceService";
+import { NextRequest } from "next/server";
 
-vi.mock('@/db', () => ({
+vi.mock("@/db", () => ({
   prisma: {
     lead: {
       findMany: vi.fn(),
@@ -13,19 +13,19 @@ vi.mock('@/db', () => ({
   },
 }));
 
-vi.mock('@/lib/supabase/server', () => ({
+vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({
     auth: {
       getUser: async () => ({
         data: {
-          user: { id: 'test-user' }
-        }
-      })
-    }
-  })
+          user: { id: "test-user" },
+        },
+      }),
+    },
+  }),
 }));
 
-vi.mock('@/services/creditsService', () => ({
+vi.mock("@/services/creditsService", () => ({
   creditsService: {
     createHold: vi.fn(),
     captureHold: vi.fn(),
@@ -34,22 +34,22 @@ vi.mock('@/services/creditsService', () => ({
   InsufficientCreditsError: class InsufficientCreditsError extends Error {},
 }));
 
-vi.mock('@/services/aiEnhanceService', () => ({
+vi.mock("@/services/aiEnhanceService", () => ({
   aiEnhanceService: {
-    enhanceBatch: vi.fn()
-  }
+    enhanceBatch: vi.fn(),
+  },
 }));
 
-describe('/api/enhance/batch', () => {
+describe("/api/enhance/batch", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('should return 400 if leads or leadPurpose are missing', async () => {
-    const req = new NextRequest('http://localhost:3000/api/enhance/batch', {
-      method: 'POST',
-      headers: { 'Idempotency-Key': 'test-key' },
-      body: JSON.stringify({})
+  it("should return 400 if leads or leadPurpose are missing", async () => {
+    const req = new NextRequest("http://localhost:3000/api/enhance/batch", {
+      method: "POST",
+      headers: { "Idempotency-Key": "test-key" },
+      body: JSON.stringify({}),
     });
 
     const res = await POST(req);
@@ -57,24 +57,26 @@ describe('/api/enhance/batch', () => {
 
     expect(res.status).toBe(400);
     expect(data.success).toBe(false);
-    expect(data.error).toContain('required');
+    expect(data.error).toContain("required");
   });
 
-  it('should successfully process leads', async () => {
+  it("should successfully process leads", async () => {
     const mockResults = [{ compatibilityScore: 90 }];
     vi.mocked(aiEnhanceService.enhanceBatch).mockResolvedValue(
-      mockResults as unknown as Awaited<ReturnType<typeof aiEnhanceService.enhanceBatch>>
+      mockResults as unknown as Awaited<
+        ReturnType<typeof aiEnhanceService.enhanceBatch>
+      >,
     );
 
     const body = {
-      leads: [{ name: 'Lead 1' }],
-      leadPurpose: 'Test'
+      leads: [{ name: "Lead 1" }],
+      leadPurpose: "Test",
     };
 
-    const req = new NextRequest('http://localhost:3000/api/enhance/batch', {
-      method: 'POST',
-      headers: { 'Idempotency-Key': 'test-key' },
-      body: JSON.stringify(body)
+    const req = new NextRequest("http://localhost:3000/api/enhance/batch", {
+      method: "POST",
+      headers: { "Idempotency-Key": "test-key" },
+      body: JSON.stringify(body),
     });
 
     const res = await POST(req);
@@ -84,23 +86,26 @@ describe('/api/enhance/batch', () => {
     expect(data.success).toBe(true);
     expect(data.data.results[0].aiAnalysis).toEqual(mockResults[0]);
     expect(aiEnhanceService.enhanceBatch).toHaveBeenCalledWith(
-      expect.arrayContaining([expect.objectContaining({ name: 'Lead 1' })]),
-      'Test'
+      expect.arrayContaining([expect.objectContaining({ name: "Lead 1" })]),
+      "Test",
+      undefined,
     );
   });
 
-  it('should return 500 on service error', async () => {
-    vi.mocked(aiEnhanceService.enhanceBatch).mockRejectedValue(new Error('Test Error'));
+  it("should return 500 on service error", async () => {
+    vi.mocked(aiEnhanceService.enhanceBatch).mockRejectedValue(
+      new Error("Test Error"),
+    );
 
     const body = {
-      leads: [{ name: 'Lead 1' }],
-      leadPurpose: 'Test'
+      leads: [{ name: "Lead 1" }],
+      leadPurpose: "Test",
     };
 
-    const req = new NextRequest('http://localhost:3000/api/enhance/batch', {
-      method: 'POST',
-      headers: { 'Idempotency-Key': 'test-key' },
-      body: JSON.stringify(body)
+    const req = new NextRequest("http://localhost:3000/api/enhance/batch", {
+      method: "POST",
+      headers: { "Idempotency-Key": "test-key" },
+      body: JSON.stringify(body),
     });
 
     const res = await POST(req);
@@ -108,6 +113,6 @@ describe('/api/enhance/batch', () => {
 
     expect(res.status).toBe(500);
     expect(data.success).toBe(false);
-    expect(data.error).toBe('Test Error');
+    expect(data.error).toBe("Test Error");
   });
 });

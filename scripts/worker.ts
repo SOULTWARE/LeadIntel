@@ -7,8 +7,14 @@ import { kickboxService } from "../services/kickboxService";
 import { websiteDiscoveryService } from "../services/websiteDiscoveryService";
 import { creditsService } from "../services/creditsService";
 import { CreditAction, getCreditCost } from "../lib/credits/costs";
+import { rankDiscoveredContacts } from "../lib/leads/contacts";
 import { sleep } from "../lib/utils";
-import { EmailVerificationStatus, LeadProcessingState, type Job, type Prisma } from "@prisma/client";
+import {
+  EmailVerificationStatus,
+  LeadProcessingState,
+  type Job,
+  type Prisma,
+} from "@prisma/client";
 import { LOCK_EXPIRY_MS } from "../services/jobQueueService";
 
 function requireEnv(name: string): string {
@@ -23,6 +29,14 @@ function getPayloadObject(job: Job): Record<string, unknown> {
     return {};
   }
   return payload as Record<string, unknown>;
+}
+
+function getRoleHints(value: Prisma.JsonValue | null): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter(
+    (item): item is string =>
+      typeof item === "string" && item.trim().length > 0,
+  );
 }
 
 async function processEmailDiscoverJob(job: Job): Promise<void> {
@@ -45,7 +59,9 @@ async function processEmailDiscoverJob(job: Job): Promise<void> {
   }
 
   if (!lead.website) {
-    console.log(`[worker] EMAIL_DISCOVER missing website; attempting discovery leadId=${leadId}`);
+    console.log(
+      `[worker] EMAIL_DISCOVER missing website; attempting discovery leadId=${leadId}`,
+    );
     const hostname = await websiteDiscoveryService.discoverWebsiteHostname({
       name: lead.name,
       address: lead.address,
@@ -53,7 +69,9 @@ async function processEmailDiscoverJob(job: Job): Promise<void> {
     });
 
     if (hostname) {
-      console.log(`[worker] EMAIL_DISCOVER discovered website=${hostname} leadId=${leadId}`);
+      console.log(
+        `[worker] EMAIL_DISCOVER discovered website=${hostname} leadId=${leadId}`,
+      );
       await prisma.lead.update({
         where: { id: leadId },
         data: {
@@ -62,7 +80,9 @@ async function processEmailDiscoverJob(job: Job): Promise<void> {
       });
       lead = { ...lead, website: hostname };
     } else {
-      console.log(`[worker] EMAIL_DISCOVER website discovery returned null leadId=${leadId}`);
+      console.log(
+        `[worker] EMAIL_DISCOVER website discovery returned null leadId=${leadId}`,
+      );
     }
   }
 
@@ -78,10 +98,25 @@ async function processEmailDiscoverJob(job: Job): Promise<void> {
     address: lead.address || undefined,
   });
 
-  const email = emails[0];
+  const rankedContacts = rankDiscoveredContacts({
+    emails,
+    roleHints: [
+      lead.primaryDecisionMakerRole,
+      ...getRoleHints(lead.decisionMakerRoles as Prisma.JsonValue | null),
+    ].filter(
+      (value): value is string =>
+        typeof value === "string" && value.trim().length > 0,
+    ),
+    source: "contact-discovery",
+    discoveryMethod: lead.website ? "domain-search+website" : "domain-search",
+  });
 
-  if (!email) {
-    console.log(`[worker] EMAIL_DISCOVER no emails found leadId=${leadId} website=${lead.website}`);
+  const primaryCandidate = rankedContacts[0];
+
+  if (!primaryCandidate) {
+    console.log(
+      `[worker] EMAIL_DISCOVER no emails found leadId=${leadId} website=${lead.website}`,
+    );
     await prisma.lead.update({
       where: { id: leadId },
       data: {
@@ -100,14 +135,84 @@ async function processEmailDiscoverJob(job: Job): Promise<void> {
     return;
   }
 
-  console.log(`[worker] EMAIL_DISCOVER found email=${email} leadId=${leadId}`);
+  console.log(
+    `[worker] EMAIL_DISCOVER found ${rankedContacts.length} contact(s) leadId=${leadId} primary=${primaryCandidate.email}`,
+  );
 
-  await prisma.lead.update({
-    where: { id: leadId },
-    data: {
-      email,
-      processingState: LeadProcessingState.EMAIL_DISCOVERED,
-    },
+  const { primaryContactId } = await prisma.$transaction(async (tx) => {
+    await tx.contact.updateMany({
+      where: { leadId },
+      data: { isPrimary: false },
+    });
+
+    let resolvedPrimaryContactId: string | null = null;
+
+    for (const candidate of rankedContacts) {
+      const contact = await tx.contact.upsert({
+        where: {
+          leadId_email: {
+            leadId,
+            email: candidate.email,
+          },
+        },
+        update: {
+          fullName: candidate.fullName,
+          roleTitle: candidate.roleTitle,
+          department: candidate.department,
+          seniority: candidate.seniority,
+          confidenceScore: candidate.confidenceScore,
+          source: candidate.source,
+          discoveryMethod: candidate.discoveryMethod,
+          isDecisionMaker: candidate.isDecisionMaker,
+          companyId: lead.companyId || undefined,
+        },
+        create: {
+          userId: lead.userId,
+          leadId,
+          companyId: lead.companyId || undefined,
+          fullName: candidate.fullName,
+          roleTitle: candidate.roleTitle,
+          department: candidate.department,
+          seniority: candidate.seniority,
+          email: candidate.email,
+          confidenceScore: candidate.confidenceScore,
+          source: candidate.source,
+          discoveryMethod: candidate.discoveryMethod,
+          isDecisionMaker: candidate.isDecisionMaker,
+          isPrimary: false,
+        },
+        select: {
+          id: true,
+          email: true,
+        },
+      });
+
+      if (candidate.email === primaryCandidate.email) {
+        resolvedPrimaryContactId = contact.id;
+      }
+    }
+
+    if (!resolvedPrimaryContactId) {
+      throw new Error(`Unable to resolve primary contact for lead ${leadId}`);
+    }
+
+    await tx.contact.update({
+      where: { id: resolvedPrimaryContactId },
+      data: { isPrimary: true },
+    });
+
+    await tx.lead.update({
+      where: { id: leadId },
+      data: {
+        email: primaryCandidate.email,
+        primaryContactId: resolvedPrimaryContactId,
+        primaryDecisionMakerRole:
+          primaryCandidate.roleTitle || lead.primaryDecisionMakerRole,
+        processingState: LeadProcessingState.EMAIL_DISCOVERED,
+      },
+    });
+
+    return { primaryContactId: resolvedPrimaryContactId };
   });
 
   try {
@@ -120,8 +225,12 @@ async function processEmailDiscoverJob(job: Job): Promise<void> {
 
   await jobQueueService.enqueue({
     type: "EMAIL_VERIFY",
-    idempotencyKey: `verify:email:${email.toLowerCase()}`,
-    payload: { leadId, email },
+    idempotencyKey: `verify:email:${primaryCandidate.email.toLowerCase()}`,
+    payload: {
+      leadId,
+      email: primaryCandidate.email,
+      contactId: primaryContactId,
+    },
   });
 }
 
@@ -129,13 +238,20 @@ async function processEmailVerifyJob(job: Job): Promise<void> {
   const payload = getPayloadObject(job);
   const leadId = payload.leadId;
   const email = payload.email;
+  const contactId = payload.contactId;
 
   if (!leadId || !email) {
     throw new Error("EMAIL_VERIFY job missing payload.leadId or payload.email");
   }
 
-  if (typeof leadId !== "string" || typeof email !== "string") {
-    throw new Error("EMAIL_VERIFY job payload.leadId and payload.email must be strings");
+  if (
+    typeof leadId !== "string" ||
+    typeof email !== "string" ||
+    (contactId !== undefined && typeof contactId !== "string")
+  ) {
+    throw new Error(
+      "EMAIL_VERIFY job payload.leadId, payload.email, and payload.contactId must be strings",
+    );
   }
 
   const lead = await prisma.lead.findUnique({ where: { id: leadId } });
@@ -144,7 +260,27 @@ async function processEmailVerifyJob(job: Job): Promise<void> {
     return;
   }
 
-  if (lead.email && lead.email.toLowerCase() !== email.toLowerCase()) {
+  const contact = contactId
+    ? await prisma.contact.findUnique({ where: { id: contactId } })
+    : await prisma.contact.findFirst({
+        where: {
+          leadId,
+          email: email.toLowerCase(),
+        },
+      });
+
+  if (contact && contact.leadId !== leadId) {
+    console.log(
+      `[worker] EMAIL_VERIFY contact does not belong to lead leadId=${leadId} contactId=${contact.id}`,
+    );
+    return;
+  }
+
+  if (
+    !contact &&
+    lead.email &&
+    lead.email.toLowerCase() !== email.toLowerCase()
+  ) {
     console.log(
       `[worker] EMAIL_VERIFY skipping update due to email mismatch leadId=${leadId} stored=${lead.email} payload=${email}`,
     );
@@ -173,24 +309,54 @@ async function processEmailVerifyJob(job: Job): Promise<void> {
 
   const result = await kickboxService.verifyEmail(email);
 
-  console.log(`[worker] EMAIL_VERIFY result leadId=${leadId} email=${result.normalizedEmail} status=${result.status}`);
+  console.log(
+    `[worker] EMAIL_VERIFY result leadId=${leadId} email=${result.normalizedEmail} status=${result.status}`,
+  );
 
-  if (lead.email && lead.email.toLowerCase() !== result.normalizedEmail.toLowerCase()) {
+  if (
+    !contact &&
+    lead.email &&
+    lead.email.toLowerCase() !== result.normalizedEmail.toLowerCase()
+  ) {
     console.log(
       `[worker] EMAIL_VERIFY skipping update due to normalized email mismatch leadId=${leadId} stored=${lead.email} normalized=${result.normalizedEmail}`,
     );
     return;
   }
 
-  await prisma.lead.update({
-    where: { id: leadId },
-    data: {
-      email: result.normalizedEmail,
-      emailVerificationStatus: result.status as EmailVerificationStatus,
-      emailVerifiedAt: new Date(),
-      emailVerificationProvider: "kickbox",
-      processingState: LeadProcessingState.VERIFIED,
-    },
+  await prisma.$transaction(async (tx) => {
+    if (contact) {
+      await tx.contact.update({
+        where: { id: contact.id },
+        data: {
+          email: result.normalizedEmail,
+          emailVerificationStatus: result.status as EmailVerificationStatus,
+          emailVerifiedAt: new Date(),
+          emailVerificationProvider: "kickbox",
+          isPrimary: contact.isPrimary,
+        },
+      });
+    }
+
+    const shouldSyncLead =
+      !contact ||
+      contact.isPrimary ||
+      lead.primaryContactId === contact.id ||
+      lead.email?.toLowerCase() === email.toLowerCase();
+
+    if (shouldSyncLead) {
+      await tx.lead.update({
+        where: { id: leadId },
+        data: {
+          email: result.normalizedEmail,
+          emailVerificationStatus: result.status as EmailVerificationStatus,
+          emailVerifiedAt: new Date(),
+          emailVerificationProvider: "kickbox",
+          primaryContactId: contact?.id || lead.primaryContactId,
+          processingState: LeadProcessingState.VERIFIED,
+        },
+      });
+    }
   });
 
   if (holdAmount > 0) {
@@ -239,7 +405,9 @@ async function main() {
 
     let heartbeat: NodeJS.Timeout | null = null;
     try {
-      console.log(`[worker] claimed job id=${job.id} type=${job.type} attempts=${job.attempts}`);
+      console.log(
+        `[worker] claimed job id=${job.id} type=${job.type} attempts=${job.attempts}`,
+      );
 
       heartbeat = setInterval(async () => {
         try {
@@ -269,7 +437,9 @@ async function main() {
           const payload = getPayloadObject(job);
           const leadId = payload.leadId;
           if (typeof leadId === "string" && leadId.length > 0) {
-            const lead = await prisma.lead.findUnique({ where: { id: leadId } });
+            const lead = await prisma.lead.findUnique({
+              where: { id: leadId },
+            });
             if (lead) {
               if (job.type === "EMAIL_DISCOVER") {
                 await creditsService.releaseHold({
@@ -295,7 +465,9 @@ async function main() {
       }
 
       await jobQueueService.fail(job.id, msg);
-      console.log(`[worker] failed job id=${job.id} type=${job.type} error=${msg}`);
+      console.log(
+        `[worker] failed job id=${job.id} type=${job.type} error=${msg}`,
+      );
     } finally {
       if (heartbeat) clearInterval(heartbeat);
     }
