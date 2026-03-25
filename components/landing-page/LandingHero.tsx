@@ -54,7 +54,7 @@ export function LandingHero({ user }: { user: SupabaseUser | null }) {
 
         <motion.div variants={itemVariants} className="grid gap-3 sm:grid-cols-3">
           {[
-            { label: 'Verified sourcing', value: 'Hunter-first' },
+            { label: 'Verified sourcing', value: 'High precision' },
             { label: 'AI enrichment', value: 'Compatibility scoring' },
             { label: 'Outbound ready', value: 'Draft + export' },
           ].map((stat) => (
