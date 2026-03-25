@@ -1,29 +1,42 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useRef, useState } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import type { ElementType } from 'react';
-import { ArrowRight, BarChart3, Bell, ChevronDown, ChevronLeft, ChevronRight, CreditCard, LogOut, Search, User, Zap } from 'lucide-react';
-import { toast } from 'sonner';
-import type { User as SupabaseUser } from '@supabase/supabase-js';
+import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import type { ElementType } from "react";
+import {
+  ArrowRight,
+  BarChart3,
+  Bell,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  CreditCard,
+  LogOut,
+  Search,
+  User,
+  Zap,
+} from "lucide-react";
+import { toast } from "sonner";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
 
-import { createClient } from '@/lib/supabase/client';
-import { useLocationHash } from '@/lib/useLocationHash';
+import { createClient } from "@/lib/supabase/client";
+import { useLocationHash } from "@/lib/useLocationHash";
 
-const SIDEBAR_COLLAPSE_STORAGE_KEY = 'lead-intel:internal-sidebar-collapsed';
+const SIDEBAR_COLLAPSE_STORAGE_KEY = "lead-intel:internal-sidebar-collapsed";
+const SIDEBAR_CONTENT_DELAY_MS = 140;
 
 export const internalNavigation = [
   {
-    href: '/results',
-    label: 'Dashboard',
-    description: 'Sessions and exports',
+    href: "/results",
+    label: "Dashboard",
+    description: "Sessions and exports",
     icon: BarChart3,
   },
   {
-    href: '/sourcer',
-    label: 'Sourcing Studio',
-    description: 'Launch searches and enrich data',
+    href: "/sourcer",
+    label: "Sourcing Studio",
+    description: "Launch searches and enrich data",
     icon: Search,
   },
 ] satisfies Array<{
@@ -35,27 +48,27 @@ export const internalNavigation = [
 
 const profileNavigation = [
   {
-    href: '/profile',
-    label: 'Overview',
-    description: 'Account summary and details',
+    href: "/profile",
+    label: "Overview",
+    description: "Account summary and details",
     icon: User,
   },
   {
-    href: '/profile#usage',
-    label: 'Usage',
-    description: 'Credits and limits',
+    href: "/profile#usage",
+    label: "Usage",
+    description: "Credits and limits",
     icon: BarChart3,
   },
   {
-    href: '/profile#billing',
-    label: 'Billing',
-    description: 'Plan and invoices',
+    href: "/profile#billing",
+    label: "Billing",
+    description: "Plan and invoices",
     icon: CreditCard,
   },
   {
-    href: '/profile#notifications',
-    label: 'Notifications',
-    description: 'Alerts and updates',
+    href: "/profile#notifications",
+    label: "Notifications",
+    description: "Alerts and updates",
     icon: Bell,
   },
 ] satisfies Array<{
@@ -67,22 +80,24 @@ const profileNavigation = [
 
 function isActivePath(pathname: string | null, href: string) {
   if (!pathname) return false;
-  if (href === '/') return pathname === '/';
+  if (href === "/") return pathname === "/";
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
 function getDisplayName(user: SupabaseUser | null) {
-  if (!user) return '';
+  if (!user) return "";
   const metaName =
-    (user.user_metadata?.full_name as string | undefined) || (user.user_metadata?.name as string | undefined) || '';
-  return metaName.trim() || user.email || '';
+    (user.user_metadata?.full_name as string | undefined) ||
+    (user.user_metadata?.name as string | undefined) ||
+    "";
+  return metaName.trim() || user.email || "";
 }
 
 function getInitials(display: string) {
-  if (!display) return 'U';
+  if (!display) return "U";
   const parts = display.trim().split(/\s+/).filter(Boolean);
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + (parts[1]?.[0] || '')).toUpperCase();
+  return (parts[0][0] + (parts[1]?.[0] || "")).toUpperCase();
 }
 
 export default function InternalSidebar() {
@@ -90,11 +105,13 @@ export default function InternalSidebar() {
   const supabase = useMemo(() => createClient(), []);
   const hasLoadedCollapsePreferenceRef = useRef(false);
   const currentHash = useLocationHash();
-  const isProfileRoute = pathname?.startsWith('/profile') ?? false;
+  const isProfileRoute = pathname?.startsWith("/profile") ?? false;
 
   const [user, setUser] = useState<SupabaseUser | null | undefined>(undefined);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isHoverExpanded, setIsHoverExpanded] = useState(false);
+  const [isSidebarContentExpanded, setIsSidebarContentExpanded] =
+    useState(true);
   const [profileOpen, setProfileOpen] = useState(() => isProfileRoute);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
@@ -103,14 +120,17 @@ export default function InternalSidebar() {
   }, [supabase]);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
 
     const frame = window.requestAnimationFrame(() => {
-      const storedValue = window.localStorage.getItem(SIDEBAR_COLLAPSE_STORAGE_KEY);
+      const storedValue = window.localStorage.getItem(
+        SIDEBAR_COLLAPSE_STORAGE_KEY,
+      );
 
       hasLoadedCollapsePreferenceRef.current = true;
 
-      if (storedValue === 'true') {
+      if (storedValue === "true") {
+        setIsSidebarContentExpanded(false);
         setIsCollapsed(true);
       }
     });
@@ -121,14 +141,35 @@ export default function InternalSidebar() {
   }, []);
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !hasLoadedCollapsePreferenceRef.current) return;
+    if (
+      typeof window === "undefined" ||
+      !hasLoadedCollapsePreferenceRef.current
+    )
+      return;
 
-    window.localStorage.setItem(SIDEBAR_COLLAPSE_STORAGE_KEY, String(isCollapsed));
+    window.localStorage.setItem(
+      SIDEBAR_COLLAPSE_STORAGE_KEY,
+      String(isCollapsed),
+    );
   }, [isCollapsed]);
+
+  const isSidebarExpanded = !isCollapsed || isHoverExpanded;
+
+  useEffect(() => {
+    const timer = window.setTimeout(
+      () => {
+        setIsSidebarContentExpanded(isSidebarExpanded);
+      },
+      isSidebarExpanded ? SIDEBAR_CONTENT_DELAY_MS : 0,
+    );
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [isSidebarExpanded]);
 
   const displayName = getDisplayName(user ?? null);
   const initials = getInitials(displayName);
-  const isSidebarExpanded = !isCollapsed || isHoverExpanded;
   const isProfileSectionOpen = profileOpen;
 
   const handleSidebarToggle = () => {
@@ -140,17 +181,19 @@ export default function InternalSidebar() {
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
-      toast.success('Logged out successfully');
+      toast.success("Logged out successfully");
       setUser(null);
       setUserMenuOpen(false);
-      window.location.href = '/login';
+      window.location.href = "/login";
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Error logging out');
+      toast.error(error instanceof Error ? error.message : "Error logging out");
     }
   };
 
   return (
-    <aside className={`relative w-full shrink-0 lg:w-auto ${isCollapsed ? 'lg:basis-[112px]' : 'lg:basis-[320px]'}`}>
+    <aside
+      className={`relative w-full shrink-0 transition-[flex-basis] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] lg:w-auto ${isCollapsed ? "lg:basis-[112px]" : "lg:basis-[320px]"}`}
+    >
       <div
         onMouseEnter={() => {
           if (isCollapsed) {
@@ -161,8 +204,8 @@ export default function InternalSidebar() {
           setIsHoverExpanded(false);
           setUserMenuOpen(false);
         }}
-        className={`relative z-10 flex h-full w-full flex-col overflow-hidden border-b border-slate-800/80 bg-slate-950 text-white transition-[width] duration-300 lg:min-h-screen lg:border-b-0 lg:border-r ${
-          isSidebarExpanded ? 'lg:w-[320px]' : 'lg:w-[112px]'
+        className={`relative z-10 flex h-full w-full flex-col overflow-hidden border-b border-slate-800/80 bg-slate-950 text-white transition-[width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] lg:min-h-screen lg:border-b-0 lg:border-r ${
+          isSidebarExpanded ? "lg:w-[320px]" : "lg:w-[112px]"
         }`}
       >
         <div className="border-b border-white/10 px-4 py-4 lg:px-5">
@@ -170,19 +213,21 @@ export default function InternalSidebar() {
             <Link
               href="/"
               className={`flex min-w-0 items-center gap-3 rounded-2xl px-3 py-3 transition hover:bg-white/5 ${
-                isSidebarExpanded ? '' : 'lg:justify-center lg:px-2'
+                isSidebarContentExpanded ? "" : "lg:justify-center lg:px-2"
               }`}
               aria-label="Go to homepage"
             >
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 via-indigo-500 to-cyan-400 text-white shadow-lg shadow-blue-500/20">
                 <Zap className="h-6 w-6" fill="currentColor" />
               </div>
-              {isSidebarExpanded && (
+              {isSidebarContentExpanded && (
                 <div className="min-w-0">
                   <p className="text-lg font-black tracking-tight text-white">
                     LeadIntel<span className="text-blue-400">Pro</span>
                   </p>
-                  <p className="text-xs font-medium text-slate-400">Lead intelligence workspace</p>
+                  <p className="text-xs font-medium text-slate-400">
+                    Lead intelligence workspace
+                  </p>
                 </div>
               )}
             </Link>
@@ -192,7 +237,9 @@ export default function InternalSidebar() {
         <div className="flex-1 overflow-y-auto px-3 py-4 lg:px-4">
           <div className="space-y-5">
             <div>
-              <div className={`px-2 text-[10px] font-black uppercase tracking-[0.35em] text-slate-500 ${isSidebarExpanded ? '' : 'sr-only'}`}>
+              <div
+                className={`px-2 text-[10px] font-black uppercase tracking-[0.35em] text-slate-500 ${isSidebarContentExpanded ? "" : "sr-only"}`}
+              >
                 Workspace
               </div>
               <nav className="mt-3 space-y-2">
@@ -207,28 +254,32 @@ export default function InternalSidebar() {
                       title={item.label}
                       className={`group flex items-center gap-3 rounded-2xl border transition-all ${
                         active
-                          ? 'border-blue-400/30 bg-white/10 text-white shadow-lg shadow-blue-500/10'
-                          : 'border-transparent bg-white/[0.03] text-slate-300 hover:border-white/10 hover:bg-white/5 hover:text-white'
-                      } ${isSidebarExpanded ? 'px-4 py-4' : 'justify-center px-3 py-3'}`}
+                          ? "border-blue-400/30 bg-white/10 text-white shadow-lg shadow-blue-500/10"
+                          : "border-transparent bg-white/[0.03] text-slate-300 hover:border-white/10 hover:bg-white/5 hover:text-white"
+                      } ${isSidebarContentExpanded ? "px-4 py-4" : "justify-center px-3 py-3"}`}
                     >
                       <div
                         className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-all ${
                           active
-                            ? 'bg-gradient-to-br from-blue-500 to-indigo-500 text-white shadow-lg shadow-blue-500/20'
-                            : 'bg-white/5 text-slate-300 group-hover:bg-white/10 group-hover:text-white'
+                            ? "bg-gradient-to-br from-blue-500 to-indigo-500 text-white shadow-lg shadow-blue-500/20"
+                            : "bg-white/5 text-slate-300 group-hover:bg-white/10 group-hover:text-white"
                         }`}
                       >
                         <Icon className="h-5 w-5" />
                       </div>
-                      {isSidebarExpanded && (
+                      {isSidebarContentExpanded && (
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center justify-between gap-3">
-                            <span className="text-sm font-bold tracking-tight">{item.label}</span>
+                            <span className="text-sm font-bold tracking-tight">
+                              {item.label}
+                            </span>
                             <ArrowRight
-                              className={`h-4 w-4 transition-transform ${active ? 'translate-x-0 text-blue-300' : 'text-slate-500 group-hover:translate-x-1 group-hover:text-white'}`}
+                              className={`h-4 w-4 transition-transform ${active ? "translate-x-0 text-blue-300" : "text-slate-500 group-hover:translate-x-1 group-hover:text-white"}`}
                             />
                           </div>
-                          <p className={`mt-1 text-xs leading-relaxed ${active ? 'text-slate-300' : 'text-slate-500 group-hover:text-slate-400'}`}>
+                          <p
+                            className={`mt-1 text-xs leading-relaxed ${active ? "text-slate-300" : "text-slate-500 group-hover:text-slate-400"}`}
+                          >
                             {item.description}
                           </p>
                         </div>
@@ -237,46 +288,56 @@ export default function InternalSidebar() {
                   );
                 })}
 
-                <div className={`rounded-2xl border border-white/10 bg-white/[0.03] ${isSidebarExpanded ? 'px-3 py-3' : 'px-2 py-2'}`}>
+                <div
+                  className={`rounded-2xl border border-white/10 bg-white/[0.03] ${isSidebarContentExpanded ? "px-3 py-3" : "px-2 py-2"}`}
+                >
                   <button
                     type="button"
                     onClick={() => setProfileOpen((value) => !value)}
                     aria-expanded={isProfileSectionOpen}
                     className={`flex w-full items-center gap-3 rounded-2xl text-left transition-all ${
                       isProfileSectionOpen
-                        ? 'bg-white/10 text-white'
-                        : 'text-slate-300 hover:bg-white/5 hover:text-white'
-                    } ${isSidebarExpanded ? 'px-3 py-3' : 'justify-center px-2 py-2'}`}
+                        ? "bg-white/10 text-white"
+                        : "text-slate-300 hover:bg-white/5 hover:text-white"
+                    } ${isSidebarContentExpanded ? "px-3 py-3" : "justify-center px-2 py-2"}`}
                   >
                     <div
                       className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-all ${
                         isProfileSectionOpen
-                          ? 'bg-gradient-to-br from-blue-500 to-indigo-500 text-white shadow-lg shadow-blue-500/20'
-                          : 'bg-white/5 text-slate-300 group-hover:bg-white/10 group-hover:text-white'
+                          ? "bg-gradient-to-br from-blue-500 to-indigo-500 text-white shadow-lg shadow-blue-500/20"
+                          : "bg-white/5 text-slate-300 group-hover:bg-white/10 group-hover:text-white"
                       }`}
                     >
                       <User className="h-5 w-5" />
                     </div>
-                    {isSidebarExpanded && (
+                    {isSidebarContentExpanded && (
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-3">
-                          <span className="text-sm font-bold tracking-tight">Profile</span>
-                          <ChevronDown className={`h-4 w-4 transition-transform ${isProfileSectionOpen ? 'rotate-180' : ''}`} />
+                          <span className="text-sm font-bold tracking-tight">
+                            Profile
+                          </span>
+                          <ChevronDown
+                            className={`h-4 w-4 transition-transform ${isProfileSectionOpen ? "rotate-180" : ""}`}
+                          />
                         </div>
-                        <p className="mt-1 text-xs leading-relaxed text-slate-500">Billing, credits, and account settings</p>
+                        <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                          Billing, credits, and account settings
+                        </p>
                       </div>
                     )}
                   </button>
 
-                  {isProfileSectionOpen && isSidebarExpanded ? (
+                  {isProfileSectionOpen && isSidebarContentExpanded ? (
                     <div className="mt-2 space-y-2">
                       {profileNavigation.map((item) => {
                         const Icon = item.icon;
-                        const hashTarget = item.href.includes('#') ? `#${item.href.split('#')[1]}` : '';
+                        const hashTarget = item.href.includes("#")
+                          ? `#${item.href.split("#")[1]}`
+                          : "";
                         const active =
                           isProfileRoute &&
-                          (item.href === '/profile'
-                            ? currentHash === '' || currentHash === '#profile'
+                          (item.href === "/profile"
+                            ? currentHash === "" || currentHash === "#profile"
                             : currentHash === hashTarget);
 
                         return (
@@ -289,20 +350,26 @@ export default function InternalSidebar() {
                             }}
                             className={`group flex items-center gap-3 rounded-2xl border px-3 py-3 transition-all ${
                               active
-                                ? 'border-blue-400/20 bg-white/10 text-white shadow-lg shadow-blue-500/10'
-                                : 'border-transparent bg-white/[0.03] text-slate-400 hover:border-white/10 hover:bg-white/5 hover:text-white'
+                                ? "border-blue-400/20 bg-white/10 text-white shadow-lg shadow-blue-500/10"
+                                : "border-transparent bg-white/[0.03] text-slate-400 hover:border-white/10 hover:bg-white/5 hover:text-white"
                             }`}
                           >
                             <div
                               className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all ${
-                                active ? 'bg-white/15 text-white' : 'bg-white/5 text-slate-400 group-hover:bg-white/10 group-hover:text-white'
+                                active
+                                  ? "bg-white/15 text-white"
+                                  : "bg-white/5 text-slate-400 group-hover:bg-white/10 group-hover:text-white"
                               }`}
                             >
                               <Icon className="h-4 w-4" />
                             </div>
                             <div className="min-w-0 flex-1">
-                              <div className="text-sm font-bold tracking-tight">{item.label}</div>
-                              <div className="text-[11px] leading-relaxed text-slate-500">{item.description}</div>
+                              <div className="text-sm font-bold tracking-tight">
+                                {item.label}
+                              </div>
+                              <div className="text-[11px] leading-relaxed text-slate-500">
+                                {item.description}
+                              </div>
                             </div>
                           </Link>
                         );
@@ -318,8 +385,11 @@ export default function InternalSidebar() {
         <div className="border-t border-white/10 p-4 lg:p-4">
           {user === undefined ? (
             <div className="flex items-center gap-3 rounded-[1.5rem] border border-white/10 bg-white/5 p-4">
-              <div className="h-11 w-11 animate-pulse rounded-2xl bg-white/10" aria-hidden="true" />
-              {isSidebarExpanded && (
+              <div
+                className="h-11 w-11 animate-pulse rounded-2xl bg-white/10"
+                aria-hidden="true"
+              />
+              {isSidebarContentExpanded && (
                 <div className="space-y-2">
                   <div className="h-3 w-28 animate-pulse rounded-full bg-white/10" />
                   <div className="h-2.5 w-36 animate-pulse rounded-full bg-white/10" />
@@ -332,31 +402,45 @@ export default function InternalSidebar() {
                 type="button"
                 onClick={() => setUserMenuOpen((value) => !value)}
                 className={`flex w-full items-center gap-3 rounded-[1.5rem] border border-white/10 bg-white/5 p-4 text-left transition hover:bg-white/10 ${
-                  isSidebarExpanded ? '' : 'justify-center'
+                  isSidebarContentExpanded ? "" : "justify-center"
                 }`}
                 aria-expanded={userMenuOpen}
               >
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-900 text-sm font-black text-white shadow-lg shadow-slate-900/20">
                   {initials}
                 </div>
-                {isSidebarExpanded && (
+                {isSidebarContentExpanded && (
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-black text-white">{displayName}</p>
-                    <p className="truncate text-xs text-slate-400">{user.email}</p>
+                    <p className="truncate text-sm font-black text-white">
+                      {displayName}
+                    </p>
+                    <p className="truncate text-xs text-slate-400">
+                      {user.email}
+                    </p>
                   </div>
                 )}
-                {isSidebarExpanded && <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />}
+                {isSidebarContentExpanded && (
+                  <ChevronDown
+                    className={`h-4 w-4 text-slate-400 transition-transform ${userMenuOpen ? "rotate-180" : ""}`}
+                  />
+                )}
               </button>
 
               {userMenuOpen && (
                 <div
                   className={`absolute z-20 overflow-hidden rounded-[1.5rem] border border-white/10 bg-slate-950 shadow-[0_24px_80px_-30px_rgba(2,6,23,0.85)] ${
-                    isSidebarExpanded ? 'bottom-16 left-0 right-0' : 'bottom-0 left-full ml-3 w-56'
+                    isSidebarContentExpanded
+                      ? "bottom-16 left-0 right-0"
+                      : "bottom-0 left-full ml-3 w-56"
                   }`}
                 >
                   <div className="border-b border-white/10 px-4 py-3">
-                    <p className="text-[10px] font-black uppercase tracking-[0.35em] text-slate-500">Signed in as</p>
-                    <p className="truncate text-sm font-bold text-white">{displayName}</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.35em] text-slate-500">
+                      Signed in as
+                    </p>
+                    <p className="truncate text-sm font-bold text-white">
+                      {displayName}
+                    </p>
                   </div>
                   <Link
                     href="/profile"
@@ -384,11 +468,11 @@ export default function InternalSidebar() {
             <Link
               href="/login"
               className={`flex items-center justify-center gap-2 rounded-[1.5rem] border border-blue-400/20 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 px-5 py-4 text-sm font-bold text-white shadow-lg shadow-blue-500/10 transition-transform hover:-translate-y-0.5 ${
-                isSidebarExpanded ? '' : 'px-4'
+                isSidebarContentExpanded ? "" : "px-4"
               }`}
             >
               <ArrowRight className="h-4 w-4" />
-              {isSidebarExpanded && <span>Get Started</span>}
+              {isSidebarContentExpanded && <span>Get Started</span>}
             </Link>
           )}
         </div>
@@ -398,9 +482,13 @@ export default function InternalSidebar() {
         type="button"
         onClick={handleSidebarToggle}
         className="absolute right-0 top-1/2 z-20 hidden h-14 w-7 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full border border-slate-700 bg-slate-950 text-slate-200 shadow-[0_16px_40px_-24px_rgba(2,6,23,0.85)] transition hover:border-slate-500 hover:text-white lg:inline-flex"
-        aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
       >
-        {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+        {isCollapsed ? (
+          <ChevronRight className="h-4 w-4" />
+        ) : (
+          <ChevronLeft className="h-4 w-4" />
+        )}
       </button>
     </aside>
   );
