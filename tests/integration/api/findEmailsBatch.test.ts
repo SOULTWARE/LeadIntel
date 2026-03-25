@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { POST } from "@/app/api/leads/find-emails-batch/route";
 import { createClient } from "@/lib/supabase/server";
-import { creditsService, InsufficientCreditsError } from "@/services/creditsService";
+import { creditsService } from "@/services/creditsService";
 import { jobQueueService } from "@/services/jobQueueService";
 import { prisma } from "@/db";
 import { NextRequest } from "next/server";

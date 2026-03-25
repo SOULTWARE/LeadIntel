@@ -30,9 +30,17 @@ type LeadEntry = {
 };
 
 export default function SessionDashboard({ sessions }: { sessions: SessionWithLeads[] }) {
-  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+  const [storedSelectedSessionId, setStoredSelectedSessionId] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem(DASHBOARD_SESSION_STORAGE_KEY);
+  });
   const [industryFilter, setIndustryFilter] = useState('all');
   const [recommendationFilter, setRecommendationFilter] = useState('all');
+
+  const selectedSessionId = useMemo(() => {
+    if (!storedSelectedSessionId) return null;
+    return sessions.some((session) => session.id === storedSelectedSessionId) ? storedSelectedSessionId : null;
+  }, [sessions, storedSelectedSessionId]);
 
   const selectedSession = useMemo(() => {
     if (!selectedSessionId) return null;
@@ -57,20 +65,18 @@ export default function SessionDashboard({ sessions }: { sessions: SessionWithLe
     industryFilter !== 'all' ||
     recommendationFilter !== 'all';
 
-  const matchesFilters = (entry: LeadEntry) => {
-    if (industryFilter !== 'all' && (entry.industry || 'Unknown') !== industryFilter) return false;
-    if (
-      recommendationFilter !== 'all' &&
-      (entry.recommendation || 'No Recommendation') !== recommendationFilter
-    )
-      return false;
-    return true;
-  };
-
-  const filteredLeadEntries = useMemo(
-    () => leadEntries.filter(matchesFilters),
-    [leadEntries, industryFilter, recommendationFilter]
-  );
+  const filteredLeadEntries = useMemo(() => {
+    return leadEntries.filter((entry) => {
+      if (industryFilter !== 'all' && (entry.industry || 'Unknown') !== industryFilter) return false;
+      if (
+        recommendationFilter !== 'all' &&
+        (entry.recommendation || 'No Recommendation') !== recommendationFilter
+      ) {
+        return false;
+      }
+      return true;
+    });
+  }, [leadEntries, industryFilter, recommendationFilter]);
 
   const visibleSessionIds = useMemo(() => {
     if (!filtersActive) return new Set<string>(sessions.map((s) => s.id));
@@ -105,16 +111,6 @@ export default function SessionDashboard({ sessions }: { sessions: SessionWithLe
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const storedId = localStorage.getItem(DASHBOARD_SESSION_STORAGE_KEY);
-    if (!storedId) return;
-    const exists = sessions.some((session) => session.id === storedId);
-    if (exists) {
-      setSelectedSessionId(storedId);
-    }
-  }, [sessions]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
     if (selectedSessionId) {
       localStorage.setItem(DASHBOARD_SESSION_STORAGE_KEY, selectedSessionId);
     } else {
@@ -126,7 +122,7 @@ export default function SessionDashboard({ sessions }: { sessions: SessionWithLe
     return (
       <div className="space-y-8">
         <button
-          onClick={() => setSelectedSessionId(null)}
+          onClick={() => setStoredSelectedSessionId(null)}
           className="inline-flex items-center gap-2 text-xs font-black text-slate-400 hover:text-blue-600 uppercase tracking-widest transition-colors group cursor-pointer"
         >
           <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
@@ -249,7 +245,7 @@ export default function SessionDashboard({ sessions }: { sessions: SessionWithLe
                initial={{ opacity: 0, y: 20 }}
                animate={{ opacity: 1, y: 0 }}
                transition={{ delay: i * 0.1 }}
-               onClick={() => setSelectedSessionId(session.id)}
+               onClick={() => setStoredSelectedSessionId(session.id)}
                className="group relative bg-white p-8 rounded-[2rem] border border-slate-200 shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all cursor-pointer overflow-hidden"
             >
             <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">

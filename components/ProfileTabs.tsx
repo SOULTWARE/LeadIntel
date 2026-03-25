@@ -26,7 +26,6 @@ type Subscription = {
 export type ProfileTabsProps = {
   userEmail: string;
   userName: string;
-  totalCredits: number;
   baseBalance: number;
   addonBalance: { remaining: number; expiresAt: string | null };
   plan: Plan | null;
@@ -63,7 +62,6 @@ export default function ProfileTabs(props: ProfileTabsProps) {
   const {
     userEmail,
     userName,
-    totalCredits,
     baseBalance,
     addonBalance,
     plan,

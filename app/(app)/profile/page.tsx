@@ -43,7 +43,6 @@ export default async function ProfilePage({
   const { user, plan, subscription, baseBalance, addonBalance } = await getProfileData();
   const checkoutStatus = typeof resolvedSearchParams.checkout === "string" ? resolvedSearchParams.checkout : null;
   const selectedPlan = typeof resolvedSearchParams.plan === "string" ? resolvedSearchParams.plan : null;
-  const totalCredits = baseBalance + addonBalance.remaining;
   const hasPlan = Boolean(plan);
   const currentPlanName = plan?.plan === "PRO" ? "pro" : plan?.plan === "STARTER" ? "starter" : null;
   const userName =
@@ -110,7 +109,6 @@ export default async function ProfilePage({
         <ProfileTabs
           userEmail={user.email ?? ""}
           userName={userName}
-          totalCredits={totalCredits}
           baseBalance={baseBalance}
           addonBalance={addonBalanceForClient}
           plan={planForClient}

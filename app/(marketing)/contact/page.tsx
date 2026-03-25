@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Mail, MessageSquare, HelpCircle, Clock, Building, PhoneCall, Sparkles } from 'lucide-react';
+import { Mail, MessageSquare, HelpCircle, Clock, Sparkles } from 'lucide-react';
 
 export default function ContactPage() {
 

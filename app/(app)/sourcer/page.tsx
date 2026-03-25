@@ -86,8 +86,6 @@ export default function SourcerPage() {
     setFormData(prev => ({ ...prev, [name]: val }));
   };
 
-  const hasSelectedResults = selectedResultIds.size > 0;
-
   const startCollection = async () => {
     setIsLoading(true);
     setResults(null);
