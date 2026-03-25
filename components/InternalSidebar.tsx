@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 import { createClient } from '@/lib/supabase/client';
+import { useLocationHash } from '@/lib/useLocationHash';
 
 const SIDEBAR_COLLAPSE_STORAGE_KEY = 'lead-intel:internal-sidebar-collapsed';
 
@@ -88,13 +89,14 @@ export default function InternalSidebar() {
   const pathname = usePathname();
   const supabase = useMemo(() => createClient(), []);
   const hasLoadedCollapsePreferenceRef = useRef(false);
+  const currentHash = useLocationHash();
+  const isProfileRoute = pathname?.startsWith('/profile') ?? false;
 
   const [user, setUser] = useState<SupabaseUser | null | undefined>(undefined);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isHoverExpanded, setIsHoverExpanded] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(() => isProfileRoute);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [currentHash, setCurrentHash] = useState('');
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data.user ?? null));
@@ -124,24 +126,10 @@ export default function InternalSidebar() {
     window.localStorage.setItem(SIDEBAR_COLLAPSE_STORAGE_KEY, String(isCollapsed));
   }, [isCollapsed]);
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const syncHash = () => setCurrentHash(window.location.hash || '');
-
-    syncHash();
-    window.addEventListener('hashchange', syncHash);
-
-    return () => {
-      window.removeEventListener('hashchange', syncHash);
-    };
-  }, [pathname]);
-
   const displayName = getDisplayName(user ?? null);
   const initials = getInitials(displayName);
   const isSidebarExpanded = !isCollapsed || isHoverExpanded;
-  const isProfileRoute = pathname?.startsWith('/profile') ?? false;
-  const isProfileSectionOpen = profileOpen || isProfileRoute;
+  const isProfileSectionOpen = profileOpen;
 
   const handleSidebarToggle = () => {
     setUserMenuOpen(false);
@@ -253,7 +241,7 @@ export default function InternalSidebar() {
                   <button
                     type="button"
                     onClick={() => setProfileOpen((value) => !value)}
-                    aria-expanded={profileOpen}
+                    aria-expanded={isProfileSectionOpen}
                     className={`flex w-full items-center gap-3 rounded-2xl text-left transition-all ${
                       isProfileSectionOpen
                         ? 'bg-white/10 text-white'
@@ -295,7 +283,10 @@ export default function InternalSidebar() {
                           <Link
                             key={item.href}
                             href={item.href}
-                            onClick={() => setUserMenuOpen(false)}
+                            onClick={() => {
+                              setUserMenuOpen(false);
+                              setProfileOpen(true);
+                            }}
                             className={`group flex items-center gap-3 rounded-2xl border px-3 py-3 transition-all ${
                               active
                                 ? 'border-blue-400/20 bg-white/10 text-white shadow-lg shadow-blue-500/10'

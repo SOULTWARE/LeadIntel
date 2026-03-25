@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { ADDON_CREDITS_AMOUNT } from "@/lib/polar/plans";
+import { useLocationHash } from "@/lib/useLocationHash";
 
 import ProfileBillingActions from "@/components/ProfileBillingActions";
 import DeleteAccountButton from "@/components/DeleteAccountButton";
@@ -81,6 +82,7 @@ export default function ProfileTabs(props: ProfileTabsProps) {
   } = props;
 
   const supabase = useMemo(() => createClient(), []);
+  const locationHash = useLocationHash();
 
   const [profileName, setProfileName] = useState(userName);
   const [profileEmail] = useState(userEmail);
@@ -89,23 +91,7 @@ export default function ProfileTabs(props: ProfileTabsProps) {
   const [saving, setSaving] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [isError, setIsError] = useState(false);
-
-  const [active, setActive] = useState<string>("profile");
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const syncSectionFromHash = () => {
-      setActive(resolveProfileSection(window.location.hash));
-    };
-
-    syncSectionFromHash();
-    window.addEventListener("hashchange", syncSectionFromHash);
-
-    return () => {
-      window.removeEventListener("hashchange", syncSectionFromHash);
-    };
-  }, []);
+  const active = resolveProfileSection(locationHash);
 
   const periodEnd = useMemo(
     () => formatDate(subscription?.currentPeriodEnd ?? plan?.periodEnd ?? null),
@@ -113,6 +99,15 @@ export default function ProfileTabs(props: ProfileTabsProps) {
   );
 
   const planPrice = planPriceLabel(plan?.plan ?? null);
+
+  function navigateToSection(section: "profile" | "usage" | "billing" | "notifications") {
+    if (typeof window === "undefined") return;
+
+    const nextHash = section === "profile" ? "" : `#${section}`;
+    const nextUrl = `${window.location.pathname}${window.location.search}${nextHash}`;
+
+    window.history.pushState(null, "", nextUrl);
+  }
 
   async function handleSaveProfile() {
     const trimmedPassword = profilePassword.trim();
@@ -398,7 +393,7 @@ export default function ProfileTabs(props: ProfileTabsProps) {
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
                   <button
                     type="button"
-                    onClick={() => setActive("billing")}
+                    onClick={() => navigateToSection("billing")}
                     className="rounded-2xl bg-blue-600 px-5 py-3 text-center text-sm font-black text-white shadow-lg shadow-blue-200 transition-transform hover:-translate-y-0.5 hover:bg-blue-700 cursor-pointer"
                   >
                     Buy credits
