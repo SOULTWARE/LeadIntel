@@ -131,10 +131,6 @@ export default function InternalNavbar() {
             </div>
 
             <div className="flex items-center gap-3 md:gap-4">
-              <div className="hidden items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-emerald-600 lg:flex">
-                <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                Premium mode
-              </div>
               {resolvedNav.rightAction}
               {user === undefined ? (
                 <div className="h-11 w-11 rounded-full bg-slate-200 animate-pulse" aria-hidden="true" />

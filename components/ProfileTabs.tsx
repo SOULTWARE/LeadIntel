@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { ADDON_CREDITS_AMOUNT } from "@/lib/polar/plans";
 
@@ -58,6 +58,16 @@ function getUsageColorClass(percent: number) {
   return "bg-red-500";
 }
 
+function resolveProfileSection(hash: string) {
+  const normalized = hash.replace(/^#/, "");
+
+  if (normalized === "usage" || normalized === "billing" || normalized === "notifications" || normalized === "profile") {
+    return normalized;
+  }
+
+  return "profile";
+}
+
 export default function ProfileTabs(props: ProfileTabsProps) {
   const {
     userEmail,
@@ -81,6 +91,21 @@ export default function ProfileTabs(props: ProfileTabsProps) {
   const [isError, setIsError] = useState(false);
 
   const [active, setActive] = useState<string>("profile");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const syncSectionFromHash = () => {
+      setActive(resolveProfileSection(window.location.hash));
+    };
+
+    syncSectionFromHash();
+    window.addEventListener("hashchange", syncSectionFromHash);
+
+    return () => {
+      window.removeEventListener("hashchange", syncSectionFromHash);
+    };
+  }, []);
 
   const periodEnd = useMemo(
     () => formatDate(subscription?.currentPeriodEnd ?? plan?.periodEnd ?? null),
@@ -140,82 +165,7 @@ export default function ProfileTabs(props: ProfileTabsProps) {
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[300px_1fr]">
-      <aside className="h-full">
-        <div className="sticky top-24 space-y-4 rounded-[2rem] border border-white/70 bg-white/80 p-5 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.25)] backdrop-blur-xl">
-          <div className="mb-1 text-[10px] font-black uppercase tracking-[0.35em] text-slate-400">Account</div>
-          <nav className="space-y-1">
-            <a
-              href="#profile"
-              onClick={(e) => {
-                e.preventDefault();
-                setActive("profile");
-              }}
-              className={`block rounded-2xl px-4 py-3 text-sm font-bold transition ${
-                active === "profile" ? "bg-slate-950 text-white shadow-lg shadow-slate-900/10" : "text-slate-700 hover:bg-slate-50"
-              }`}
-            >
-              Profile
-            </a>
-            <a
-              href="#notifications"
-              onClick={(e) => {
-                e.preventDefault();
-                setActive("notifications");
-              }}
-              className={`block rounded-2xl px-4 py-3 text-sm font-bold transition ${
-                active === "notifications" ? "bg-slate-950 text-white shadow-lg shadow-slate-900/10" : "text-slate-700 hover:bg-slate-50"
-              }`}
-            >
-              Notifications
-            </a>
-            <a
-              href="#settings"
-              onClick={(e) => {
-                e.preventDefault();
-                setActive("settings");
-              }}
-              className={`block rounded-2xl px-4 py-3 text-sm font-bold transition ${
-                active === "settings" ? "bg-slate-950 text-white shadow-lg shadow-slate-900/10" : "text-slate-700 hover:bg-slate-50"
-              }`}
-            >
-              Settings
-            </a>
-          </nav>
-
-          <div className="h-px w-full bg-slate-200" />
-
-          <div className="mb-1 text-[10px] font-black uppercase tracking-[0.35em] text-slate-400">Subscription</div>
-          <nav className="space-y-1">
-            <a
-              href="#usage"
-              onClick={(e) => {
-                e.preventDefault();
-                setActive("usage");
-              }}
-              className={`block rounded-2xl px-4 py-3 text-sm font-bold transition ${
-                active === "usage" ? "bg-slate-950 text-white shadow-lg shadow-slate-900/10" : "text-slate-700 hover:bg-slate-50"
-              }`}
-            >
-              Usage
-            </a>
-            <a
-              href="#billing"
-              onClick={(e) => {
-                e.preventDefault();
-                setActive("billing");
-              }}
-              className={`block rounded-2xl px-4 py-3 text-sm font-bold transition ${
-                active === "billing" ? "bg-slate-950 text-white shadow-lg shadow-slate-900/10" : "text-slate-700 hover:bg-slate-50"
-              }`}
-            >
-              Manage Plan
-            </a>
-          </nav>
-        </div>
-      </aside>
-
-      <div className="space-y-8">
+    <div className="space-y-8">
         {active === "profile" && (
           <section className="grid gap-6 md:grid-cols-[1.3fr_1fr]">
             <div className="space-y-4 rounded-[2rem] border border-white/70 bg-white/80 p-6 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.25)] backdrop-blur-xl">
@@ -443,7 +393,7 @@ export default function ProfileTabs(props: ProfileTabsProps) {
 
               <div className="space-y-3 text-sm text-slate-700">
                 <p>
-                  Once base credits are used, add-ons keep your premium enrichments running. Purchase more anytime.
+                  Once base credits are used, add-ons keep your enrichments running. Purchase more anytime.
                 </p>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
                   <button
@@ -509,7 +459,6 @@ export default function ProfileTabs(props: ProfileTabsProps) {
             </div>
           </section>
         )}
-      </div>
     </div>
   );
 }

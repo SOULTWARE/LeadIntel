@@ -1,4 +1,3 @@
-import InternalNavbar from '@/components/InternalNavbar';
 import InternalSidebar from '@/components/InternalSidebar';
 import { InternalLayoutProvider } from '@/components/InternalLayoutContext';
 
@@ -16,13 +15,11 @@ export default function AppLayout({
           <div className="absolute bottom-0 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-sky-400/10 blur-3xl" />
         </div>
 
-        <div className="relative mx-auto flex min-h-screen max-w-[1920px]">
+        <div className="relative mx-auto flex min-h-screen max-w-[1920px] flex-col lg:flex-row">
           <InternalSidebar />
 
           <div className="flex min-w-0 flex-1 flex-col">
-            <InternalNavbar />
-
-            <main className="flex-1 overflow-y-auto px-4 pb-6 pt-4 md:px-6 md:pb-8 md:pt-6">
+            <main className="flex-1 overflow-y-auto px-4 pb-6 pt-4 md:px-6 md:pb-8 md:pt-4 lg:px-8 lg:pt-6">
               <div className="mx-auto flex w-full max-w-[1680px] flex-col gap-6">
                 {children}
               </div>

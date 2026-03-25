@@ -16,7 +16,7 @@ export default function LandingPageContent({ user }: LandingPageContentProps) {
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-[10px] font-black uppercase tracking-[0.35em] text-blue-600">
             <span className="h-2 w-2 rounded-full bg-blue-500" />
-            Premium lead intelligence workspace
+            Lead intelligence workspace
           </div>
           <p className="max-w-2xl text-sm leading-6 text-slate-500">
             Hunter-first discovery, AI enhancement, and outreach drafting in one clean workflow built for fast-moving teams.

@@ -11,7 +11,7 @@ export function WorkflowSection() {
           The Workflow
         </div>
         <p className="mx-auto max-w-2xl text-3xl font-black tracking-tight text-slate-900 md:text-4xl">
-          Four steps to high-intent leads, delivered in a cleaner premium flow.
+          Four steps to high-intent leads, delivered in a cleaner flow.
         </p>
       </div>
 

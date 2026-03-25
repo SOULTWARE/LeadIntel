@@ -37,7 +37,7 @@ export default async function MarketingLayout({
                 </div>
               </div>
               <p className="max-w-xl text-sm leading-6 text-slate-500">
-                A premium lead intelligence workspace for teams that need qualified sourcing, AI enrichment, and outreach readiness in one focused flow.
+                A focused lead intelligence workspace for teams that need qualified sourcing, AI enrichment, and outreach readiness in one streamlined flow.
               </p>
               <div className="flex flex-wrap gap-3">
                 {['Verified sourcing', 'AI enrichment', 'Email discovery', 'Revenue-ready exports'].map((item) => (
@@ -100,7 +100,7 @@ export default async function MarketingLayout({
           </div>
 
           <div className="mt-12 flex flex-col gap-4 border-t border-slate-200/80 pt-6 text-xs font-black uppercase tracking-[0.3em] text-slate-400 md:flex-row md:items-center md:justify-between">
-            <div>© 2026 LeadIntelPro • Premium intelligence workspace</div>
+            <div>© 2026 LeadIntelPro • Lead intelligence workspace</div>
             <div className="flex flex-wrap items-center gap-4 text-[10px] tracking-[0.25em]">
               <Link href="/privacy" className="transition-colors hover:text-blue-600">Privacy</Link>
               <Link href="/terms" className="transition-colors hover:text-blue-600">Terms</Link>

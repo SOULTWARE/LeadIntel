@@ -371,8 +371,11 @@ export default function SourcerPage() {
     setSelectedResultIds(next);
   };
 
+  const activePreviewLead = activeResultLead;
+  const activePreviewAnalysis = activePreviewLead?.aiAnalysis ?? null;
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       <InternalLayoutSetter
         title="Data Sourcing"
         icon={<Search className="w-4 h-4" />}
@@ -394,20 +397,20 @@ export default function SourcerPage() {
           </div>
         )}
       />
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        <div className="max-w-4xl mx-auto">
+      <div className="mx-auto w-full max-w-[1680px] px-4 pb-12 pt-6 lg:px-8">
+        <div className="mx-auto w-full max-w-5xl">
           {/* Main Tab Controls */}
-          <div className="flex gap-2 bg-slate-200/50 p-1.5 rounded-2xl mb-12 w-fit mx-auto border border-slate-200 shadow-inner">
+          <div className="mx-auto mb-12 flex w-fit gap-2 rounded-full border border-white/70 bg-white/80 p-1.5 shadow-[0_18px_60px_-36px_rgba(15,23,42,0.28)] backdrop-blur-xl">
             <button
               onClick={() => setActiveTab('input')}
-              className={`flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-bold cursor-pointer transition-all duration-300 ${activeTab === 'input' ? 'bg-white text-blue-600 shadow-md ring-1 ring-slate-100' : 'text-slate-500 hover:text-slate-700'}`}
+              className={`flex items-center gap-2 rounded-full px-8 py-3 text-sm font-bold cursor-pointer transition-all duration-300 ${activeTab === 'input' ? 'bg-slate-950 text-white shadow-lg shadow-slate-900/10' : 'text-slate-500 hover:text-slate-700'}`}
             >
               <Settings2 className="w-4 h-4" />
               Configure Sourcing
             </button>
             <button
               onClick={() => { if(results) setActiveTab('results'); }}
-              className={`flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-bold cursor-pointer transition-all duration-300 ${activeTab === 'results' ? 'bg-white text-blue-600 shadow-md ring-1 ring-slate-100' : 'text-slate-400 cursor-not-allowed opacity-60'}`}
+              className={`flex items-center gap-2 rounded-full px-8 py-3 text-sm font-bold cursor-pointer transition-all duration-300 ${activeTab === 'results' ? 'bg-slate-950 text-white shadow-lg shadow-slate-900/10' : 'text-slate-400 cursor-not-allowed opacity-60'}`}
               disabled={!results}
             >
               <Database className="w-4 h-4" />
@@ -450,9 +453,9 @@ export default function SourcerPage() {
                       else startCollection();
                     }
                   }}
-                  className="bg-white border border-slate-200 rounded-[2rem] shadow-xl shadow-slate-100/50 overflow-hidden"
+                  className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/85 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.28)] backdrop-blur-xl"
                 >
-                  <div className="p-10">
+                  <div className="p-8 md:p-10">
                     <AnimatePresence mode="wait">
                       {/* Step 1: Targets */}
                       {currentStep === 1 && (
@@ -695,12 +698,12 @@ export default function SourcerPage() {
                   </div>
 
                   {/* Wizard Footer Controls */}
-                  <div className="bg-slate-50 px-10 py-6 border-t border-slate-100 flex items-center justify-between">
+                  <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/80 px-8 py-5 md:px-10">
                     <button
                       type="button"
                       onClick={prevStep}
                       disabled={currentStep === 1}
-                      className="px-6 py-3 rounded-xl border border-slate-200 text-slate-500 font-bold text-sm hover:bg-white transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
+                      className="flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 px-6 py-3 text-sm font-bold text-slate-500 transition-all hover:bg-white disabled:cursor-not-allowed disabled:opacity-30"
                     >
                       <ArrowLeft className="w-4 h-4" />
                       Previous
@@ -710,7 +713,7 @@ export default function SourcerPage() {
                       <button
                         type="button"
                         onClick={nextStep}
-                        className="px-8 py-3 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 flex items-center gap-2 group cursor-pointer"
+                        className="group flex cursor-pointer items-center gap-2 rounded-xl bg-blue-600 px-8 py-3 text-sm font-black text-white shadow-lg shadow-blue-100 transition-all hover:bg-blue-700"
                       >
                         Next Step
                         <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -720,7 +723,7 @@ export default function SourcerPage() {
                         type="button"
                         onClick={startCollection}
                         disabled={isLoading}
-                        className="px-10 py-4 bg-slate-900 text-white rounded-2xl font-black text-base hover:bg-slate-800 transition-all shadow-2xl shadow-slate-300 disabled:opacity-50 flex items-center gap-3 relative overflow-hidden group cursor-pointer"
+                        className="group relative flex cursor-pointer items-center gap-3 rounded-2xl bg-slate-950 px-10 py-4 text-base font-black text-white shadow-2xl shadow-slate-300 transition-all hover:bg-slate-900 disabled:opacity-50"
                       >
                         {isLoading ? (
                           <>
@@ -746,8 +749,8 @@ export default function SourcerPage() {
                 exit={{ opacity: 0, scale: 0.98 }}
                 className="space-y-8"
               >
-                <div className="bg-white rounded-[2rem] border border-slate-200 shadow-2xl shadow-slate-200/50 overflow-hidden">
-                   <div className="p-10 border-b border-slate-100 bg-slate-50/30 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/85 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.28)] backdrop-blur-xl">
+                   <div className="flex flex-col items-center justify-between gap-6 border-b border-slate-100 bg-slate-50/70 p-8 md:flex-row md:p-10">
                       <div className="space-y-2 text-center md:text-left">
                         <h3 className="text-3xl font-black text-slate-900 tracking-tight">Extracted Leads</h3>
                         <p className="text-slate-500 font-medium flex items-center gap-2">
@@ -762,7 +765,7 @@ export default function SourcerPage() {
                       <div className="flex flex-wrap justify-center gap-3">
                         <button
                           onClick={handleExportCSV}
-                          className="px-6 py-3 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all flex items-center gap-2 shadow-sm cursor-pointer"
+                          className="flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-3 text-sm font-bold text-slate-600 transition-all hover:bg-slate-50"
                         >
                           <FileDown className="w-4 h-4" />
                           Export CSV
@@ -770,7 +773,7 @@ export default function SourcerPage() {
                         <button
                           onClick={() => handleEnhanceAll()}
                           disabled={isEnhancing}
-                          className="px-8 py-3 text-sm font-black bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 shadow-xl shadow-indigo-100 transition-all disabled:opacity-50 flex items-center gap-2 group cursor-pointer"
+                          className="group flex cursor-pointer items-center gap-2 rounded-xl bg-indigo-600 px-8 py-3 text-sm font-black text-white shadow-xl shadow-indigo-100 transition-all hover:bg-indigo-700 disabled:opacity-50"
                         >
                           {isEnhancing ? (
                             <>
@@ -787,7 +790,7 @@ export default function SourcerPage() {
                         <button
                           onClick={handleSaveResults}
                           disabled={isSaving}
-                          className="px-8 py-3 text-sm font-black bg-slate-900 text-white rounded-xl hover:bg-slate-800 shadow-xl shadow-slate-900/10 transition-all disabled:opacity-40 flex items-center gap-2 cursor-pointer"
+                          className="flex cursor-pointer items-center gap-2 rounded-xl bg-slate-950 px-8 py-3 text-sm font-black text-white shadow-xl shadow-slate-900/10 transition-all hover:bg-slate-800 disabled:opacity-40"
                         >
                            <Database className="w-4 h-4" />
                            {isSaving ? 'Saving...' : 'Save'}
@@ -907,123 +910,121 @@ export default function SourcerPage() {
                         </tbody>
                      </table>
                    </div>
-                   <AnimatePresence>
-                     {activeResultLead && (
-                       <>
-                         <motion.div
-                           initial={{ opacity: 0 }}
-                           animate={{ opacity: 0.5 }}
-                           exit={{ opacity: 0 }}
-                           onClick={() => setActiveResultLead(null)}
-                           className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[90]"
-                         />
-                         <motion.div
-                           initial={{ x: '100%' }}
-                           animate={{ x: 0 }}
-                           exit={{ x: '100%' }}
-                           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                           className="fixed top-0 right-0 w-full md:w-[520px] h-full bg-white shadow-2xl z-[100] overflow-y-auto"
-                         >
-                           <div className="p-8 space-y-8">
-                             <div className="flex items-center justify-between">
-                               <div>
-                                 <div className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-600">Live Preview</div>
-                                 <h3 className="text-3xl font-black text-slate-900 tracking-tight">{activeResultLead.name}</h3>
-                               </div>
-                               <button
-                                 onClick={() => setActiveResultLead(null)}
-                                 className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition-colors cursor-pointer"
-                               >
-                                 <X className="w-5 h-5" />
-                               </button>
-                             </div>
+                  <AnimatePresence>
+                    {activePreviewLead ? (
+                      <>
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 0.5 }}
+                          exit={{ opacity: 0 }}
+                          onClick={() => setActiveResultLead(null)}
+                          className="fixed inset-0 z-[90] bg-slate-900/60 backdrop-blur-sm"
+                        />
+                        <motion.div
+                          initial={{ x: '100%' }}
+                          animate={{ x: 0 }}
+                          exit={{ x: '100%' }}
+                          transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                          className="fixed right-0 top-0 z-[100] h-full w-full overflow-y-auto border-l border-white/70 bg-white/90 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.42)] backdrop-blur-2xl md:w-[520px]"
+                        >
+                          <div className="space-y-8 p-8">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <div className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-600">Lead Preview</div>
+                                <h3 className="text-3xl font-black tracking-tight text-slate-900">{activePreviewLead.name}</h3>
+                              </div>
+                              <button
+                                onClick={() => setActiveResultLead(null)}
+                                className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-colors hover:bg-slate-200"
+                              >
+                                <X className="w-5 h-5" />
+                              </button>
+                            </div>
 
-                             <div className="grid grid-cols-2 gap-4">
-                               <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100">
-                                 <div className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Category</div>
-                                 <div className="text-lg font-black text-slate-900">{activeResultLead.type || 'Business'}</div>
-                               </div>
-                               <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100">
-                                 <div className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Rating</div>
-                                 <div className="text-lg font-black text-slate-900">
-                                   {activeResultLead.rating ? `${activeResultLead.rating} ★` : 'N/A'}
-                                 </div>
-                               </div>
-                             </div>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
+                                <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Category</div>
+                                <div className="text-lg font-black text-slate-900">{activePreviewLead.type || 'Business'}</div>
+                              </div>
+                              <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
+                                <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Rating</div>
+                                <div className="text-lg font-black text-slate-900">
+                                  {activePreviewLead.rating ? `${activePreviewLead.rating} ★` : 'N/A'}
+                                </div>
+                              </div>
+                            </div>
 
-                             <div className="space-y-4">
-                               <h4 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">AI Analysis</h4>
-                               {activeResultLead.aiAnalysis ? (
-                                 <div className="space-y-4">
-                                   <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase w-fit border ${
-                                     activeResultLead.aiAnalysis.recommendation === 'Highly Recommended'
-                                       ? 'bg-green-50 text-green-700 border-green-100'
-                                       : activeResultLead.aiAnalysis.recommendation === 'Recommended'
-                                         ? 'bg-blue-50 text-blue-700 border-blue-100'
-                                         : 'bg-slate-50 text-slate-600 border-slate-100'
-                                   }`}>
-                                     {activeResultLead.aiAnalysis.recommendation}
-                                   </div>
-                                   <div className="text-sm text-slate-600 italic border-l-2 border-slate-200 pl-4">
-                                     “{activeResultLead.aiAnalysis.reasoning}”
-                                   </div>
-                                   <div>
-                                     <div className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Compatibility Hooks</div>
-                                     <ul className="space-y-2 text-sm text-slate-600">
-                                       {activeResultLead.aiAnalysis.compatibilityHooks.map((hook, idx) => (
-                                         <li key={idx} className="flex items-center gap-2">
-                                           <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
-                                           {hook}
-                                         </li>
-                                       ))}
-                                     </ul>
-                                   </div>
-                                 </div>
-                               ) : (
-                                 <p className="text-sm text-slate-500 italic">No AI summary yet. Run AI Enhance to generate insights.</p>
-                               )}
-                             </div>
+                            <div className="space-y-4">
+                              <h4 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">AI Analysis</h4>
+                              {activePreviewAnalysis ? (
+                                <div className="space-y-4">
+                                  <div
+                                    className={`inline-flex w-fit rounded-full border px-3 py-1 text-[10px] font-black uppercase ${
+                                      activePreviewAnalysis.recommendation === 'Highly Recommended'
+                                        ? 'border-green-100 bg-green-50 text-green-700'
+                                        : activePreviewAnalysis.recommendation === 'Recommended'
+                                          ? 'border-blue-100 bg-blue-50 text-blue-700'
+                                          : 'border-slate-100 bg-slate-50 text-slate-600'
+                                    }`}
+                                  >
+                                    {activePreviewAnalysis.recommendation}
+                                  </div>
+                                  <div className="border-l-2 border-slate-200 pl-4 text-sm italic text-slate-600">
+                                    “{activePreviewAnalysis.reasoning}”
+                                  </div>
+                                  <div>
+                                    <div className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Compatibility Hooks</div>
+                                    <ul className="space-y-2 text-sm text-slate-600">
+                                      {activePreviewAnalysis.compatibilityHooks.map((hook, idx) => (
+                                        <li key={idx} className="flex items-center gap-2">
+                                          <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
+                                          {hook}
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                </div>
+                              ) : (
+                                <p className="text-sm italic text-slate-500">No AI summary yet. Run AI Enhance to generate insights.</p>
+                              )}
+                            </div>
 
-                             <div className="space-y-4">
-                               <h4 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Contact Details</h4>
-                               <div className="space-y-3 text-sm text-slate-600">
-                                 {activeResultLead.address && (
-                                   <div className="flex items-center gap-3">
-                                     <MapPin className="w-4 h-4 text-slate-400" />
-                                     {activeResultLead.address}
-                                   </div>
-                                 )}
-                                 {activeResultLead.phone && (
-                                   <div className="flex items-center gap-3">
-                                     <Phone className="w-4 h-4 text-slate-400" />
-                                     {activeResultLead.phone}
-                                   </div>
-                                 )}
-                                 {activeResultLead.website && (
-                                   <a
-                                     href={activeResultLead.website}
-                                     target="_blank"
-                                     className="flex items-center gap-3 text-blue-600 font-semibold"
-                                   >
-                                     <Globe className="w-4 h-4" />
-                                     Visit website
-                                   </a>
-                                 )}
-                               </div>
-                             </div>
+                            <div className="space-y-4">
+                              <h4 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Contact Details</h4>
+                              <div className="space-y-3 text-sm text-slate-600">
+                                {activePreviewLead.address && (
+                                  <div className="flex items-center gap-3">
+                                    <MapPin className="h-4 w-4 text-slate-400" />
+                                    {activePreviewLead.address}
+                                  </div>
+                                )}
+                                {activePreviewLead.phone && (
+                                  <div className="flex items-center gap-3">
+                                    <Phone className="h-4 w-4 text-slate-400" />
+                                    {activePreviewLead.phone}
+                                  </div>
+                                )}
+                                {activePreviewLead.website && (
+                                  <a href={activePreviewLead.website} target="_blank" className="flex items-center gap-3 font-semibold text-blue-600">
+                                    <Globe className="h-4 w-4" />
+                                    Visit website
+                                  </a>
+                                )}
+                              </div>
+                            </div>
 
-                             <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 space-y-3">
-                               <div className="flex items-center gap-3">
-                                 <Mail className="w-4 h-4 text-indigo-500" />
-                                 <div className="text-sm font-bold text-slate-700">Need personalized outreach?</div>
-                               </div>
-                               <p className="text-xs text-slate-500">Save this lead to your results dashboard to use full outreach workflows.</p>
-                             </div>
-                           </div>
-                         </motion.div>
-                       </>
-                     )}
-                   </AnimatePresence>
+                            <div className="space-y-3 rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6">
+                              <div className="flex items-center gap-3">
+                                <Mail className="h-4 w-4 text-indigo-500" />
+                                <div className="text-sm font-bold text-slate-700">Need personalized outreach?</div>
+                              </div>
+                              <p className="text-xs text-slate-500">Save this lead to your results dashboard to use full outreach workflows.</p>
+                            </div>
+                          </div>
+                        </motion.div>
+                      </>
+                    ) : null}
+                  </AnimatePresence>
                 </div>
               </motion.div>
             )}
