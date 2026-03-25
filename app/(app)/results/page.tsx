@@ -33,56 +33,58 @@ export default async function ResultsPage() {
   const totalLeads = sessions.reduce((acc, s) => acc + s.leads.length, 0);
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans">
+    <div className="space-y-8">
       <InternalLayoutSetter
         title="Qualified Leads Intelligence"
         icon={<Database className="w-4 h-4" />}
         rightSlot={(
-          <Link href="/sourcer" className="bg-slate-900 text-white px-5 py-2.5 rounded-xl text-sm font-black hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 flex items-center gap-2">
+          <Link href="/sourcer" className="inline-flex items-center gap-2 rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-900/10 transition-transform hover:-translate-y-0.5">
             <Search className="w-4 h-4" />
             New Search
           </Link>
         )}
       />
 
-      <main className="max-w-7xl mx-auto px-6 py-12">
-        <div className="mb-12">
-           <Link href="/" className="inline-flex items-center gap-2 text-xs font-black text-slate-400 hover:text-blue-600 uppercase tracking-widest transition-colors mb-6 group">
-             <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-             Return home
-           </Link>
-           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-              <div className="space-y-2">
-                <h3 className="text-5xl font-black text-slate-900 tracking-tighter uppercase">Intelligence <span className="text-blue-600">Dashboard</span></h3>
-                <p className="text-slate-500 font-medium text-lg">Manage your {sessions.length} sourcing sessions and {totalLeads} prospects.</p>
-              </div>
-              <div className="flex bg-white p-2 rounded-2xl border border-slate-100 shadow-sm">
-                 <div className="px-6 py-3 text-center border-r border-slate-100">
-                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Sessions</div>
-                    <div className="text-2xl font-black text-slate-900">{sessions.length}</div>
-                 </div>
-                 <div className="px-6 py-3 text-center">
-                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Prospects</div>
-                    <div className="text-2xl font-black text-blue-600">{totalLeads}</div>
-                 </div>
-              </div>
-           </div>
+      <section className="grid gap-6 rounded-[2rem] border border-white/70 bg-white/80 p-8 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.25)] lg:grid-cols-[1.35fr_0.65fr]">
+        <div className="space-y-6">
+          <Link href="/" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.35em] text-slate-400 transition-colors hover:text-blue-600 group">
+            <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            Return home
+          </Link>
+
+          <div className="space-y-3">
+            <div className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-[10px] font-black uppercase tracking-[0.35em] text-blue-600">
+              <Database className="h-4 w-4" />
+              Intelligence Dashboard
+            </div>
+            <h3 className="max-w-3xl text-4xl font-black tracking-tight text-slate-900 md:text-5xl">
+              Review, refine, and export{' '}
+              <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">qualified lead sessions</span>
+              .
+            </h3>
+            <p className="max-w-2xl text-base leading-7 text-slate-500 md:text-lg">
+              Manage your {sessions.length} sourcing sessions and {totalLeads} prospects from a cleaner, faster dashboard built for daily outreach work.
+            </p>
+          </div>
         </div>
 
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+          <div className="rounded-[1.5rem] border border-slate-200 bg-slate-950 p-5 text-white shadow-xl shadow-slate-900/10">
+            <div className="text-[10px] font-black uppercase tracking-[0.35em] text-slate-400">Total Sessions</div>
+            <div className="mt-3 text-4xl font-black tracking-tight">{sessions.length}</div>
+            <p className="mt-2 text-sm text-slate-400">Historical searches saved to your workspace.</p>
+          </div>
+          <div className="rounded-[1.5rem] border border-blue-100 bg-white p-5 shadow-lg shadow-blue-100/40">
+            <div className="text-[10px] font-black uppercase tracking-[0.35em] text-slate-400">Total Prospects</div>
+            <div className="mt-3 text-4xl font-black tracking-tight text-blue-600">{totalLeads}</div>
+            <p className="mt-2 text-sm text-slate-500">Ready for enhancement, discovery, or export.</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
         <SessionDashboard sessions={sessions} />
-      </main>
-
-      <footer className="mt-20 border-t border-slate-200 py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-8">
-           <div className="bg-slate-50 px-4 py-2 rounded-full text-slate-400 text-xs font-bold tracking-widest uppercase">
-             Generated Intelligence Engine 2025
-           </div>
-           <div className="flex gap-10 text-slate-400 text-xs font-black uppercase tracking-widest">
-              <Link href="/contact" className="hover:text-blue-600 transition-colors">Support</Link>
-              <Link href="/privacy" className="hover:text-blue-600 transition-colors">Privacy</Link>
-           </div>
-        </div>
-      </footer>
+      </section>
     </div>
   );
 }

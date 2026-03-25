@@ -19,11 +19,13 @@ import {
 
 export function ProductPreviewSection() {
   return (
-    <section className="pt-24 mt-24 border-t border-slate-100">
-      <div className="text-center mb-16 space-y-4">
-        <h2 className="text-sm font-black text-blue-600 uppercase tracking-[0.3em]">Product Preview</h2>
-        <p className="text-4xl font-extrabold text-slate-900 tracking-tight">A live-feeling UI, built for speed.</p>
-        <p className="text-lg text-slate-500 leading-relaxed max-w-2xl mx-auto">
+    <section className="space-y-12 rounded-[2.75rem] border border-white/70 bg-white/75 p-8 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.32)] backdrop-blur-2xl md:p-12">
+      <div className="text-center space-y-4">
+        <div className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-[10px] font-black uppercase tracking-[0.35em] text-blue-600">
+          Product Preview
+        </div>
+        <p className="mx-auto max-w-2xl text-3xl font-black tracking-tight text-slate-900 md:text-4xl">A live-feeling UI, built for speed.</p>
+        <p className="mx-auto max-w-2xl text-lg leading-relaxed text-slate-500">
           A full-width, static preview of the core screens—built in code to showcase the workflow without any setup.
         </p>
       </div>

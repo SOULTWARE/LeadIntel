@@ -79,6 +79,7 @@ npx playwright install          # required for discovery flows
 npm run db:push                 # sync Prisma schema to Postgres
 npm run dev                     # start Next.js + API routes
 npm run worker                  # optional: start background discoverer (Option B)
+npm run start                   # production mode: starts Next.js + worker together
 ```
 
 Additional scripts live in `package.json` (`npm run db:migrate`, `npm run test`).

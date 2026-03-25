@@ -2,11 +2,18 @@
 
 import { useEffect, useState } from 'react';
 import type { Lead } from '@prisma/client';
+import type { AIAnalysisResult } from '@/services/aiEnhanceService';
 import { toast } from 'sonner';
 import { LeadsListToolbar } from './leads-list/LeadsListToolbar';
 import { LeadsTable } from './leads-list/LeadsTable';
 import { LeadDetailDrawer } from './leads-list/LeadDetailDrawer';
 import { createLeadsCsv } from './leads-list/createLeadsCsv';
+
+type EnhancedLeadResult = {
+  id?: string;
+  placeId?: string | null;
+  aiAnalysis?: AIAnalysisResult | null;
+};
 
 export default function LeadsList({ initialLeads }: { initialLeads: Lead[] }) {
   const [leads, setLeads] = useState<Lead[]>(initialLeads);
@@ -222,8 +229,8 @@ export default function LeadsList({ initialLeads }: { initialLeads: Lead[] }) {
           break;
         }
 
-        const enhancedById = new Map<string, any>();
-        const enhancedResults = (data?.data?.results ?? []) as Array<Record<string, unknown>>;
+        const enhancedById = new Map<string, AIAnalysisResult>();
+        const enhancedResults = (data?.data?.results ?? []) as EnhancedLeadResult[];
         for (const result of enhancedResults) {
           if (!result) continue;
           const id = typeof result.id === 'string'
@@ -231,7 +238,7 @@ export default function LeadsList({ initialLeads }: { initialLeads: Lead[] }) {
             : typeof result.placeId === 'string'
               ? result.placeId
               : null;
-          const analysis = (result as { aiAnalysis?: any }).aiAnalysis;
+          const analysis = result.aiAnalysis;
           if (!id || !analysis) continue;
           enhancedById.set(id, analysis);
         }

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Zap, LogOut } from 'lucide-react';
+import { ChevronRight, LogOut, Search, Sparkles, Zap } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
@@ -43,67 +43,126 @@ export default function Navbar({ user }: NavbarProps) {
   };
 
   return (
-    <header className="relative z-50 border-b border-slate-100 bg-white/80 backdrop-blur-md sticky top-0">
-      <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
-            <Zap size={24} fill="currentColor" />
-          </div>
-          <Link href="/" className="text-2xl font-extrabold tracking-tighter text-slate-900">
-            LeadIntel<span className="text-blue-600">Pro</span>
-          </Link>
-        </div>
-
-        <nav className="hidden md:flex items-center gap-8">
-          {user ? (
-            <>
-              <Link href="/sourcer" className="text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors">Data Sourcing</Link>
-              <Link href="/results" className="text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors">Dashboard</Link>
-
-              <div className="relative">
-                <button
-                  onClick={() => setIsMenuOpen(!isMenuOpen)}
-                  className="w-10 h-10 bg-slate-900 text-white rounded-full flex items-center justify-center font-bold text-sm hover:ring-4 hover:ring-slate-100 transition-all shadow-xl shadow-slate-200"
-                >
-                  {getInitials(getDisplayName(user))}
-                </button>
-
-                {isMenuOpen && (
-                  <div className="absolute right-0 top-14 w-48 bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden py-1">
-                    <div className="px-4 py-3 border-b border-slate-50">
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Signed in as</p>
-                      <p className="text-sm font-bold text-slate-900 truncate">{getDisplayName(user)}</p>
-                    </div>
-                    <Link
-                      href="/profile"
-                      onClick={() => setIsMenuOpen(false)}
-                      className="w-full px-4 py-3 text-left text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2 cursor-pointer"
-                    >
-                      Profile
-                    </Link>
-                    <button
-                      onClick={handleLogout}
-                      className="w-full px-4 py-3 text-left text-sm font-bold text-red-500 hover:bg-red-50 transition-colors flex items-center gap-2 cursor-pointer"
-                    >
-                      <LogOut size={16} />
-                      Sign Out
-                    </button>
+    <header className="sticky top-0 z-50 px-4 pt-4 md:px-6">
+      <div className="mx-auto w-full max-w-[1680px] rounded-[1.75rem] border border-white/70 bg-white/80 backdrop-blur-2xl shadow-[0_20px_80px_-40px_rgba(15,23,42,0.45)]">
+        <div className="flex flex-col gap-4 px-4 py-4 lg:px-6">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3 md:gap-4">
+              <Link href="/" className="flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-white px-3 py-2 shadow-sm transition-transform hover:-translate-y-0.5">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 text-white shadow-lg shadow-blue-500/20">
+                  <Zap size={24} fill="currentColor" />
+                </div>
+                <div>
+                  <div className="text-lg font-black tracking-tight text-slate-900">
+                    LeadIntel<span className="text-blue-600">Pro</span>
                   </div>
-                )}
-              </div>
-            </>
-          ) : (
-            <>
-              <Link href="/pricing" className="text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors">Pricing</Link>
-              <Link
-                href="/login"
-                className="px-6 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-bold hover:bg-slate-800 transition-all shadow-xl shadow-slate-200"
-              >
-                Get Started
+                  <div className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Performance intelligence</div>
+                </div>
               </Link>
-            </>
-          )}
-        </nav>
+
+              <div className="hidden items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-[10px] font-black uppercase tracking-[0.35em] text-blue-600 md:flex">
+                <Sparkles className="h-4 w-4" />
+                Focused sourcing
+              </div>
+            </div>
+
+            <nav className="hidden items-center gap-3 lg:flex">
+              <Link href="/pricing" className="rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition-colors hover:text-blue-600">
+                Pricing
+              </Link>
+              <Link href="/about" className="rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition-colors hover:text-blue-600">
+                About
+              </Link>
+              <Link href="/contact" className="rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition-colors hover:text-blue-600">
+                Contact
+              </Link>
+
+              {user ? (
+                <div className="ml-2 flex items-center gap-3">
+                  <Link
+                    href="/sourcer"
+                    className="inline-flex items-center gap-2 rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-900/10 transition-transform hover:-translate-y-0.5"
+                  >
+                    <Search className="h-4 w-4" />
+                    Workspace
+                  </Link>
+                  <div className="relative">
+                    <button
+                      onClick={() => setIsMenuOpen(!isMenuOpen)}
+                      className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-950 text-sm font-black text-white shadow-lg shadow-slate-900/15 transition-transform hover:-translate-y-0.5"
+                    >
+                      {getInitials(getDisplayName(user))}
+                    </button>
+
+                    {isMenuOpen && (
+                      <div className="absolute right-0 top-14 w-56 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-200/50">
+                        <div className="border-b border-slate-100 px-4 py-3">
+                          <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Signed in as</p>
+                          <p className="truncate text-sm font-bold text-slate-900">{getDisplayName(user)}</p>
+                        </div>
+                        <Link
+                          href="/results"
+                          onClick={() => setIsMenuOpen(false)}
+                          className="flex items-center gap-2 px-4 py-3 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50"
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                          Dashboard
+                        </Link>
+                        <Link
+                          href="/profile"
+                          onClick={() => setIsMenuOpen(false)}
+                          className="flex items-center gap-2 px-4 py-3 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50"
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                          Profile
+                        </Link>
+                        <button
+                          onClick={handleLogout}
+                          className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm font-bold text-rose-500 transition-colors hover:bg-rose-50"
+                        >
+                          <LogOut size={16} />
+                          Sign Out
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="ml-2 flex items-center gap-3">
+                  <Link href="/login" className="rounded-2xl bg-slate-950 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-900/10 transition-transform hover:-translate-y-0.5">
+                    Get Started
+                  </Link>
+                </div>
+              )}
+            </nav>
+
+            <div className="flex items-center gap-3 lg:hidden">
+              {user ? (
+                <Link href="/sourcer" className="inline-flex items-center gap-2 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-black text-white shadow-lg shadow-slate-900/10">
+                  <Search className="h-4 w-4" />
+                  Workspace
+                </Link>
+              ) : (
+                <Link href="/login" className="inline-flex items-center gap-2 rounded-2xl bg-slate-950 px-4 py-3 text-sm font-black text-white shadow-lg shadow-slate-900/10">
+                  Get Started
+                </Link>
+              )}
+            </div>
+          </div>
+
+          <div className="flex gap-2 overflow-x-auto pb-1 lg:hidden">
+            {[
+              { href: '/pricing', label: 'Pricing' },
+              { href: '/about', label: 'About' },
+              { href: '/contact', label: 'Contact' },
+              ...(user ? [{ href: '/results', label: 'Dashboard' }, { href: '/profile', label: 'Profile' }] : []),
+            ].map((item) => (
+              <Link key={item.href} href={item.href} className="whitespace-nowrap rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold uppercase tracking-[0.25em] text-slate-500 transition-colors hover:border-blue-200 hover:text-blue-600">
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        </div>
       </div>
     </header>
   );

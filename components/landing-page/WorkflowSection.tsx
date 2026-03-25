@@ -5,13 +5,17 @@ import { Target, Search, Sparkles, Zap } from 'lucide-react';
 
 export function WorkflowSection() {
   return (
-    <section className="pt-24 border-t border-slate-100">
-      <div className="text-center mb-16 space-y-4">
-        <h2 className="text-sm font-black text-blue-600 uppercase tracking-[0.3em]">The Workflow</h2>
-        <p className="text-4xl font-extrabold text-slate-900 tracking-tight">Four steps to high-intent leads.</p>
+    <section className="space-y-10 rounded-[2.75rem] border border-white/70 bg-white/75 p-8 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.32)] backdrop-blur-2xl md:p-12">
+      <div className="text-center space-y-4">
+        <div className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-[10px] font-black uppercase tracking-[0.35em] text-blue-600">
+          The Workflow
+        </div>
+        <p className="mx-auto max-w-2xl text-3xl font-black tracking-tight text-slate-900 md:text-4xl">
+          Four steps to high-intent leads, delivered in a cleaner flow.
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-4">
         {[
           {
             num: '01',
@@ -23,14 +27,12 @@ export function WorkflowSection() {
             num: '02',
             title: 'Source',
             desc: 'Gather verified business data via licensed providers and public records.',
-            color: 'bg-blue-50',
             icon: <Search className="text-blue-600" />,
           },
           {
             num: '03',
             title: 'Enhance',
             desc: 'AI analyzes compatibility against your specific goals.',
-            active: true,
             icon: <Sparkles className="text-indigo-600" />,
           },
           {
@@ -46,15 +48,20 @@ export function WorkflowSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: i * 0.1 }}
-            className={`p-10 rounded-[2rem] border transition-all hover:shadow-xl ${
-              step.active
-                ? 'bg-indigo-600 text-white border-indigo-500 shadow-2xl shadow-indigo-100 scale-105'
-                : 'bg-slate-50 border-slate-100 text-slate-900 hover:bg-white'
+            className={`rounded-[2rem] border p-8 shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl ${
+              i === 2
+                ? 'border-indigo-100 bg-indigo-600 text-white shadow-indigo-100'
+                : 'border-slate-200 bg-white/85 text-slate-900'
             }`}
           >
-            <div className={`text-4xl font-black mb-6 opacity-20 ${step.active ? 'text-white' : 'text-slate-900'}`}>{step.num}</div>
-            <div className="font-black text-xl mb-4 tracking-tight">{step.title}</div>
-            <p className={`text-sm font-medium leading-relaxed ${step.active ? 'text-indigo-100' : 'text-slate-500'}`}>{step.desc}</p>
+            <div className="mb-6 flex items-center justify-between">
+              <div className={`text-4xl font-black opacity-20 ${i === 2 ? 'text-white' : 'text-slate-900'}`}>{step.num}</div>
+              <div className={`flex h-11 w-11 items-center justify-center rounded-2xl border ${i === 2 ? 'border-white/15 bg-white/10 text-white' : 'border-slate-200 bg-slate-50 text-slate-900'}`}>
+                {step.icon}
+              </div>
+            </div>
+            <div className="mb-3 text-xl font-black tracking-tight">{step.title}</div>
+            <p className={`text-sm leading-relaxed ${i === 2 ? 'text-indigo-100' : 'text-slate-500'}`}>{step.desc}</p>
           </motion.div>
         ))}
       </div>

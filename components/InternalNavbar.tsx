@@ -7,6 +7,7 @@ import { LogOut, Search, Database, User } from 'lucide-react';
 
 import { createClient } from '@/lib/supabase/client';
 import { useInternalLayoutOptional } from '@/components/InternalLayoutContext';
+import { internalNavigation } from '@/components/InternalSidebar';
 import { toast } from 'sonner';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
@@ -101,56 +102,97 @@ export default function InternalNavbar() {
   }, [layout, navConfig]);
 
   return (
-    <nav className="border-b border-slate-200 bg-white/80 backdrop-blur-md sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-4 md:gap-6">
-          <Link href="/" className="font-extrabold text-2xl tracking-tighter text-blue-600 hover:opacity-80 transition-opacity">
-            LeadIntel<span className="text-slate-900">Pro</span>
-          </Link>
-          <div className="h-6 w-px bg-slate-200" />
-          <div className="text-slate-500 font-medium text-sm tracking-tight flex items-center gap-2">
-            {resolvedNav.icon}
-            {resolvedNav.title}
+    <header className="sticky top-0 z-50 px-4 pt-4 md:px-6">
+      <div className="mx-auto w-full max-w-[1680px] rounded-[1.75rem] border border-white/70 bg-white/80 backdrop-blur-2xl shadow-[0_20px_80px_-40px_rgba(15,23,42,0.45)]">
+        <div className="flex flex-col gap-4 px-4 py-4 lg:px-6">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex min-w-0 items-center gap-3 md:gap-4">
+              <Link href="/" className="flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-white px-3 py-2 shadow-sm transition-transform hover:-translate-y-0.5">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 text-white shadow-lg shadow-blue-500/20">
+                  <Search className="h-5 w-5" />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-lg font-black tracking-tight text-slate-900">
+                    LeadIntel<span className="text-blue-600">Pro</span>
+                  </div>
+                  <div className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Intelligence workspace</div>
+                </div>
+              </Link>
+
+              <div className="hidden min-w-0 items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 md:flex">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-blue-600 shadow-sm">
+                  {resolvedNav.icon}
+                </div>
+                <div className="min-w-0">
+                  <div className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Current view</div>
+                  <div className="truncate text-sm font-black text-slate-900">{resolvedNav.title}</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 md:gap-4">
+              {resolvedNav.rightAction}
+              {user === undefined ? (
+                <div className="h-11 w-11 rounded-full bg-slate-200 animate-pulse" aria-hidden="true" />
+              ) : user ? (
+                <div className="relative">
+                  <button
+                    onClick={() => setMenuOpen((v) => !v)}
+                    className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-950 text-sm font-black text-white shadow-lg shadow-slate-900/15 transition-transform hover:-translate-y-0.5"
+                  >
+                    {getInitials(getDisplayName(user))}
+                  </button>
+                  {menuOpen && (
+                    <div className="absolute right-0 top-14 w-56 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-200/50">
+                      <div className="border-b border-slate-100 px-4 py-3">
+                        <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Signed in as</p>
+                        <p className="truncate text-sm font-bold text-slate-900">{getDisplayName(user)}</p>
+                      </div>
+                      <Link
+                        href="/profile"
+                        onClick={() => setMenuOpen(false)}
+                        className="flex items-center gap-2 px-4 py-3 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50"
+                      >
+                        <User className="h-4 w-4" />
+                        Profile
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm font-bold text-rose-500 transition-colors hover:bg-rose-50"
+                      >
+                        <LogOut size={16} />
+                        Sign Out
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 lg:hidden">
+            {internalNavigation.map((item) => {
+              const Icon = item.icon;
+              const active = pathname === item.href || pathname?.startsWith(`${item.href}/`);
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-bold whitespace-nowrap transition-all ${
+                    active
+                      ? 'border-blue-200 bg-blue-600 text-white shadow-lg shadow-blue-500/20'
+                      : 'border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:text-blue-600'
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  {item.label}
+                </Link>
+              );
+            })}
           </div>
         </div>
-        <div className="flex items-center gap-3 md:gap-4">
-          {resolvedNav.rightAction}
-          {user === undefined ? (
-            <div className="w-10 h-10 rounded-full bg-slate-200 animate-pulse" aria-hidden="true" />
-          ) : user ? (
-            <div className="relative">
-              <button
-                onClick={() => setMenuOpen((v) => !v)}
-                className="w-10 h-10 bg-slate-900 text-white rounded-full flex items-center justify-center font-bold text-sm hover:ring-4 hover:ring-slate-100 transition-all shadow-lg shadow-slate-200"
-              >
-                {getInitials(getDisplayName(user))}
-              </button>
-              {menuOpen && (
-                <div className="absolute right-0 top-12 w-48 bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden py-1">
-                  <div className="px-4 py-3 border-b border-slate-50">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Signed in as</p>
-                    <p className="text-sm font-bold text-slate-900 truncate">{getDisplayName(user)}</p>
-                  </div>
-                  <Link
-                    href="/profile"
-                    onClick={() => setMenuOpen(false)}
-                    className="w-full px-4 py-3 text-left text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-2 cursor-pointer"
-                  >
-                    Profile
-                  </Link>
-                  <button
-                    onClick={handleLogout}
-                    className="w-full px-4 py-3 text-left text-sm font-bold text-red-500 hover:bg-red-50 transition-colors flex items-center gap-2 cursor-pointer"
-                  >
-                    <LogOut size={16} />
-                    Sign Out
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : null}
-        </div>
       </div>
-    </nav>
+    </header>
   );
 }

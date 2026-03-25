@@ -14,87 +14,93 @@ export function LeadsTable(props: {
   const { filteredLeads, selectedIds, onSelectAll, onToggleSelectLead, onOpenLead } = props;
 
   return (
-    <div className="bg-white rounded-[2rem] border border-slate-200 shadow-xl overflow-hidden">
+    <div className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/80 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.28)] backdrop-blur-xl">
       <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
+        <table className="w-full border-collapse text-left">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-100">
-              <th className="pl-8 py-6 w-12">
-                <div
+            <tr className="border-b border-slate-100 bg-slate-50/80">
+              <th className="w-12 py-6 pl-8">
+                <button
+                  type="button"
                   onClick={onSelectAll}
-                  className={`w-5 h-5 rounded-md border-2 flex items-center justify-center cursor-pointer transition-all ${
+                  className={`flex h-5 w-5 items-center justify-center rounded-md border-2 transition-all ${
                     selectedIds.size === filteredLeads.length && filteredLeads.length > 0
-                      ? 'bg-blue-600 border-blue-600'
-                      : 'bg-white border-slate-300 hover:border-blue-400'
+                      ? 'border-blue-600 bg-blue-600'
+                      : 'border-slate-300 bg-white hover:border-blue-400'
                   }`}
                 >
                   {selectedIds.size === filteredLeads.length && filteredLeads.length > 0 && (
-                    <Check className="w-3.5 h-3.5 text-white stroke-[4]" />
+                    <Check className="h-3.5 w-3.5 stroke-[4] text-white" />
                   )}
-                </div>
+                </button>
               </th>
-              <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Company</th>
-              <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Analysis</th>
-              <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Score</th>
-              <th className="px-8 py-6"></th>
+              <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Company</th>
+              <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Analysis</th>
+              <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Score</th>
+              <th className="px-8 py-6" />
             </tr>
           </thead>
+
           <tbody className="divide-y divide-slate-100">
             {filteredLeads.map((lead, i) => (
               <motion.tr
+                key={lead.id}
                 layoutId={lead.id}
-                onClick={() => onOpenLead(lead)}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
-                key={lead.id}
-                className={`group hover:bg-blue-50/40 cursor-pointer transition-all duration-300 ${selectedIds.has(lead.id) ? 'bg-blue-50/60' : ''}`}
+                onClick={() => onOpenLead(lead)}
+                className={`group cursor-pointer transition-all duration-300 hover:bg-blue-50/40 ${selectedIds.has(lead.id) ? 'bg-blue-50/50' : ''}`}
               >
-                <td className="pl-8 py-8 w-12" onClick={(e) => e.stopPropagation()}>
-                  <div
+                <td className="w-12 py-8 pl-8" onClick={(e) => e.stopPropagation()}>
+                  <button
+                    type="button"
                     onClick={(e) => onToggleSelectLead(e, lead.id)}
-                    className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
+                    className={`flex h-5 w-5 items-center justify-center rounded-md border-2 transition-all ${
                       selectedIds.has(lead.id)
-                        ? 'bg-blue-600 border-blue-600'
-                        : 'bg-white border-slate-300 group-hover:border-blue-400'
+                        ? 'border-blue-600 bg-blue-600'
+                        : 'border-slate-300 bg-white group-hover:border-blue-400'
                     }`}
                   >
-                    {selectedIds.has(lead.id) && <Check className="w-3.5 h-3.5 text-white stroke-[4]" />}
-                  </div>
+                    {selectedIds.has(lead.id) && <Check className="h-3.5 w-3.5 stroke-[4] text-white" />}
+                  </button>
                 </td>
+
                 <td className="px-8 py-8">
-                  <div className="font-extrabold text-slate-900 text-base group-hover:text-blue-600 transition-colors uppercase tracking-tight">
+                  <div className="text-base font-black tracking-tight text-slate-900 transition-colors group-hover:text-blue-600">
                     {lead.name}
                   </div>
-                  <div className="flex items-center gap-3 mt-1.5">
-                    <span className="text-[10px] font-black text-slate-400 uppercase bg-slate-100 px-2.5 py-1 rounded-full">
+                  <div className="mt-1.5 flex items-center gap-3">
+                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-black uppercase text-slate-400">
                       {lead.type || 'Business'}
                     </span>
-                    <span className="text-xs text-slate-400 truncate max-w-[200px]">{lead.address}</span>
+                    <span className="max-w-[200px] truncate text-xs text-slate-400">{lead.address}</span>
                   </div>
                 </td>
-                <td className="px-8 py-8 max-w-md">
+
+                <td className="max-w-md px-8 py-8">
                   {lead.isEnhanced ? (
                     <div className="flex items-center gap-4">
                       <div
-                        className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase border ${
+                        className={`rounded-lg border px-2.5 py-1 text-[10px] font-black uppercase ${
                           lead.recommendation === 'Highly Recommended'
-                            ? 'bg-green-50 text-green-700 border-green-100'
+                            ? 'border-green-100 bg-green-50 text-green-700'
                             : lead.recommendation === 'Recommended'
-                              ? 'bg-blue-50 text-blue-700 border-blue-100'
-                              : 'bg-slate-50 text-slate-600 border-slate-100'
+                              ? 'border-blue-100 bg-blue-50 text-blue-700'
+                              : 'border-slate-100 bg-slate-50 text-slate-600'
                         }`}
                       >
                         {lead.recommendation}
                       </div>
-                      <p className="text-xs text-slate-500 italic line-clamp-1 border-l border-slate-200 pl-4">
+                      <p className="line-clamp-1 border-l border-slate-200 pl-4 text-xs italic text-slate-500">
                         &quot;{lead.reasoning}&quot;
                       </p>
                     </div>
                   ) : (
-                    <span className="text-xs text-slate-400 italic font-medium">No AI verification</span>
+                    <span className="text-xs italic font-medium text-slate-400">No AI verification</span>
                   )}
                 </td>
+
                 <td className="px-8 py-8">
                   {lead.isEnhanced ? (
                     <div className="flex items-center gap-2">
@@ -109,7 +115,7 @@ export function LeadsTable(props: {
                       >
                         {lead.compatibilityScore}%
                       </div>
-                      <div className="w-12 h-1 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-1 w-12 overflow-hidden rounded-full bg-slate-100">
                         <div
                           className={`h-full ${(lead.compatibilityScore || 0) >= 80 ? 'bg-green-500' : 'bg-blue-600'}`}
                           style={{ width: `${lead.compatibilityScore}%` }}
@@ -120,20 +126,22 @@ export function LeadsTable(props: {
                     '-'
                   )}
                 </td>
+
                 <td className="px-8 py-8 text-right">
-                  <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
+                  <ChevronRight className="h-5 w-5 text-slate-300 transition-all group-hover:translate-x-1 group-hover:text-blue-600" />
                 </td>
               </motion.tr>
             ))}
           </tbody>
         </table>
+
         {filteredLeads.length === 0 && (
-          <div className="py-32 text-center bg-slate-50/50">
-            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border border-slate-100 text-slate-300">
+          <div className="bg-slate-50/50 py-32 text-center">
+            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full border border-slate-100 bg-white text-slate-300 shadow-inner">
               <AlertCircle size={32} />
             </div>
-            <h4 className="text-lg font-bold text-slate-900 mb-2">No qualified leads found</h4>
-            <p className="text-slate-500 text-sm max-w-xs mx-auto">
+            <h4 className="mb-2 text-lg font-bold text-slate-900">No qualified leads found</h4>
+            <p className="mx-auto max-w-xs text-sm text-slate-500">
               Try adjusting your filters or head back to the scraper for a new search.
             </p>
           </div>

@@ -11,13 +11,14 @@ interface LandingPageContentProps {
 
 export default function LandingPageContent({ user }: LandingPageContentProps) {
   return (
-    <main className="relative z-10 max-w-7xl mx-auto px-6 pt-20 pb-32">
-      <LandingHero user={user} />
+    <main className="relative z-10 mx-auto flex w-full max-w-[1680px] flex-col gap-24 px-6 pb-32 pt-16 lg:px-8">
+      <section className="space-y-24">
+        <LandingHero user={user} />
 
-      {/* Workflow Section */}
-      <WorkflowSection />
+        <WorkflowSection />
 
-      <ProductPreviewSection />
+        <ProductPreviewSection />
+      </section>
     </main>
   );
 }

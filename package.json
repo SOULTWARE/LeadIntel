@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "node scripts/start-with-worker.mjs",
+    "start:app": "next start",
     "lint": "eslint",
     "test": "vitest",
     "test:run": "vitest run",
