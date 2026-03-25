@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { ElementType } from 'react';
@@ -9,6 +9,8 @@ import { toast } from 'sonner';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 import { createClient } from '@/lib/supabase/client';
+
+const SIDEBAR_COLLAPSE_STORAGE_KEY = 'lead-intel:internal-sidebar-collapsed';
 
 export const internalNavigation = [
   {
@@ -85,9 +87,11 @@ function getInitials(display: string) {
 export default function InternalSidebar() {
   const pathname = usePathname();
   const supabase = useMemo(() => createClient(), []);
+  const hasLoadedCollapsePreferenceRef = useRef(false);
 
   const [user, setUser] = useState<SupabaseUser | null | undefined>(undefined);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isHoverExpanded, setIsHoverExpanded] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [currentHash, setCurrentHash] = useState('');
@@ -95,6 +99,30 @@ export default function InternalSidebar() {
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data.user ?? null));
   }, [supabase]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const frame = window.requestAnimationFrame(() => {
+      const storedValue = window.localStorage.getItem(SIDEBAR_COLLAPSE_STORAGE_KEY);
+
+      hasLoadedCollapsePreferenceRef.current = true;
+
+      if (storedValue === 'true') {
+        setIsCollapsed(true);
+      }
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !hasLoadedCollapsePreferenceRef.current) return;
+
+    window.localStorage.setItem(SIDEBAR_COLLAPSE_STORAGE_KEY, String(isCollapsed));
+  }, [isCollapsed]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -111,8 +139,15 @@ export default function InternalSidebar() {
 
   const displayName = getDisplayName(user ?? null);
   const initials = getInitials(displayName);
+  const isSidebarExpanded = !isCollapsed || isHoverExpanded;
   const isProfileRoute = pathname?.startsWith('/profile') ?? false;
   const isProfileSectionOpen = profileOpen || isProfileRoute;
+
+  const handleSidebarToggle = () => {
+    setUserMenuOpen(false);
+    setIsHoverExpanded(false);
+    setIsCollapsed((value) => !value);
+  };
 
   const handleLogout = async () => {
     try {
@@ -127,25 +162,34 @@ export default function InternalSidebar() {
   };
 
   return (
-    <aside className="w-full shrink-0 p-4 lg:w-[320px] lg:p-4">
+    <aside className={`relative w-full shrink-0 lg:w-auto ${isCollapsed ? 'lg:basis-[112px]' : 'lg:basis-[320px]'}`}>
       <div
-        className={`flex h-full w-full flex-col overflow-hidden rounded-[2rem] border border-slate-800/70 bg-slate-950 text-white shadow-[0_40px_120px_-40px_rgba(2,6,23,0.75)] transition-all duration-300 ${
-          isCollapsed ? 'lg:w-[112px]' : 'lg:w-[320px]'
+        onMouseEnter={() => {
+          if (isCollapsed) {
+            setIsHoverExpanded(true);
+          }
+        }}
+        onMouseLeave={() => {
+          setIsHoverExpanded(false);
+          setUserMenuOpen(false);
+        }}
+        className={`relative z-10 flex h-full w-full flex-col overflow-hidden border-b border-slate-800/80 bg-slate-950 text-white transition-[width] duration-300 lg:min-h-screen lg:border-b-0 lg:border-r ${
+          isSidebarExpanded ? 'lg:w-[320px]' : 'lg:w-[112px]'
         }`}
       >
         <div className="border-b border-white/10 px-4 py-4 lg:px-5">
           <div className="flex items-start gap-3">
             <Link
               href="/"
-              className={`flex min-w-0 items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-3 transition hover:bg-white/10 ${
-                isCollapsed ? 'lg:justify-center lg:px-3' : ''
+              className={`flex min-w-0 items-center gap-3 rounded-2xl px-3 py-3 transition hover:bg-white/5 ${
+                isSidebarExpanded ? '' : 'lg:justify-center lg:px-2'
               }`}
               aria-label="Go to homepage"
             >
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 via-indigo-500 to-cyan-400 text-white shadow-lg shadow-blue-500/20">
                 <Zap className="h-6 w-6" fill="currentColor" />
               </div>
-              {!isCollapsed && (
+              {isSidebarExpanded && (
                 <div className="min-w-0">
                   <p className="text-lg font-black tracking-tight text-white">
                     LeadIntel<span className="text-blue-400">Pro</span>
@@ -154,22 +198,13 @@ export default function InternalSidebar() {
                 </div>
               )}
             </Link>
-
-            <button
-              type="button"
-              onClick={() => setIsCollapsed((value) => !value)}
-              className="ml-auto inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-slate-200 transition hover:bg-white/10"
-              aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            >
-              {isCollapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
-            </button>
           </div>
         </div>
 
         <div className="flex-1 overflow-y-auto px-3 py-4 lg:px-4">
           <div className="space-y-5">
             <div>
-              <div className={`px-2 text-[10px] font-black uppercase tracking-[0.35em] text-slate-500 ${isCollapsed ? 'sr-only' : ''}`}>
+              <div className={`px-2 text-[10px] font-black uppercase tracking-[0.35em] text-slate-500 ${isSidebarExpanded ? '' : 'sr-only'}`}>
                 Workspace
               </div>
               <nav className="mt-3 space-y-2">
@@ -186,7 +221,7 @@ export default function InternalSidebar() {
                         active
                           ? 'border-blue-400/30 bg-white/10 text-white shadow-lg shadow-blue-500/10'
                           : 'border-transparent bg-white/[0.03] text-slate-300 hover:border-white/10 hover:bg-white/5 hover:text-white'
-                      } ${isCollapsed ? 'justify-center px-3 py-3' : 'px-4 py-4'}`}
+                      } ${isSidebarExpanded ? 'px-4 py-4' : 'justify-center px-3 py-3'}`}
                     >
                       <div
                         className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-all ${
@@ -197,7 +232,7 @@ export default function InternalSidebar() {
                       >
                         <Icon className="h-5 w-5" />
                       </div>
-                      {!isCollapsed && (
+                      {isSidebarExpanded && (
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center justify-between gap-3">
                             <span className="text-sm font-bold tracking-tight">{item.label}</span>
@@ -214,7 +249,7 @@ export default function InternalSidebar() {
                   );
                 })}
 
-                <div className={`rounded-2xl border border-white/10 bg-white/[0.03] ${isCollapsed ? 'px-2 py-2' : 'px-3 py-3'}`}>
+                <div className={`rounded-2xl border border-white/10 bg-white/[0.03] ${isSidebarExpanded ? 'px-3 py-3' : 'px-2 py-2'}`}>
                   <button
                     type="button"
                     onClick={() => setProfileOpen((value) => !value)}
@@ -223,7 +258,7 @@ export default function InternalSidebar() {
                       isProfileSectionOpen
                         ? 'bg-white/10 text-white'
                         : 'text-slate-300 hover:bg-white/5 hover:text-white'
-                    } ${isCollapsed ? 'justify-center px-2 py-2' : 'px-3 py-3'}`}
+                    } ${isSidebarExpanded ? 'px-3 py-3' : 'justify-center px-2 py-2'}`}
                   >
                     <div
                       className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-all ${
@@ -234,7 +269,7 @@ export default function InternalSidebar() {
                     >
                       <User className="h-5 w-5" />
                     </div>
-                    {!isCollapsed && (
+                    {isSidebarExpanded && (
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-3">
                           <span className="text-sm font-bold tracking-tight">Profile</span>
@@ -245,7 +280,7 @@ export default function InternalSidebar() {
                     )}
                   </button>
 
-                  {isProfileSectionOpen && !isCollapsed ? (
+                  {isProfileSectionOpen && isSidebarExpanded ? (
                     <div className="mt-2 space-y-2">
                       {profileNavigation.map((item) => {
                         const Icon = item.icon;
@@ -293,7 +328,7 @@ export default function InternalSidebar() {
           {user === undefined ? (
             <div className="flex items-center gap-3 rounded-[1.5rem] border border-white/10 bg-white/5 p-4">
               <div className="h-11 w-11 animate-pulse rounded-2xl bg-white/10" aria-hidden="true" />
-              {!isCollapsed && (
+              {isSidebarExpanded && (
                 <div className="space-y-2">
                   <div className="h-3 w-28 animate-pulse rounded-full bg-white/10" />
                   <div className="h-2.5 w-36 animate-pulse rounded-full bg-white/10" />
@@ -306,26 +341,26 @@ export default function InternalSidebar() {
                 type="button"
                 onClick={() => setUserMenuOpen((value) => !value)}
                 className={`flex w-full items-center gap-3 rounded-[1.5rem] border border-white/10 bg-white/5 p-4 text-left transition hover:bg-white/10 ${
-                  isCollapsed ? 'justify-center' : ''
+                  isSidebarExpanded ? '' : 'justify-center'
                 }`}
                 aria-expanded={userMenuOpen}
               >
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-900 text-sm font-black text-white shadow-lg shadow-slate-900/20">
                   {initials}
                 </div>
-                {!isCollapsed && (
+                {isSidebarExpanded && (
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-black text-white">{displayName}</p>
                     <p className="truncate text-xs text-slate-400">{user.email}</p>
                   </div>
                 )}
-                {!isCollapsed && <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />}
+                {isSidebarExpanded && <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />}
               </button>
 
               {userMenuOpen && (
                 <div
                   className={`absolute z-20 overflow-hidden rounded-[1.5rem] border border-white/10 bg-slate-950 shadow-[0_24px_80px_-30px_rgba(2,6,23,0.85)] ${
-                    isCollapsed ? 'bottom-0 left-full ml-3 w-56' : 'bottom-16 left-0 right-0'
+                    isSidebarExpanded ? 'bottom-16 left-0 right-0' : 'bottom-0 left-full ml-3 w-56'
                   }`}
                 >
                   <div className="border-b border-white/10 px-4 py-3">
@@ -358,15 +393,24 @@ export default function InternalSidebar() {
             <Link
               href="/login"
               className={`flex items-center justify-center gap-2 rounded-[1.5rem] border border-blue-400/20 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 px-5 py-4 text-sm font-bold text-white shadow-lg shadow-blue-500/10 transition-transform hover:-translate-y-0.5 ${
-                isCollapsed ? 'px-4' : ''
+                isSidebarExpanded ? '' : 'px-4'
               }`}
             >
               <ArrowRight className="h-4 w-4" />
-              {!isCollapsed && <span>Get Started</span>}
+              {isSidebarExpanded && <span>Get Started</span>}
             </Link>
           )}
         </div>
       </div>
+
+      <button
+        type="button"
+        onClick={handleSidebarToggle}
+        className="absolute right-0 top-1/2 z-20 hidden h-14 w-7 -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full border border-slate-700 bg-slate-950 text-slate-200 shadow-[0_16px_40px_-24px_rgba(2,6,23,0.85)] transition hover:border-slate-500 hover:text-white lg:inline-flex"
+        aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+      >
+        {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+      </button>
     </aside>
   );
 }
