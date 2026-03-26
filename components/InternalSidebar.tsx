@@ -316,7 +316,7 @@ export default function InternalSidebar() {
                 <div
                   className={`rounded-2xl transition-all ${
                     isSidebarContentExpanded
-                      ? "border border-white/10 bg-white/[0.03] px-3 py-3"
+                      ? "overflow-hidden border border-white/10 bg-white/[0.03]"
                       : "border border-transparent bg-transparent px-0 py-0"
                   }`}
                 >
@@ -332,7 +332,7 @@ export default function InternalSidebar() {
                         : isProfileSectionOpen
                           ? "bg-white/10 text-white"
                           : "text-slate-300 hover:bg-white/5 hover:text-white"
-                    } ${isSidebarContentExpanded ? "px-3 py-3" : "justify-center px-2 py-2.5"}`}
+                    } ${isSidebarContentExpanded ? "px-4 py-4" : "justify-center px-2 py-2.5"}`}
                   >
                     <div
                       className={`flex shrink-0 items-center justify-center transition-all ${
@@ -367,7 +367,7 @@ export default function InternalSidebar() {
                   </button>
 
                   {isProfileSectionOpen && isSidebarContentExpanded ? (
-                    <div className="mt-2 space-y-2">
+                    <div className="space-y-2 px-3 pb-3 pt-2">
                       {profileNavigation.map((item) => {
                         const Icon = item.icon;
                         const hashTarget = item.href.includes("#")
