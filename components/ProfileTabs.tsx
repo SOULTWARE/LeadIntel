@@ -512,7 +512,9 @@ export default function ProfileTabs(props: ProfileTabsProps) {
                 </button>
                 <button
                   type="button"
-                  className="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-bold text-slate-800 transition-colors hover:bg-slate-50 cursor-pointer"
+                  disabled
+                  aria-disabled="true"
+                  className="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-bold text-slate-800 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Refer a friend for bonus credits
                 </button>
