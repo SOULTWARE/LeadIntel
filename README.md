@@ -68,8 +68,10 @@ Duplicate `.env.example` and fill the following groups:
 | Emails | `HUNTER_API_KEY`, `KICKBOX_API_KEY` |
 | Supabase | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` |
 | Polar | `POLAR_ACCESS_TOKEN`, `POLAR_WEBHOOK_SECRET`, `POLAR_SERVER`, `POLAR_STARTER_PRODUCT_ID`, `POLAR_PRO_PRODUCT_ID`, `POLAR_ADDON_PRODUCT_ID`, `POLAR_SUCCESS_URL`, `POLAR_PORTAL_RETURN_URL` |
+| Internal Ops | `CREDITS_TOPUP_SECRET` |
 
 > Keep `.env` out of version control. Rotate keys whenever deploying a new beta build.
+> `CREDITS_TOPUP_SECRET` is required for trusted manual credit grants through `POST /api/credits/topup`. Never expose it to the client.
 
 ## Setup & Local Development
 

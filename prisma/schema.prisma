@@ -20,7 +20,7 @@ model Lead {
   rating    Float?
   reviews   Int?
   type      String?
-  placeId   String?  @unique
+  placeId   String?
 
   // Search Context
   searchQuery String?
@@ -60,6 +60,7 @@ model Lead {
   session   Session? @relation(fields: [sessionId], references: [id])
 
   @@index([placeId])
+  @@unique([userId, placeId])
   @@index([searchId])
   @@index([compatibilityScore])
   @@map("leads")

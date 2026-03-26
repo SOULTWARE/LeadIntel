@@ -3,6 +3,7 @@ import { POST } from "@/app/api/billing/subscription/change/route";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/db";
 import { polar } from "@/lib/polar/server";
+import { creditsService } from "@/services/creditsService";
 import { NextRequest } from "next/server";
 
 vi.mock("@/lib/polar/config", () => ({
@@ -22,6 +23,12 @@ vi.mock("@/lib/polar/server", () => ({
   },
 }));
 
+vi.mock("@/services/creditsService", () => ({
+  creditsService: {
+    syncPlanCredits: vi.fn(),
+  },
+}));
+
 vi.mock("@/db", () => ({
   prisma: {
     polarSubscription: {
@@ -37,6 +44,10 @@ vi.mock("@/db", () => ({
 describe("/api/billing/subscription/change", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(creditsService.syncPlanCredits).mockResolvedValue({
+      userId: "user-1",
+      balance: 4886,
+    });
   });
 
   it("returns 401 when unauthorized", async () => {
@@ -44,10 +55,13 @@ describe("/api/billing/subscription/change", () => {
       auth: { getUser: async () => ({ data: { user: null } }) },
     } as Awaited<ReturnType<typeof createClient>>);
 
-    const req = new NextRequest("http://localhost:3000/api/billing/subscription/change", {
-      method: "POST",
-      body: JSON.stringify({ plan: "starter" }),
-    });
+    const req = new NextRequest(
+      "http://localhost:3000/api/billing/subscription/change",
+      {
+        method: "POST",
+        body: JSON.stringify({ plan: "starter" }),
+      },
+    );
 
     const res = await POST(req);
 
@@ -61,10 +75,13 @@ describe("/api/billing/subscription/change", () => {
 
     vi.mocked(prisma.polarSubscription.findFirst).mockResolvedValue(null);
 
-    const req = new NextRequest("http://localhost:3000/api/billing/subscription/change", {
-      method: "POST",
-      body: JSON.stringify({ plan: "starter" }),
-    });
+    const req = new NextRequest(
+      "http://localhost:3000/api/billing/subscription/change",
+      {
+        method: "POST",
+        body: JSON.stringify({ plan: "starter" }),
+      },
+    );
 
     const res = await POST(req);
 
@@ -88,16 +105,26 @@ describe("/api/billing/subscription/change", () => {
       currentPeriodEnd: "2024-02-01T00:00:00Z",
     } as never);
 
-    const req = new NextRequest("http://localhost:3000/api/billing/subscription/change", {
-      method: "POST",
-      body: JSON.stringify({ plan: "pro" }),
-    });
+    const req = new NextRequest(
+      "http://localhost:3000/api/billing/subscription/change",
+      {
+        method: "POST",
+        body: JSON.stringify({ plan: "pro" }),
+      },
+    );
 
     const res = await POST(req);
     const json = await res.json();
 
     expect(res.status).toBe(200);
     expect(json.data.status).toBe("active");
+    expect(creditsService.syncPlanCredits).toHaveBeenCalledWith({
+      userId: "user-1",
+      plan: "PRO",
+      periodStart: new Date("2024-01-01T00:00:00Z"),
+      periodEnd: new Date("2024-02-01T00:00:00Z"),
+      previousPlan: "STARTER",
+    });
     expect(prisma.userPlan.upsert).toHaveBeenCalled();
   });
 });

@@ -18,9 +18,37 @@ vi.mock("@/services/creditsService", () => ({
 describe("/api/credits/topup", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    process.env.CREDITS_TOPUP_SECRET = "topup-secret";
   });
 
-  it("returns 401 when unauthorized", async () => {
+  it("returns 503 when the topup secret is not configured", async () => {
+    delete process.env.CREDITS_TOPUP_SECRET;
+
+    const req = new NextRequest("http://localhost:3000/api/credits/topup", {
+      method: "POST",
+      headers: {
+        "Idempotency-Key": "key",
+        "x-credits-topup-secret": "topup-secret",
+      },
+      body: JSON.stringify({ amount: 10 }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(503);
+  });
+
+  it("returns 403 when the internal secret is missing", async () => {
+    const req = new NextRequest("http://localhost:3000/api/credits/topup", {
+      method: "POST",
+      headers: { "Idempotency-Key": "key" },
+      body: JSON.stringify({ amount: 10 }),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(403);
+  });
+
+  it("returns 401 when neither an authenticated user nor a target userId is provided", async () => {
     vi.mocked(createClient).mockResolvedValue({
       auth: {
         getUser: async () => ({ data: { user: null } }),
@@ -29,7 +57,10 @@ describe("/api/credits/topup", () => {
 
     const req = new NextRequest("http://localhost:3000/api/credits/topup", {
       method: "POST",
-      headers: { "Idempotency-Key": "key" },
+      headers: {
+        "Idempotency-Key": "key",
+        "x-credits-topup-secret": "topup-secret",
+      },
       body: JSON.stringify({ amount: 10 }),
     });
 
@@ -46,6 +77,9 @@ describe("/api/credits/topup", () => {
 
     const req = new NextRequest("http://localhost:3000/api/credits/topup", {
       method: "POST",
+      headers: {
+        "x-credits-topup-secret": "topup-secret",
+      },
       body: JSON.stringify({ amount: 10 }),
     });
 
@@ -53,7 +87,7 @@ describe("/api/credits/topup", () => {
     expect(res.status).toBe(400);
   });
 
-  it("returns 200 and balance on success", async () => {
+  it("returns 200 and balance on success for an authenticated user", async () => {
     vi.mocked(createClient).mockResolvedValue({
       auth: {
         getUser: async () => ({ data: { user: { id: "user-1" } } }),
@@ -64,7 +98,10 @@ describe("/api/credits/topup", () => {
 
     const req = new NextRequest("http://localhost:3000/api/credits/topup", {
       method: "POST",
-      headers: { "Idempotency-Key": "key" },
+      headers: {
+        "Idempotency-Key": "key",
+        "x-credits-topup-secret": "topup-secret",
+      },
       body: JSON.stringify({ amount: 10 }),
     });
 
@@ -73,6 +110,44 @@ describe("/api/credits/topup", () => {
 
     expect(res.status).toBe(200);
     expect(json.data.balance).toBe(55);
-    expect(creditsService.addCredits).toHaveBeenCalled();
+    expect(json.data.userId).toBe("user-1");
+    expect(creditsService.addCredits).toHaveBeenCalledWith({
+      userId: "user-1",
+      amount: 10,
+      idempotencyKey: "key",
+      meta: { source: "internal-manual" },
+    });
+  });
+
+  it("returns 200 and balance for an internal request with an explicit target userId", async () => {
+    vi.mocked(createClient).mockResolvedValue({
+      auth: {
+        getUser: async () => ({ data: { user: null } }),
+      },
+    } as Awaited<ReturnType<typeof createClient>>);
+
+    vi.mocked(creditsService.getBalance).mockResolvedValue(125);
+
+    const req = new NextRequest("http://localhost:3000/api/credits/topup", {
+      method: "POST",
+      headers: {
+        "Idempotency-Key": "key",
+        authorization: "Bearer topup-secret",
+      },
+      body: JSON.stringify({ amount: 25, userId: "user-2" }),
+    });
+
+    const res = await POST(req);
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.data.userId).toBe("user-2");
+    expect(json.data.balance).toBe(125);
+    expect(creditsService.addCredits).toHaveBeenCalledWith({
+      userId: "user-2",
+      amount: 25,
+      idempotencyKey: "key",
+      meta: { source: "internal-manual" },
+    });
   });
 });

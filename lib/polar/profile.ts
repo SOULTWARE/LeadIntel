@@ -1,11 +1,15 @@
 import { PlanType } from "@prisma/client";
 
 import { prisma } from "@/db";
-import { STARTER_INITIAL_CREDITS, PRO_INITIAL_CREDITS } from "@/lib/credits/costs";
 import { getPolarCustomerIdByUserId } from "@/lib/polar/customers";
-import { PLAN_LIMITS } from "@/lib/polar/plans";
+import {
+  ADDON_CREDITS_AMOUNT,
+  ADDON_CREDITS_MONTHS,
+  PLAN_LIMITS,
+} from "@/lib/polar/plans";
 import { polar } from "@/lib/polar/server";
-import { getPlanTypeByProductId } from "@/lib/polar/products";
+import { getPlanTypeByProductId, isAddonProductId } from "@/lib/polar/products";
+import { creditsService } from "@/services/creditsService";
 
 const ACTIVE_SUBSCRIPTION_STATUSES = new Set([
   "active",
@@ -46,6 +50,11 @@ export type ResolvedProfileBillingState = {
   subscription: ResolvedProfileSubscription | null;
 };
 
+type AddonOrderSnapshot = {
+  orderId: string;
+  customerId: string;
+};
+
 function isActiveSubscriptionStatus(status: string | null | undefined) {
   return Boolean(status && ACTIVE_SUBSCRIPTION_STATUSES.has(status));
 }
@@ -82,7 +91,34 @@ function mapSubscriptionRecord(subscription: {
   };
 }
 
-async function resolvePolarCustomerId(userId: string, email?: string | null): Promise<string | null> {
+function getBillingFlowType(metadata: unknown): string | null {
+  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) {
+    return null;
+  }
+
+  const candidate = (metadata as Record<string, unknown>).type;
+  return typeof candidate === "string" && candidate.length > 0
+    ? candidate
+    : null;
+}
+
+function isAddonOrder(input: {
+  productId?: string | null;
+  product?: { id: string } | null;
+  metadata?: Record<string, unknown> | null;
+}) {
+  if (getBillingFlowType(input.metadata) === "addon") {
+    return true;
+  }
+
+  const productId = input.product?.id ?? input.productId ?? null;
+  return typeof productId === "string" && isAddonProductId(productId);
+}
+
+async function resolvePolarCustomerId(
+  userId: string,
+  email?: string | null,
+): Promise<string | null> {
   const existingCustomerId = await getPolarCustomerIdByUserId(userId);
   if (existingCustomerId) {
     return existingCustomerId;
@@ -100,15 +136,6 @@ async function resolvePolarCustomerId(userId: string, email?: string | null): Pr
   }
 }
 
-async function ensurePlanCredits(userId: string, plan: PlanType) {
-  const initial = plan === PlanType.PRO ? PRO_INITIAL_CREDITS : STARTER_INITIAL_CREDITS;
-  const existing = await prisma.creditBalance.findUnique({ where: { userId } });
-
-  if (!existing) {
-    await prisma.creditBalance.create({ data: { userId, balance: initial } });
-  }
-}
-
 async function persistBillingSnapshot(
   userId: string,
   subscription: SubscriptionSnapshot,
@@ -118,7 +145,16 @@ async function persistBillingSnapshot(
   if (!planType) return null;
 
   const limits = PLAN_LIMITS[planType];
-  const currentPeriodEnd = subscription.currentPeriodEnd ?? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+  const currentPeriodEnd =
+    subscription.currentPeriodEnd ??
+    new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+  await creditsService.syncPlanCredits({
+    userId,
+    plan: planType,
+    periodStart: subscription.currentPeriodStart,
+    periodEnd: currentPeriodEnd,
+  });
 
   await Promise.all([
     prisma.polarSubscription.upsert({
@@ -173,8 +209,6 @@ async function persistBillingSnapshot(
     });
   }
 
-  await ensurePlanCredits(userId, planType);
-
   return {
     plan: {
       plan: planType,
@@ -193,7 +227,10 @@ async function persistBillingSnapshot(
   };
 }
 
-async function resolveLiveSubscription(userId: string, email?: string | null): Promise<SubscriptionSnapshot | null> {
+async function resolveLiveSubscription(
+  userId: string,
+  email?: string | null,
+): Promise<SubscriptionSnapshot | null> {
   const customerId = await resolvePolarCustomerId(userId, email);
   const requests = customerId
     ? [
@@ -210,7 +247,9 @@ async function resolveLiveSubscription(userId: string, email?: string | null): P
   for (const request of requests) {
     try {
       const response = await polar.subscriptions.list(request);
-      const subscription = response.result.items.find((item) => isActiveSubscriptionStatus(item.status));
+      const subscription = response.result.items.find((item) =>
+        isActiveSubscriptionStatus(item.status),
+      );
       if (subscription) {
         return {
           subscriptionId: subscription.id,
@@ -229,7 +268,80 @@ async function resolveLiveSubscription(userId: string, email?: string | null): P
   return null;
 }
 
-export async function resolveProfileBillingState(userId: string, email?: string | null): Promise<ResolvedProfileBillingState> {
+async function resolvePaidAddonOrders(
+  userId: string,
+  email?: string | null,
+): Promise<AddonOrderSnapshot[]> {
+  const customerId = await resolvePolarCustomerId(userId, email);
+  const requests = customerId
+    ? [
+        { customerId, productBillingType: "one_time" as const, limit: 100 },
+        {
+          externalCustomerId: userId,
+          productBillingType: "one_time" as const,
+          limit: 100,
+        },
+      ]
+    : [
+        {
+          externalCustomerId: userId,
+          productBillingType: "one_time" as const,
+          limit: 100,
+        },
+      ];
+
+  const orders: AddonOrderSnapshot[] = [];
+  const seenOrderIds = new Set<string>();
+
+  for (const request of requests) {
+    try {
+      const response = await polar.orders.list(request);
+
+      for (const order of response.result.items) {
+        if (!order.paid || !isAddonOrder(order) || seenOrderIds.has(order.id)) {
+          continue;
+        }
+
+        seenOrderIds.add(order.id);
+        orders.push({
+          orderId: order.id,
+          customerId: order.customerId,
+        });
+      }
+    } catch {
+      // Try the next lookup strategy.
+    }
+  }
+
+  return orders;
+}
+
+export async function reconcileAddonCredits(
+  userId: string,
+  email?: string | null,
+): Promise<void> {
+  const orders = await resolvePaidAddonOrders(userId, email);
+
+  for (const order of orders) {
+    await creditsService.addAddonCredits({
+      userId,
+      amount: ADDON_CREDITS_AMOUNT,
+      monthsToExtend: ADDON_CREDITS_MONTHS,
+      idempotencyKey: order.orderId,
+    });
+
+    await prisma.polarCustomer.upsert({
+      where: { userId },
+      update: { customerId: order.customerId },
+      create: { userId, customerId: order.customerId },
+    });
+  }
+}
+
+export async function resolveProfileBillingState(
+  userId: string,
+  email?: string | null,
+): Promise<ResolvedProfileBillingState> {
   const [plan, subscription] = await Promise.all([
     prisma.userPlan.findUnique({ where: { userId } }),
     prisma.polarSubscription.findFirst({
@@ -247,13 +359,17 @@ export async function resolveProfileBillingState(userId: string, email?: string 
 
   if (subscription && isActiveSubscriptionStatus(subscription.status)) {
     const customerId = await resolvePolarCustomerId(userId, email);
-    const resolved = await persistBillingSnapshot(userId, {
-      subscriptionId: subscription.subscriptionId,
-      productId: subscription.productId,
-      status: subscription.status,
-      currentPeriodStart: subscription.currentPeriodStart,
-      currentPeriodEnd: subscription.currentPeriodEnd,
-    }, customerId);
+    const resolved = await persistBillingSnapshot(
+      userId,
+      {
+        subscriptionId: subscription.subscriptionId,
+        productId: subscription.productId,
+        status: subscription.status,
+        currentPeriodStart: subscription.currentPeriodStart,
+        currentPeriodEnd: subscription.currentPeriodEnd,
+      },
+      customerId,
+    );
 
     if (resolved) {
       return resolved;
@@ -262,7 +378,11 @@ export async function resolveProfileBillingState(userId: string, email?: string 
 
   const liveSubscription = await resolveLiveSubscription(userId, email);
   if (liveSubscription) {
-    const resolved = await persistBillingSnapshot(userId, liveSubscription, liveSubscription.customerId);
+    const resolved = await persistBillingSnapshot(
+      userId,
+      liveSubscription,
+      liveSubscription.customerId,
+    );
     if (resolved) {
       return resolved;
     }

@@ -1,11 +1,93 @@
-import { PlanType, type Prisma } from "@prisma/client";
+import { PlanType } from "@prisma/client";
 import { Webhooks } from "@polar-sh/nextjs";
 
 import { prisma } from "@/db";
-import { PLAN_LIMITS, ADDON_CREDITS_AMOUNT, ADDON_CREDITS_MONTHS } from "@/lib/polar/plans";
+import {
+  ADDON_CREDITS_AMOUNT,
+  ADDON_CREDITS_MONTHS,
+  PLAN_LIMITS,
+} from "@/lib/polar/plans";
 import { getPlanTypeByProductId, isAddonProductId } from "@/lib/polar/products";
-import { STARTER_INITIAL_CREDITS, PRO_INITIAL_CREDITS } from "@/lib/credits/costs";
 import { creditsService } from "@/services/creditsService";
+
+type PolarCustomerPayload = {
+  externalId?: string | null;
+  id: string;
+  metadata?: Record<string, unknown> | null;
+} | null;
+
+function getUserIdFromMetadata(metadata: unknown): string | null {
+  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) {
+    return null;
+  }
+
+  const candidate = (metadata as Record<string, unknown>).userId;
+  return typeof candidate === "string" && candidate.length > 0
+    ? candidate
+    : null;
+}
+
+function getBillingFlowType(metadata: unknown): string | null {
+  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) {
+    return null;
+  }
+
+  const candidate = (metadata as Record<string, unknown>).type;
+  return typeof candidate === "string" && candidate.length > 0
+    ? candidate
+    : null;
+}
+
+function isAddonOrder(input: {
+  metadata?: unknown;
+  productId?: string | null;
+  product?: { id: string } | null;
+}): boolean {
+  if (getBillingFlowType(input.metadata) === "addon") {
+    return true;
+  }
+
+  const productId = input.product?.id ?? input.productId ?? null;
+  return typeof productId === "string" && isAddonProductId(productId);
+}
+
+async function resolveUserId(input: {
+  customer?: PolarCustomerPayload;
+  metadata?: unknown;
+}): Promise<string | null> {
+  if (input.customer?.externalId) {
+    return input.customer.externalId;
+  }
+
+  const metadataUserId =
+    getUserIdFromMetadata(input.metadata) ??
+    getUserIdFromMetadata(input.customer?.metadata ?? null);
+  if (metadataUserId) {
+    return metadataUserId;
+  }
+
+  if (!input.customer) {
+    return null;
+  }
+
+  const mapped = await prisma.polarCustomer.findUnique({
+    where: { customerId: input.customer.id },
+  });
+
+  return mapped?.userId ?? null;
+}
+
+async function upsertPolarCustomer(userId: string, customer: PolarCustomerPayload) {
+  if (!customer) {
+    return;
+  }
+
+  await prisma.polarCustomer.upsert({
+    where: { userId },
+    update: { customerId: customer.id },
+    create: { userId, customerId: customer.id },
+  });
+}
 
 async function upsertUserPlan(input: {
   userId: string;
@@ -39,23 +121,6 @@ async function upsertUserPlan(input: {
   });
 }
 
-async function ensurePlanCredits(userId: string, plan: PlanType) {
-  const initial = plan === PlanType.PRO ? PRO_INITIAL_CREDITS : STARTER_INITIAL_CREDITS;
-
-  await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-    const existing = await tx.creditBalance.findUnique({ where: { userId } });
-
-    if (!existing) {
-      await tx.creditBalance.create({ data: { userId, balance: initial } });
-      return;
-    }
-
-    if (existing.balance < initial) {
-      await tx.creditBalance.update({ where: { userId }, data: { balance: initial } });
-    }
-  });
-}
-
 async function upsertPolarSubscription(input: {
   userId: string;
   subscriptionId: string;
@@ -84,36 +149,34 @@ async function upsertPolarSubscription(input: {
   });
 }
 
-async function resolveUserId(customer: { externalId?: string | null; id: string } | null): Promise<string | null> {
-  if (!customer) return null;
-  if (customer.externalId) return customer.externalId;
-
-  const mapped = await prisma.polarCustomer.findUnique({
-    where: { customerId: customer.id },
-  });
-
-  return mapped?.userId ?? null;
-}
-
 async function handleSubscriptionPayload(payload: {
   data: {
     id: string;
     productId: string;
     status: string;
-    customer: { externalId?: string | null; id: string } | null;
+    customer: PolarCustomerPayload;
+    metadata?: Record<string, unknown> | null;
     currentPeriodStart: Date | string;
     currentPeriodEnd?: Date | string | null;
   };
 }) {
+  const userId = await resolveUserId({
+    customer: payload.data.customer,
+    metadata: payload.data.metadata,
+  });
+  if (!userId) {
+    return;
+  }
+
   const customer = payload.data.customer;
-  if (!customer) return;
+  if (!customer) {
+    return;
+  }
 
-  const userId = await resolveUserId(payload.data.customer);
-  if (!userId) return;
-
-  const productId = payload.data.productId;
-  const plan = getPlanTypeByProductId(productId);
-  if (!plan) return;
+  const plan = getPlanTypeByProductId(payload.data.productId);
+  if (!plan) {
+    return;
+  }
 
   const periodStart = new Date(payload.data.currentPeriodStart);
   const periodEnd = payload.data.currentPeriodEnd
@@ -123,40 +186,47 @@ async function handleSubscriptionPayload(payload: {
   await upsertPolarSubscription({
     userId,
     subscriptionId: payload.data.id,
-    productId,
+    productId: payload.data.productId,
     status: payload.data.status,
     currentPeriodStart: periodStart,
     currentPeriodEnd: periodEnd,
   });
 
-  await upsertUserPlan({ userId, plan, periodStart, periodEnd });
-  await ensurePlanCredits(userId, plan);
-
-  await prisma.polarCustomer.upsert({
-    where: { userId },
-    update: { customerId: customer.id },
-    create: { userId, customerId: customer.id },
+  await creditsService.syncPlanCredits({
+    userId,
+    plan,
+    periodStart,
+    periodEnd,
   });
+  await upsertUserPlan({ userId, plan, periodStart, periodEnd });
+  await upsertPolarCustomer(userId, customer);
 }
 
 async function handleAddonOrderPayload(payload: {
   data: {
     id: string;
-    paid?: boolean;
+    paid: boolean;
     productId?: string | null;
     product?: { id: string } | null;
-    customer: { externalId?: string | null; id: string } | null;
+    customer: PolarCustomerPayload;
+    metadata?: Record<string, unknown> | null;
   };
 }) {
-  const customer = payload.data.customer;
-  if (!customer) return;
+  if (!payload.data.paid) {
+    return;
+  }
 
-  const userId = await resolveUserId(customer);
-  if (!userId) return;
+  if (!isAddonOrder(payload.data)) {
+    return;
+  }
 
-  const productId = payload.data.productId ?? payload.data.product?.id ?? null;
-  if (!productId) return;
-  if (!isAddonProductId(productId)) return;
+  const userId = await resolveUserId({
+    customer: payload.data.customer,
+    metadata: payload.data.metadata,
+  });
+  if (!userId) {
+    return;
+  }
 
   await creditsService.addAddonCredits({
     userId,
@@ -165,11 +235,7 @@ async function handleAddonOrderPayload(payload: {
     idempotencyKey: payload.data.id,
   });
 
-  await prisma.polarCustomer.upsert({
-    where: { userId },
-    update: { customerId: customer.id },
-    create: { userId, customerId: customer.id },
-  });
+  await upsertPolarCustomer(userId, payload.data.customer);
 }
 
 export const POST = Webhooks({
@@ -188,8 +254,13 @@ export const POST = Webhooks({
   },
 
   onSubscriptionCanceled: async (payload) => {
-    const userId = await resolveUserId(payload.data.customer);
-    if (!userId) return;
+    const userId = await resolveUserId({
+      customer: payload.data.customer,
+      metadata: payload.data.metadata,
+    });
+    if (!userId) {
+      return;
+    }
 
     await prisma.polarSubscription.updateMany({
       where: { subscriptionId: payload.data.id },
@@ -201,8 +272,11 @@ export const POST = Webhooks({
     await handleAddonOrderPayload(payload);
   },
 
+  onOrderCreated: async (payload) => {
+    await handleAddonOrderPayload(payload);
+  },
+
   onOrderUpdated: async (payload) => {
-    if (!payload.data.paid) return;
     await handleAddonOrderPayload(payload);
   },
 });
