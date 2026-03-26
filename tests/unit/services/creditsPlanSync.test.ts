@@ -125,4 +125,42 @@ describe("CreditsService.syncPlanCredits", () => {
       balance: 4886,
     });
   });
+
+  it("preserves manual top-ups when the same billing period sync runs again", async () => {
+    transactionMocks.creditBalance.findUnique.mockResolvedValue({
+      userId: "user-1",
+      balance: 5200,
+    });
+    transactionMocks.userPlan.findUnique.mockResolvedValue({
+      plan: PlanType.PRO,
+      periodStart: new Date("2024-01-01T00:00:00Z"),
+    });
+    transactionMocks.creditBalance.upsert.mockImplementation(
+      async ({ create, update }) => ({
+        userId: create.userId,
+        balance: update.balance,
+      }),
+    );
+
+    const service = new CreditsService();
+    const result = await service.syncPlanCredits({
+      userId: "user-1",
+      plan: PlanType.PRO,
+      periodStart: new Date("2024-01-01T00:00:00Z"),
+      periodEnd: new Date("2024-02-01T00:00:00Z"),
+    });
+
+    expect(result).toEqual({
+      userId: "user-1",
+      balance: 5200,
+    });
+    expect(transactionMocks.creditBalance.upsert).toHaveBeenCalledWith({
+      where: { userId: "user-1" },
+      update: { balance: 5200 },
+      create: {
+        userId: "user-1",
+        balance: 5200,
+      },
+    });
+  });
 });

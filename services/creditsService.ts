@@ -147,12 +147,13 @@ export class CreditsService {
       if (existingBalance) {
         if (previousPlan && sameBillingPeriod) {
           const previousInitial = getInitialCreditsForPlan(previousPlan);
-          const previousRemaining = Math.min(
-            Math.max(existingBalance.balance, 0),
-            previousInitial,
+          // Same-period re-syncs should only apply the plan delta so any
+          // remaining manually granted credits stay intact.
+          nextBalance = Math.max(
+            0,
+            Math.max(existingBalance.balance, 0) +
+              (nextInitial - previousInitial),
           );
-          const used = Math.max(0, previousInitial - previousRemaining);
-          nextBalance = Math.max(0, nextInitial - used);
         } else if (!previousPlan && existingBalance.balance > 0) {
           nextBalance = Math.min(existingBalance.balance, nextInitial);
         }

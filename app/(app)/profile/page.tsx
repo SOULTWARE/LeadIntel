@@ -23,8 +23,7 @@ async function getProfileData(input: { shouldReconcileAddonCredits: boolean }) {
   const billingState = await resolveProfileBillingState(user.id, user.email);
   const baseBalance = await creditsService.getBalance(user.id);
   const initialAddonBalance = await creditsService.getAddonBalance(user.id);
-  const shouldReconcileAddonCredits =
-    input.shouldReconcileAddonCredits || initialAddonBalance.remaining === 0;
+  const shouldReconcileAddonCredits = input.shouldReconcileAddonCredits;
 
   if (shouldReconcileAddonCredits) {
     await reconcileAddonCredits(user.id, user.email);
