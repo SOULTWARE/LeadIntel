@@ -28,7 +28,7 @@ const SaveLeadsRequestSchema = z.object({
             .passthrough()
             .optional(),
         })
-        .passthrough()
+        .passthrough(),
     )
     .default([]),
   sessionName: z.string().optional(),
@@ -40,21 +40,30 @@ const SaveLeadsRequestSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 },
+      );
     }
 
     const parsed = SaveLeadsRequestSchema.safeParse(await request.json());
     if (!parsed.success) {
       return NextResponse.json(
-        { success: false, error: "Invalid request. 'leads' array is required." },
-        { status: 400 }
+        {
+          success: false,
+          error: "Invalid request. 'leads' array is required.",
+        },
+        { status: 400 },
       );
     }
 
-    const { leads, sessionName, target, location, contactPurpose } = parsed.data;
+    const { leads, sessionName, target, location, contactPurpose } =
+      parsed.data;
 
     let sessionId: string | undefined;
     if (sessionName) {
@@ -104,23 +113,38 @@ export async function POST(request: NextRequest) {
           createData.compatibilityScore = lead.aiAnalysis.compatibilityScore;
           createData.recommendation = lead.aiAnalysis.recommendation;
           createData.reasoning = lead.aiAnalysis.reasoning;
-          createData.identifiedProblems = lead.aiAnalysis.identifiedProblems as Prisma.InputJsonValue;
-          createData.compatibilityHooks = lead.aiAnalysis.compatibilityHooks as Prisma.InputJsonValue;
+          createData.identifiedProblems = lead.aiAnalysis
+            .identifiedProblems as Prisma.InputJsonValue;
+          createData.compatibilityHooks = lead.aiAnalysis
+            .compatibilityHooks as Prisma.InputJsonValue;
 
           updateData.isEnhanced = true;
           updateData.compatibilityScore = lead.aiAnalysis.compatibilityScore;
           updateData.recommendation = lead.aiAnalysis.recommendation;
           updateData.reasoning = lead.aiAnalysis.reasoning;
-          updateData.identifiedProblems = lead.aiAnalysis.identifiedProblems as Prisma.InputJsonValue;
-          updateData.compatibilityHooks = lead.aiAnalysis.compatibilityHooks as Prisma.InputJsonValue;
+          updateData.identifiedProblems = lead.aiAnalysis
+            .identifiedProblems as Prisma.InputJsonValue;
+          updateData.compatibilityHooks = lead.aiAnalysis
+            .compatibilityHooks as Prisma.InputJsonValue;
         }
 
-        return prisma.lead.upsert({
-          where: { placeId: lead.placeId || lead.name },
-          update: updateData,
-          create: createData,
+        if (lead.placeId) {
+          return prisma.lead.upsert({
+            where: {
+              userId_placeId: {
+                userId: user.id,
+                placeId: lead.placeId,
+              },
+            },
+            update: updateData,
+            create: createData,
+          });
+        }
+
+        return prisma.lead.create({
+          data: createData,
         });
-      })
+      }),
     );
 
     return NextResponse.json({
@@ -136,7 +160,7 @@ export async function POST(request: NextRequest) {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
