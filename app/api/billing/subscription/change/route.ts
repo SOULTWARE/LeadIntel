@@ -5,15 +5,27 @@ import { PlanType } from "@prisma/client";
 
 import { prisma } from "@/db";
 import { PLAN_LIMITS } from "@/lib/polar/plans";
+import { getPlanTypeByProductId } from "@/lib/polar/products";
 import { polar } from "@/lib/polar/server";
 import { createClient } from "@/lib/supabase/server";
-import { POLAR_PRO_PRODUCT_ID, POLAR_STARTER_PRODUCT_ID } from "@/lib/polar/config";
+import { creditsService } from "@/services/creditsService";
+import {
+  POLAR_PRO_PRODUCT_ID,
+  POLAR_STARTER_PRODUCT_ID,
+} from "@/lib/polar/config";
 
 const ChangePlanSchema = z.object({
   plan: z.enum(["starter", "pro"]),
 });
 
-const ACTIVE_STATUSES = ["active", "trialing", "past_due", "unpaid", "incomplete", "incomplete_expired"] as const;
+const ACTIVE_STATUSES = [
+  "active",
+  "trialing",
+  "past_due",
+  "unpaid",
+  "incomplete",
+  "incomplete_expired",
+] as const;
 
 type ActiveStatus = (typeof ACTIVE_STATUSES)[number];
 
@@ -30,17 +42,26 @@ export async function POST(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      { success: false, error: "Unauthorized" },
+      { status: 401 },
+    );
   }
 
   const parsed = ChangePlanSchema.safeParse(await request.json());
   if (!parsed.success) {
-    return NextResponse.json({ success: false, error: "Invalid request body" }, { status: 400 });
+    return NextResponse.json(
+      { success: false, error: "Invalid request body" },
+      { status: 400 },
+    );
   }
 
   const productId = getProductIdForPlan(parsed.data.plan);
   if (!productId) {
-    return NextResponse.json({ success: false, error: "Plan is not configured" }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: "Plan is not configured" },
+      { status: 500 },
+    );
   }
 
   const subscriptionRecord = await prisma.polarSubscription.findFirst({
@@ -52,11 +73,17 @@ export async function POST(request: NextRequest) {
   });
 
   if (!subscriptionRecord) {
-    return NextResponse.json({ success: false, error: "No active subscription to update" }, { status: 404 });
+    return NextResponse.json(
+      { success: false, error: "No active subscription to update" },
+      { status: 404 },
+    );
   }
 
   if (subscriptionRecord.productId === productId) {
-    return NextResponse.json({ success: true, data: { message: "Already on the selected plan" } });
+    return NextResponse.json({
+      success: true,
+      data: { message: "Already on the selected plan" },
+    });
   }
 
   const updatedSubscription = await polar.subscriptions.update({
@@ -81,6 +108,15 @@ export async function POST(request: NextRequest) {
 
   const planType = parsed.data.plan === "pro" ? PlanType.PRO : PlanType.STARTER;
   const limits = PLAN_LIMITS[planType];
+  const previousPlan = getPlanTypeByProductId(subscriptionRecord.productId);
+
+  await creditsService.syncPlanCredits({
+    userId: user.id,
+    plan: planType,
+    periodStart: newPeriodStart,
+    periodEnd: newPeriodEnd,
+    previousPlan,
+  });
 
   await prisma.userPlan.upsert({
     where: { userId: user.id },

@@ -37,38 +37,56 @@ type AddonBalanceRecord = {
   expiresAt: Date | null;
 };
 
-const CreditLedgerEntryStatus: Record<Uppercase<CreditLedgerEntryStatusType>, CreditLedgerEntryStatusType> = {
+const CreditLedgerEntryStatus: Record<
+  Uppercase<CreditLedgerEntryStatusType>,
+  CreditLedgerEntryStatusType
+> = {
   HOLD: "HOLD",
   CAPTURED: "CAPTURED",
   RELEASED: "RELEASED",
 };
 
-const CreditLedgerEntryType: Record<Uppercase<CreditLedgerEntryTypeType>, CreditLedgerEntryTypeType> = {
+const CreditLedgerEntryType: Record<
+  Uppercase<CreditLedgerEntryTypeType>,
+  CreditLedgerEntryTypeType
+> = {
   CREDIT: "CREDIT",
   DEBIT: "DEBIT",
 };
 
 const TRANSACTION_OPTIONS = { timeout: 15000, maxWait: 5000 } as const;
 
-async function getInitialCreditsForUser(tx: Prisma.TransactionClient, userId: string): Promise<number> {
-  const plan = await tx.userPlan.findUnique({
-    where: { userId },
-    select: { plan: true },
-  });
-
-  if (plan?.plan === PlanType.PRO) {
+function getInitialCreditsForPlan(plan: PlanType): number {
+  if (plan === PlanType.PRO) {
     return PRO_INITIAL_CREDITS;
   }
 
-  if (plan?.plan === PlanType.STARTER) {
+  if (plan === PlanType.STARTER) {
     return STARTER_INITIAL_CREDITS;
   }
 
   return 0;
 }
 
-async function getAddonBalance(tx: Prisma.TransactionClient, userId: string): Promise<AddonBalanceRecord | null> {
-  const existing = await tx.addonCreditBalance.findUnique({ where: { userId } });
+async function getInitialCreditsForUser(
+  tx: Prisma.TransactionClient,
+  userId: string,
+): Promise<number> {
+  const plan = await tx.userPlan.findUnique({
+    where: { userId },
+    select: { plan: true },
+  });
+
+  return plan ? getInitialCreditsForPlan(plan.plan) : 0;
+}
+
+async function getAddonBalance(
+  tx: Prisma.TransactionClient,
+  userId: string,
+): Promise<AddonBalanceRecord | null> {
+  const existing = await tx.addonCreditBalance.findUnique({
+    where: { userId },
+  });
   if (!existing) return null;
 
   if (existing.expiresAt && existing.expiresAt.getTime() <= Date.now()) {
@@ -93,7 +111,72 @@ async function getAddonBalance(tx: Prisma.TransactionClient, userId: string): Pr
 }
 
 export class CreditsService {
-  async ensureInitialized(userId: string): Promise<{ userId: string; balance: number }> {
+  async syncPlanCredits(input: {
+    userId: string;
+    plan: PlanType;
+    periodStart: Date;
+    periodEnd: Date;
+    previousPlan?: PlanType | null;
+    previousPeriodStart?: Date | null;
+  }): Promise<{ userId: string; balance: number }> {
+    const nextInitial = getInitialCreditsForPlan(input.plan);
+
+    return prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      const [existingBalance, storedPlan] = await Promise.all([
+        tx.creditBalance.findUnique({ where: { userId: input.userId } }),
+        tx.userPlan.findUnique({
+          where: { userId: input.userId },
+          select: { plan: true, periodStart: true },
+        }),
+      ]);
+
+      const storedPlanMatchesTarget =
+        storedPlan?.plan === input.plan &&
+        storedPlan.periodStart.getTime() === input.periodStart.getTime();
+      const previousPlan = storedPlanMatchesTarget
+        ? input.plan
+        : (input.previousPlan ?? storedPlan?.plan ?? null);
+      const previousPeriodStart = storedPlanMatchesTarget
+        ? input.periodStart
+        : (input.previousPeriodStart ?? storedPlan?.periodStart ?? null);
+      const sameBillingPeriod =
+        previousPeriodStart?.getTime() === input.periodStart.getTime();
+
+      let nextBalance = nextInitial;
+
+      if (existingBalance) {
+        if (previousPlan && sameBillingPeriod) {
+          const previousInitial = getInitialCreditsForPlan(previousPlan);
+          const previousRemaining = Math.min(
+            Math.max(existingBalance.balance, 0),
+            previousInitial,
+          );
+          const used = Math.max(0, previousInitial - previousRemaining);
+          nextBalance = Math.max(0, nextInitial - used);
+        } else if (!previousPlan && existingBalance.balance > 0) {
+          nextBalance = Math.min(existingBalance.balance, nextInitial);
+        }
+      }
+
+      const balance = await tx.creditBalance.upsert({
+        where: { userId: input.userId },
+        update: { balance: nextBalance },
+        create: {
+          userId: input.userId,
+          balance: nextBalance,
+        },
+      });
+
+      return {
+        userId: balance.userId,
+        balance: balance.balance,
+      };
+    }, TRANSACTION_OPTIONS);
+  }
+
+  async ensureInitialized(
+    userId: string,
+  ): Promise<{ userId: string; balance: number }> {
     return prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const initial = await getInitialCreditsForUser(tx, userId);
 
@@ -137,7 +220,9 @@ export class CreditsService {
   }
 
   async getBalance(userId: string): Promise<number> {
-    const balance = await prisma.creditBalance.findUnique({ where: { userId } });
+    const balance = await prisma.creditBalance.findUnique({
+      where: { userId },
+    });
     if (!balance) {
       const created = await this.ensureInitialized(userId);
       return created.balance;
@@ -146,7 +231,9 @@ export class CreditsService {
   }
 
   async getAddonBalance(userId: string): Promise<AddonBalanceRecord> {
-    const existing = await prisma.addonCreditBalance.findUnique({ where: { userId } });
+    const existing = await prisma.addonCreditBalance.findUnique({
+      where: { userId },
+    });
     if (!existing) {
       const created = await prisma.addonCreditBalance.create({
         data: {
@@ -249,12 +336,16 @@ export class CreditsService {
         },
       });
 
-      const existing = await creditLedgerEntry.findUnique({ where: { idempotencyKey: ledgerKey } });
+      const existing = await creditLedgerEntry.findUnique({
+        where: { idempotencyKey: ledgerKey },
+      });
       if (existing) {
         return existing;
       }
 
-      const base = await creditBalance.findUnique({ where: { userId: input.userId } });
+      const base = await creditBalance.findUnique({
+        where: { userId: input.userId },
+      });
       const baseBalance = base?.balance ?? 0;
 
       if (baseBalance >= input.amount) {
@@ -284,7 +375,10 @@ export class CreditsService {
             action: input.action,
             amount: input.amount,
             idempotencyKey: ledgerKey,
-            metaJson: { ...(input.meta ?? {}), source: "base" } as Prisma.InputJsonValue,
+            metaJson: {
+              ...(input.meta ?? {}),
+              source: "base",
+            } as Prisma.InputJsonValue,
           },
         });
       }
@@ -317,7 +411,10 @@ export class CreditsService {
           action: input.action,
           amount: input.amount,
           idempotencyKey: ledgerKey,
-          metaJson: { ...(input.meta ?? {}), source: "addon" } as Prisma.InputJsonValue,
+          metaJson: {
+            ...(input.meta ?? {}),
+            source: "addon",
+          } as Prisma.InputJsonValue,
         },
       });
     }, TRANSACTION_OPTIONS);
@@ -340,7 +437,9 @@ export class CreditsService {
       const creditLedgerEntry = tx.creditLedgerEntry;
       const addonCreditBalance = tx.addonCreditBalance;
 
-      const entry = await creditLedgerEntry.findUnique({ where: { idempotencyKey: ledgerKey } });
+      const entry = await creditLedgerEntry.findUnique({
+        where: { idempotencyKey: ledgerKey },
+      });
       if (!entry) {
         throw new Error("Hold not found");
       }
@@ -354,7 +453,8 @@ export class CreditsService {
       }
 
       const finalAmount =
-        typeof input.finalAmount === "number" && Number.isFinite(input.finalAmount)
+        typeof input.finalAmount === "number" &&
+        Number.isFinite(input.finalAmount)
           ? Math.max(0, Math.floor(input.finalAmount))
           : entry.amount;
 
@@ -364,7 +464,9 @@ export class CreditsService {
 
       const refund = entry.amount - finalAmount;
       const source =
-        entry.metaJson && typeof entry.metaJson === "object" && !Array.isArray(entry.metaJson)
+        entry.metaJson &&
+        typeof entry.metaJson === "object" &&
+        !Array.isArray(entry.metaJson)
           ? (entry.metaJson as Record<string, unknown>).source
           : null;
 
@@ -416,7 +518,9 @@ export class CreditsService {
       const addonCreditBalance = tx.addonCreditBalance;
       const creditLedgerEntry = tx.creditLedgerEntry;
 
-      const entry = await creditLedgerEntry.findUnique({ where: { idempotencyKey: ledgerKey } });
+      const entry = await creditLedgerEntry.findUnique({
+        where: { idempotencyKey: ledgerKey },
+      });
       if (!entry) {
         return;
       }
@@ -437,7 +541,9 @@ export class CreditsService {
       });
 
       const source =
-        entry.metaJson && typeof entry.metaJson === "object" && !Array.isArray(entry.metaJson)
+        entry.metaJson &&
+        typeof entry.metaJson === "object" &&
+        !Array.isArray(entry.metaJson)
           ? (entry.metaJson as Record<string, unknown>).source
           : null;
 
@@ -492,19 +598,24 @@ export class CreditsService {
         idempotencyKey: input.idempotencyKey,
       });
 
-      const prior = await creditLedgerEntry.findUnique({ where: { idempotencyKey: ledgerKey } });
+      const prior = await creditLedgerEntry.findUnique({
+        where: { idempotencyKey: ledgerKey },
+      });
       if (prior) {
-        return existing ?? {
-          userId: input.userId,
-          remaining: 0,
-          expiresAt: null,
-        };
+        return (
+          existing ?? {
+            userId: input.userId,
+            remaining: 0,
+            expiresAt: null,
+          }
+        );
       }
 
       const now = new Date();
-      const baseDate = existing?.expiresAt && existing.expiresAt.getTime() > now.getTime()
-        ? existing.expiresAt
-        : now;
+      const baseDate =
+        existing?.expiresAt && existing.expiresAt.getTime() > now.getTime()
+          ? existing.expiresAt
+          : now;
       const newExpiresAt = new Date(baseDate);
       newExpiresAt.setMonth(newExpiresAt.getMonth() + input.monthsToExtend);
 
@@ -566,7 +677,9 @@ export class CreditsService {
       const creditBalance = tx.creditBalance;
       const creditLedgerEntry = tx.creditLedgerEntry;
 
-      const existing = await creditLedgerEntry.findUnique({ where: { idempotencyKey: ledgerKey } });
+      const existing = await creditLedgerEntry.findUnique({
+        where: { idempotencyKey: ledgerKey },
+      });
       if (existing) return;
 
       const initial = await getInitialCreditsForUser(tx, input.userId);

@@ -65,11 +65,17 @@ describe("/api/billing/checkout", () => {
 
   it("creates checkout session for subscription", async () => {
     vi.mocked(createClient).mockResolvedValue({
-      auth: { getUser: async () => ({ data: { user: { id: "user-1", email: "test@example.com" } } }) },
+      auth: {
+        getUser: async () => ({
+          data: { user: { id: "user-1", email: "test@example.com" } },
+        }),
+      },
     } as Awaited<ReturnType<typeof createClient>>);
 
     vi.mocked(getOrCreatePolarCustomer).mockResolvedValue("cust-1");
-    vi.mocked(polar.checkouts.create).mockResolvedValue({ url: "http://polar/checkout" } as never);
+    vi.mocked(polar.checkouts.create).mockResolvedValue({
+      url: "http://polar/checkout",
+    } as never);
 
     const req = new NextRequest("http://localhost:3000/api/billing/checkout", {
       method: "POST",
@@ -81,6 +87,20 @@ describe("/api/billing/checkout", () => {
 
     expect(res.status).toBe(200);
     expect(json.data.url).toBe("http://polar/checkout");
-    expect(polar.checkouts.create).toHaveBeenCalled();
+    expect(polar.checkouts.create).toHaveBeenCalledWith({
+      products: ["starter-product"],
+      customerId: "cust-1",
+      externalCustomerId: "user-1",
+      customerEmail: "test@example.com",
+      customerMetadata: {
+        userId: "user-1",
+      },
+      successUrl: "http://localhost/success",
+      metadata: {
+        userId: "user-1",
+        type: "subscription",
+        plan: "starter",
+      },
+    });
   });
 });
