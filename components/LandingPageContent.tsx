@@ -1,9 +1,12 @@
-'use client';
+"use client";
 
-import type { User as SupabaseUser } from '@supabase/supabase-js';
-import { LandingHero } from './landing-page/LandingHero';
-import { WorkflowSection } from './landing-page/WorkflowSection';
-import { ProductPreviewSection } from './landing-page/ProductPreviewSection';
+import type { User as SupabaseUser } from "@supabase/supabase-js";
+import { LandingHero } from "./landing-page/LandingHero";
+import { PlatformBenefitsSection } from "./landing-page/PlatformBenefitsSection";
+import { WorkflowSection } from "./landing-page/WorkflowSection";
+import { ProductPreviewSection } from "./landing-page/ProductPreviewSection";
+import { UseCasesSection } from "./landing-page/UseCasesSection";
+import { HomeFaqSection } from "./landing-page/HomeFaqSection";
 
 interface LandingPageContentProps {
   user: SupabaseUser | null;
@@ -17,7 +20,13 @@ export default function LandingPageContent({ user }: LandingPageContentProps) {
 
         <WorkflowSection />
 
+        <PlatformBenefitsSection />
+
         <ProductPreviewSection />
+
+        <UseCasesSection />
+
+        <HomeFaqSection />
       </section>
     </main>
   );

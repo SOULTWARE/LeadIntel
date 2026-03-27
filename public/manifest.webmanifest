@@ -1,7 +1,7 @@
 {
   "name": "LeadIntel Pro",
   "short_name": "LeadIntel",
-  "description": "Generate high-precision business leads from Google Maps and enhance them with advanced AI compatibility verification.",
+  "description": "Lead intelligence software for verified local business prospecting, AI fit scoring, contact discovery, and outreach-ready exports.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

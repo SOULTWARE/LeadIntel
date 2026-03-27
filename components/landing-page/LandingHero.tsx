@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import { Sparkles, Database, Search, MapPin, Calendar } from 'lucide-react';
-import HeroActions from '../HeroActions';
-import type { User as SupabaseUser } from '@supabase/supabase-js';
+import { motion } from "framer-motion";
+import { Sparkles, Database, Search, MapPin, Calendar } from "lucide-react";
+import HeroActions from "../HeroActions";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 export function LandingHero({ user }: { user: SupabaseUser | null }) {
   const containerVariants = {
@@ -34,33 +34,47 @@ export function LandingHero({ user }: { user: SupabaseUser | null }) {
           className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-[10px] font-black uppercase tracking-[0.35em] text-blue-600"
         >
           <Sparkles size={14} />
-          AI-Powered Intelligence
+          AI Lead Intelligence
         </motion.div>
 
         <motion.h1
           variants={itemVariants}
           className="max-w-3xl text-5xl font-black leading-[1.02] tracking-tight text-slate-900 md:text-7xl"
         >
-          Verified business data as your{' '}
+          AI lead generation software for{" "}
           <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 bg-clip-text text-transparent">
-            Growth Engine.
+            verified local business prospecting.
           </span>
         </motion.h1>
 
-        <motion.p variants={itemVariants} className="max-w-xl text-lg leading-8 text-slate-500 md:text-xl">
-          Source licensed, high-precision business leads and use advanced AI to verify compatibility automatically. Stop cold calling,
-          start closing with a cleaner, more confident workflow.
+        <motion.p
+          variants={itemVariants}
+          className="max-w-xl text-lg leading-8 text-slate-500 md:text-xl"
+        >
+          Find businesses by category and city, enrich each lead with AI fit
+          scoring, discover contact details, and export outreach-ready prospect
+          lists from one focused workflow.
         </motion.p>
 
-        <motion.div variants={itemVariants} className="grid gap-3 sm:grid-cols-3">
+        <motion.div
+          variants={itemVariants}
+          className="grid gap-3 sm:grid-cols-3"
+        >
           {[
-            { label: 'Verified sourcing', value: 'High precision' },
-            { label: 'AI enrichment', value: 'Compatibility scoring' },
-            { label: 'Outbound ready', value: 'Draft + export' },
+            { label: "Verified sourcing", value: "High precision" },
+            { label: "AI enrichment", value: "Compatibility scoring" },
+            { label: "Outbound ready", value: "Draft + export" },
           ].map((stat) => (
-            <div key={stat.label} className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
-              <div className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">{stat.label}</div>
-              <div className="mt-2 text-sm font-black tracking-tight text-slate-900">{stat.value}</div>
+            <div
+              key={stat.label}
+              className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm"
+            >
+              <div className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
+                {stat.label}
+              </div>
+              <div className="mt-2 text-sm font-black tracking-tight text-slate-900">
+                {stat.value}
+              </div>
             </div>
           ))}
         </motion.div>
@@ -105,18 +119,28 @@ export function LandingHero({ user }: { user: SupabaseUser | null }) {
                         <span className="text-slate-900">INTELLIGENCE </span>
                         <span className="text-blue-600">DASHBOARD</span>
                       </h3>
-                      <p className="text-slate-500 font-medium">Manage your 4 sourcing sessions and 97 prospects.</p>
+                      <p className="text-slate-500 font-medium">
+                        Manage your 4 sourcing sessions and 97 prospects.
+                      </p>
                     </div>
 
                     <div className="bg-white border border-slate-200 rounded-2xl shadow-lg shadow-slate-100/50 overflow-hidden w-[260px]">
                       <div className="grid grid-cols-2">
                         <div className="p-5 text-center border-r border-slate-100">
-                          <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Sessions</div>
-                          <div className="mt-2 text-2xl font-black text-slate-900">4</div>
+                          <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            Total Sessions
+                          </div>
+                          <div className="mt-2 text-2xl font-black text-slate-900">
+                            4
+                          </div>
                         </div>
                         <div className="p-5 text-center">
-                          <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Prospects</div>
-                          <div className="mt-2 text-2xl font-black text-blue-600">97</div>
+                          <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            Total Prospects
+                          </div>
+                          <div className="mt-2 text-2xl font-black text-blue-600">
+                            97
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -124,10 +148,30 @@ export function LandingHero({ user }: { user: SupabaseUser | null }) {
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
                     {[
-                      { title: 'Restaurant - New Mexico', date: '12/30/2025', loc: 'new mexico', leads: 10 },
-                      { title: 'Clinic - New Mexico', date: '12/27/2025', loc: 'new mexico', leads: 20 },
-                      { title: 'Clinic - New Mexico', date: '12/27/2025', loc: 'new mexico', leads: 9 },
-                      { title: 'Restaurants - New Mexico', date: '12/23/2025', loc: 'New Mexico', leads: 58 },
+                      {
+                        title: "Restaurant - New Mexico",
+                        date: "12/30/2025",
+                        loc: "new mexico",
+                        leads: 10,
+                      },
+                      {
+                        title: "Clinic - New Mexico",
+                        date: "12/27/2025",
+                        loc: "new mexico",
+                        leads: 20,
+                      },
+                      {
+                        title: "Clinic - New Mexico",
+                        date: "12/27/2025",
+                        loc: "new mexico",
+                        leads: 9,
+                      },
+                      {
+                        title: "Restaurants - New Mexico",
+                        date: "12/23/2025",
+                        loc: "New Mexico",
+                        leads: 58,
+                      },
                     ].map((s, i) => (
                       <div
                         key={`${s.title}-${s.date}-${i}`}
@@ -138,10 +182,14 @@ export function LandingHero({ user }: { user: SupabaseUser | null }) {
                             <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center">
                               <Calendar className="w-5 h-5" />
                             </div>
-                            <div className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">{s.date}</div>
+                            <div className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">
+                              {s.date}
+                            </div>
                           </div>
                           <div className="mt-5 space-y-2">
-                            <div className="font-black text-slate-900 uppercase tracking-tight text-base leading-tight">{s.title}</div>
+                            <div className="font-black text-slate-900 uppercase tracking-tight text-base leading-tight">
+                              {s.title}
+                            </div>
                             <div className="text-slate-400 text-sm font-medium flex items-center gap-2">
                               <MapPin className="w-4 h-4" />
                               {s.loc}
@@ -150,8 +198,12 @@ export function LandingHero({ user }: { user: SupabaseUser | null }) {
                         </div>
                         <div className="border-t border-slate-100 px-7 py-5 flex items-center justify-between">
                           <div className="flex items-baseline gap-3">
-                            <div className="text-2xl font-black text-slate-900">{s.leads}</div>
-                            <div className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">Qualified Leads</div>
+                            <div className="text-2xl font-black text-slate-900">
+                              {s.leads}
+                            </div>
+                            <div className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">
+                              Qualified Leads
+                            </div>
                           </div>
                           <div className="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 font-black">
                             <span className="relative -top-px">›</span>
