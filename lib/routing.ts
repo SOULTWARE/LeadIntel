@@ -1,8 +1,8 @@
 export const publicSitePaths = [
   "/",
   "/about",
+  "/blog",
   "/contact",
-  "/how-to-find-b2b-leads",
   "/pricing",
   "/privacy",
   "/terms",
@@ -12,6 +12,6 @@ const protectedAppPrefixes = ["/profile", "/results", "/sourcer"] as const;
 
 export function isProtectedAppPath(pathname: string) {
   return protectedAppPrefixes.some(
-    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
   );
 }

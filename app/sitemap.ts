@@ -1,10 +1,11 @@
 import type { MetadataRoute } from "next";
+import { blogPosts, getBlogPostPath } from "@/lib/blog";
 import { siteConfig } from "@/lib/seo";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date();
 
-  return [
+  const staticPages: MetadataRoute.Sitemap = [
     {
       url: siteConfig.siteUrl,
       lastModified,
@@ -24,16 +25,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.7,
     },
     {
+      url: `${siteConfig.siteUrl}/blog`,
+      lastModified,
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
       url: `${siteConfig.siteUrl}/contact`,
       lastModified,
       changeFrequency: "monthly",
       priority: 0.7,
-    },
-    {
-      url: `${siteConfig.siteUrl}/how-to-find-b2b-leads`,
-      lastModified,
-      changeFrequency: "monthly",
-      priority: 0.8,
     },
     {
       url: `${siteConfig.siteUrl}/privacy`,
@@ -48,4 +49,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.3,
     },
   ];
+
+  const blogPages: MetadataRoute.Sitemap = blogPosts.map((post) => ({
+    url: `${siteConfig.siteUrl}${getBlogPostPath(post.slug)}`,
+    lastModified,
+    changeFrequency: "monthly",
+    priority: 0.8,
+  }));
+
+  return [...staticPages, ...blogPages];
 }

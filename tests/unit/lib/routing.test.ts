@@ -13,6 +13,11 @@ describe("isProtectedAppPath", () => {
     for (const path of publicSitePaths) {
       expect(isProtectedAppPath(path)).toBe(false);
     }
+
+    expect(isProtectedAppPath("/blog/how-to-find-b2b-leads")).toBe(false);
+    expect(
+      isProtectedAppPath("/blog/best-lead-generation-tools-agencies"),
+    ).toBe(false);
   });
 
   it("does not overmatch similar prefixes", () => {

@@ -3,11 +3,13 @@ import { siteConfig } from "@/lib/seo";
 import { publicSitePaths } from "@/lib/routing";
 
 export default function robots(): MetadataRoute.Robots {
+  const allowPaths = [...publicSitePaths];
+
   return {
     rules: [
       {
         userAgent: "*",
-        allow: publicSitePaths,
+        allow: allowPaths,
         disallow: ["/api/", "/auth/"],
       },
       {
@@ -18,7 +20,7 @@ export default function robots(): MetadataRoute.Robots {
           "Claude-User",
           "PerplexityBot",
         ],
-        allow: publicSitePaths,
+        allow: allowPaths,
         disallow: ["/api/", "/auth/"],
       },
     ],
