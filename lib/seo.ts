@@ -92,6 +92,15 @@ type WebPageSchemaInput = {
   description: string;
 };
 
+type ArticleSchemaInput = {
+  headline: string;
+  description: string;
+  path: string;
+  datePublished: string;
+  dateModified?: string;
+  keywords?: string[];
+};
+
 export function createMarketingMetadata({
   title,
   description,
@@ -262,5 +271,41 @@ export function createContactPageSchema() {
     mainEntity: {
       "@id": `${siteConfig.siteUrl}/#organization`,
     },
+  };
+}
+
+export function createArticleSchema({
+  headline,
+  description,
+  path,
+  datePublished,
+  dateModified = datePublished,
+  keywords = [],
+}: ArticleSchemaInput) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "@id": `${getCanonicalUrl(path)}#article`,
+    url: getCanonicalUrl(path),
+    mainEntityOfPage: {
+      "@id": `${getCanonicalUrl(path)}#webpage`,
+    },
+    headline,
+    description,
+    datePublished,
+    dateModified,
+    author: {
+      "@type": "Organization",
+      "@id": `${siteConfig.siteUrl}/#organization`,
+      name: siteConfig.name,
+    },
+    publisher: {
+      "@id": `${siteConfig.siteUrl}/#organization`,
+    },
+    about: {
+      "@id": `${siteConfig.siteUrl}/#software`,
+    },
+    keywords,
+    inLanguage: "en-US",
   };
 }
