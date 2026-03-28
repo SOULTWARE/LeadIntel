@@ -11,6 +11,8 @@
     "test": "vitest",
     "test:run": "vitest run",
     "worker": "tsx scripts/worker.ts",
+    "supabase:auth-templates": "node scripts/sync-supabase-auth-templates.mjs",
+    "supabase:auth-templates:push": "node scripts/sync-supabase-auth-templates.mjs --apply",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",

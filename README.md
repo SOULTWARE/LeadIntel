@@ -67,6 +67,7 @@ Duplicate `.env.example` and fill the following groups:
 | Search | `SEARCH_PROVIDER`, `SEARCH_API_KEY`, `MAX_CONCURRENT_FETCHES`, `FETCH_USER_AGENT` |
 | Emails | `HUNTER_API_KEY`, `KICKBOX_API_KEY` |
 | Supabase | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` |
+| Supabase Admin | `SUPABASE_PROJECT_REF`, `SUPABASE_MANAGEMENT_ACCESS_TOKEN` |
 | Polar | `POLAR_ACCESS_TOKEN`, `POLAR_WEBHOOK_SECRET`, `POLAR_SERVER`, `POLAR_STARTER_PRODUCT_ID`, `POLAR_PRO_PRODUCT_ID`, `POLAR_ADDON_PRODUCT_ID`, `POLAR_SUCCESS_URL`, `POLAR_PORTAL_RETURN_URL` |
 | Internal Ops | `CREDITS_TOPUP_SECRET` |
 
@@ -85,6 +86,17 @@ npm run start                   # production mode: starts Next.js + worker toget
 ```
 
 Additional scripts live in `package.json` (`npm run db:migrate`, `npm run test`).
+
+## Auth Email Templates
+
+Supabase auth email templates are stored under `supabase/auth-email-templates`.
+
+- Inspect templates locally:
+  - `pnpm supabase:auth-templates`
+- Push templates to the hosted Supabase project via the Management API:
+  - `pnpm supabase:auth-templates:push`
+
+These templates currently use `{{ .ConfirmationURL }}` so they stay compatible with the existing `/auth/callback` flow in this app.
 
 ## Operational Workflows
 
