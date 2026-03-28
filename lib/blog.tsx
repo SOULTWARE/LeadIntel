@@ -59,6 +59,232 @@ export function getBlogPostPath(slug: string) {
 
 export const blogPosts: BlogPost[] = [
   {
+    slug: "scrape-linkedin-leads",
+    title: "How to Scrape LinkedIn Leads (Step-by-Step Guide)",
+    heading: "How to Scrape LinkedIn Leads",
+    description:
+      "Learn how to extract LinkedIn leads and find emails efficiently.",
+    excerpt:
+      "A step-by-step LinkedIn prospecting workflow for extracting lead data, enriching contacts, and reducing manual research time.",
+    keyword: "scrape LinkedIn leads",
+    publishedAt: "2026-03-28T00:00:00.000Z",
+    category: "LinkedIn lead generation",
+    theme: "blue",
+    keywords: [
+      "LinkedIn lead scraping",
+      "LinkedIn prospecting",
+      "find LinkedIn emails",
+      "B2B lead extraction",
+    ],
+    badge: {
+      icon: Search,
+      label: "LinkedIn sourcing guide",
+    },
+    quickTakeaway: {
+      eyebrow: "LinkedIn takeaway",
+      title:
+        "The fastest LinkedIn workflow is to define your audience, filter hard, extract clean lead data, and enrich with verified emails.",
+      description:
+        "Manual prospecting can work, but it breaks once you need consistency and volume. The winning setup combines targeted search with automated enrichment.",
+    },
+    toc: [
+      {
+        id: "step-1-define-your-target-audience",
+        label: "Step 1: Define your target audience",
+      },
+      {
+        id: "step-2-search-on-linkedin",
+        label: "Step 2: Search on LinkedIn",
+      },
+      {
+        id: "step-3-extract-lead-data",
+        label: "Step 3: Extract lead data",
+      },
+      {
+        id: "step-4-find-emails",
+        label: "Step 4: Find emails",
+      },
+      {
+        id: "automate-the-process",
+        label: "Automate the process",
+      },
+    ],
+    content: (
+      <>
+        <section
+          id="step-1-define-your-target-audience"
+          className="scroll-mt-28 rounded-[2.25rem] border border-white/70 bg-white/80 p-8 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.28)] backdrop-blur-2xl md:p-10"
+        >
+          <h2 className="text-3xl font-black tracking-tight text-slate-900">
+            Step 1: Define Your Target Audience
+          </h2>
+          <p className="mt-5 text-lg leading-8 text-slate-600">
+            LinkedIn is the best platform for B2B prospecting.
+          </p>
+          <div className="mt-8 rounded-[1.75rem] border border-blue-100 bg-blue-50/80 p-6">
+            <p className="text-sm font-semibold leading-7 text-slate-700">
+              Choose industry, job title, and company size. The tighter your
+              targeting is up front, the easier it becomes to scrape LinkedIn
+              leads that actually match your offer.
+            </p>
+          </div>
+        </section>
+
+        <section
+          id="step-2-search-on-linkedin"
+          className="scroll-mt-28 rounded-[2.25rem] border border-white/70 bg-white/80 p-8 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.28)] backdrop-blur-2xl md:p-10"
+        >
+          <h2 className="text-3xl font-black tracking-tight text-slate-900">
+            Step 2: Search on LinkedIn
+          </h2>
+          <p className="mt-5 text-lg leading-8 text-slate-600">
+            Use filters to narrow down your results.
+          </p>
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            {[
+              "Filter by industry to keep your list relevant.",
+              "Use job title filters to focus on the right buyer persona.",
+              "Narrow by company size so the leads match your service range.",
+            ].map((tip) => (
+              <div
+                key={tip}
+                className="rounded-[1.5rem] border border-slate-200 bg-slate-50/80 p-5"
+              >
+                <p className="text-sm font-semibold leading-7 text-slate-700">
+                  {tip}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section
+          id="step-3-extract-lead-data"
+          className="scroll-mt-28 rounded-[2.25rem] border border-white/70 bg-white/80 p-8 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.28)] backdrop-blur-2xl md:p-10"
+        >
+          <h2 className="text-3xl font-black tracking-tight text-slate-900">
+            Step 3: Extract Lead Data
+          </h2>
+          <p className="mt-5 text-lg leading-8 text-slate-600">
+            Collect names, roles, and companies.
+          </p>
+          <div className="mt-8 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="flex items-start gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+                <DatabaseZap className="h-5 w-5" />
+              </div>
+              <p className="text-sm leading-7 text-slate-700">
+                The goal at this stage is to create a clean prospect list with
+                enough company and role context to support enrichment and
+                outreach. Incomplete records create more cleanup later.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section
+          id="step-4-find-emails"
+          className="scroll-mt-28 rounded-[2.25rem] border border-white/70 bg-white/80 p-8 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.28)] backdrop-blur-2xl md:p-10"
+        >
+          <h2 className="text-3xl font-black tracking-tight text-slate-900">
+            Step 4: Find Emails
+          </h2>
+          <p className="mt-5 text-lg leading-8 text-slate-600">
+            Use tools to enrich your data.
+          </p>
+          <div className="mt-8 grid gap-4 md:grid-cols-2">
+            {[
+              {
+                title: "Add verified contact details",
+                description:
+                  "Email discovery works best once names, roles, and company domains are already clean.",
+                icon: MailCheck,
+              },
+              {
+                title: "Keep deliverability in mind",
+                description:
+                  "Verification matters because scraped leads are only useful if your messages can actually reach them.",
+                icon: Mail,
+              },
+            ].map((item) => (
+              <div
+                key={item.title}
+                className="rounded-[1.75rem] border border-slate-200 bg-slate-50/80 p-6"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white text-blue-600 shadow-sm">
+                    <item.icon className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-black text-slate-900">
+                      {item.title}
+                    </h3>
+                    <p className="mt-3 text-sm leading-7 text-slate-600">
+                      {item.description}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section
+          id="automate-the-process"
+          className="scroll-mt-28 rounded-[2.25rem] border border-slate-900/90 bg-slate-950 p-8 text-white shadow-[0_32px_120px_-48px_rgba(15,23,42,0.72)] md:p-10"
+        >
+          <p className="text-[10px] font-black uppercase tracking-[0.35em] text-blue-300">
+            Automate the process
+          </p>
+          <h2 className="mt-4 text-3xl font-black tracking-tight">
+            Reduce manual scraping and enrichment work
+          </h2>
+          <p className="mt-5 text-lg leading-8 text-slate-300">
+            Instead of doing everything manually, tools like LeadIntel automate
+            lead extraction and enrichment.
+          </p>
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            {[
+              "Capture structured lead data faster",
+              "Enrich prospects with verified emails",
+              "Move qualified LinkedIn leads into outreach-ready workflows",
+            ].map((benefit) => (
+              <div
+                key={benefit}
+                className="rounded-[1.5rem] border border-slate-800 bg-white/5 p-5"
+              >
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-blue-400" />
+                  <p className="text-sm font-semibold leading-7 text-slate-200">
+                    {benefit}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </>
+    ),
+    cta: {
+      eyebrow: "Automate LinkedIn prospecting",
+      title: "Automate LinkedIn lead generation with LeadIntel.",
+      description:
+        "Turn LinkedIn searches into structured lead lists with faster extraction, enrichment, and outreach preparation.",
+      primaryHref: "/login",
+      primaryLabel: "Start free",
+      secondaryHref: "/pricing",
+      secondaryLabel: "View pricing",
+    },
+    sidebar: {
+      title: "LinkedIn workflow",
+      items: [
+        "Define the exact buyer profile before searching.",
+        "Use filters to keep the lead list focused.",
+        "Enrich scraped records with verified emails.",
+      ],
+    },
+  },
+  {
     slug: "best-lead-generation-tools-agencies",
     title: "Best Lead Generation Tools for Agencies in 2026",
     heading: "Best Lead Generation Tools for Agencies",
