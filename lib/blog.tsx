@@ -59,6 +59,622 @@ export function getBlogPostPath(slug: string) {
 
 export const blogPosts: BlogPost[] = [
   {
+    slug: "lead-generation-vs-scraping",
+    title: "Lead Generation vs Lead Scraping",
+    heading: "Lead Generation vs Lead Scraping",
+    description:
+      "Understand the difference between lead generation and scraping.",
+    excerpt:
+      "A simple breakdown of how lead generation differs from scraping, where each fits, and why the strongest workflows usually combine both.",
+    keyword: "lead generation vs scraping",
+    publishedAt: "2026-03-28T00:00:00.000Z",
+    category: "Lead generation basics",
+    theme: "blue",
+    keywords: [
+      "lead scraping",
+      "what is lead generation",
+      "data extraction for sales",
+      "B2B prospecting workflow",
+    ],
+    badge: {
+      icon: DatabaseZap,
+      label: "Prospecting fundamentals",
+    },
+    quickTakeaway: {
+      eyebrow: "Core distinction",
+      title:
+        "Lead generation finds the right prospects, while scraping extracts the data that helps you act on them.",
+      description:
+        "Many teams confuse these concepts, but they solve different parts of the prospecting workflow. The strongest systems usually use both together.",
+    },
+    toc: [
+      {
+        id: "lead-generation",
+        label: "Lead generation",
+      },
+      {
+        id: "lead-scraping",
+        label: "Lead scraping",
+      },
+      {
+        id: "best-strategy",
+        label: "Best strategy",
+      },
+    ],
+    content: (
+      <>
+        <section
+          id="lead-generation"
+          className="scroll-mt-28 rounded-[2.25rem] border border-white/70 bg-white/80 p-8 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.28)] backdrop-blur-2xl md:p-10"
+        >
+          <h2 className="text-3xl font-black tracking-tight text-slate-900">
+            Lead Generation
+          </h2>
+          <p className="mt-5 text-lg leading-8 text-slate-600">
+            Finding potential customers.
+          </p>
+          <div className="mt-8 rounded-[1.75rem] border border-blue-100 bg-blue-50/80 p-6">
+            <p className="text-sm font-semibold leading-7 text-slate-700">
+              Lead generation is about identifying companies or people who fit
+              your offer. It focuses on targeting, qualification, and deciding
+              which prospects are worth pursuing in the first place.
+            </p>
+          </div>
+        </section>
+
+        <section
+          id="lead-scraping"
+          className="scroll-mt-28 rounded-[2.25rem] border border-white/70 bg-white/80 p-8 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.28)] backdrop-blur-2xl md:p-10"
+        >
+          <h2 className="text-3xl font-black tracking-tight text-slate-900">
+            Lead Scraping
+          </h2>
+          <p className="mt-5 text-lg leading-8 text-slate-600">
+            Extracting data from platforms.
+          </p>
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            {[
+              "Scraping is useful for pulling names, companies, roles, and other structured details from public sources.",
+              "It helps turn scattered platform data into lists your team can actually review and enrich.",
+              "Scraping alone is not enough if the underlying targets are poor-fit or outdated.",
+            ].map((point) => (
+              <div
+                key={point}
+                className="rounded-[1.5rem] border border-slate-200 bg-slate-50/80 p-5"
+              >
+                <p className="text-sm font-semibold leading-7 text-slate-700">
+                  {point}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section
+          id="best-strategy"
+          className="scroll-mt-28 rounded-[2.25rem] border border-slate-900/90 bg-slate-950 p-8 text-white shadow-[0_32px_120px_-48px_rgba(15,23,42,0.72)] md:p-10"
+        >
+          <p className="text-[10px] font-black uppercase tracking-[0.35em] text-blue-300">
+            Best strategy
+          </p>
+          <h2 className="mt-4 text-3xl font-black tracking-tight">
+            Combine both approaches
+          </h2>
+          <p className="mt-5 text-lg leading-8 text-slate-300">
+            Combine both approaches.
+          </p>
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            {[
+              "Use lead generation to decide who belongs in your pipeline",
+              "Use scraping to collect structured data from relevant sources",
+              "Then enrich and verify the data before outreach begins",
+            ].map((benefit) => (
+              <div
+                key={benefit}
+                className="rounded-[1.5rem] border border-slate-800 bg-white/5 p-5"
+              >
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-blue-400" />
+                  <p className="text-sm font-semibold leading-7 text-slate-200">
+                    {benefit}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </>
+    ),
+    cta: {
+      eyebrow: "Use both workflows",
+      title: "Use LeadIntel for both lead generation and scraping.",
+      description:
+        "Build better prospect lists by combining targeting, data extraction, and enrichment in one workflow.",
+      primaryHref: "/login",
+      primaryLabel: "Start free",
+      secondaryHref: "/pricing",
+      secondaryLabel: "View pricing",
+    },
+    sidebar: {
+      title: "Key distinction",
+      items: [
+        "Lead generation decides who to target.",
+        "Scraping collects the data tied to those targets.",
+        "The best systems connect both steps.",
+      ],
+    },
+  },
+  {
+    slug: "get-clients-for-agency",
+    title: "How to Get Clients for Your Agency",
+    heading: "How to Get Clients for Your Agency",
+    description: "Learn how to acquire clients without paid ads.",
+    excerpt:
+      "A practical agency growth guide covering cold outreach, LinkedIn networking, and content marketing without relying on paid acquisition.",
+    keyword: "get clients for agency",
+    publishedAt: "2026-03-28T00:00:00.000Z",
+    category: "Agency growth",
+    theme: "emerald",
+    keywords: [
+      "agency client acquisition",
+      "how to get agency clients",
+      "agency lead generation",
+      "client acquisition without ads",
+    ],
+    badge: {
+      icon: Sparkles,
+      label: "Agency growth guide",
+    },
+    quickTakeaway: {
+      eyebrow: "Agency takeaway",
+      title:
+        "Agencies grow faster when client acquisition is consistent, targeted, and built on strong lead quality.",
+      description:
+        "Paid ads are optional. A repeatable outbound and content engine usually depends more on discipline and lead quality than on budget.",
+    },
+    toc: [
+      {
+        id: "methods",
+        label: "Methods",
+      },
+      {
+        id: "secret",
+        label: "Secret",
+      },
+    ],
+    content: (
+      <>
+        <section
+          id="methods"
+          className="scroll-mt-28 rounded-[2.25rem] border border-white/70 bg-white/80 p-8 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.28)] backdrop-blur-2xl md:p-10"
+        >
+          <h2 className="text-3xl font-black tracking-tight text-slate-900">
+            Methods
+          </h2>
+          <p className="mt-5 text-lg leading-8 text-slate-600">
+            Getting clients is the biggest challenge for agencies.
+          </p>
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            {[
+              {
+                title: "Cold outreach",
+                description:
+                  "Outbound works when you contact the right companies with a clear offer and clean lead data.",
+                icon: Mail,
+              },
+              {
+                title: "LinkedIn networking",
+                description:
+                  "LinkedIn helps agencies build familiarity with founders, operators, and decision-makers before outreach starts.",
+                icon: Search,
+              },
+              {
+                title: "Content marketing",
+                description:
+                  "Useful content creates trust and gives prospects a reason to take your outreach seriously.",
+                icon: Sparkles,
+              },
+            ].map((method) => (
+              <div
+                key={method.title}
+                className="rounded-[1.75rem] border border-slate-200 bg-slate-50/80 p-6"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white text-emerald-700 shadow-sm">
+                    <method.icon className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-black text-slate-900">
+                      {method.title}
+                    </h3>
+                    <p className="mt-3 text-sm leading-7 text-slate-600">
+                      {method.description}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section
+          id="secret"
+          className="scroll-mt-28 rounded-[2.25rem] border border-slate-900/90 bg-slate-950 p-8 text-white shadow-[0_32px_120px_-48px_rgba(15,23,42,0.72)] md:p-10"
+        >
+          <p className="text-[10px] font-black uppercase tracking-[0.35em] text-emerald-300">
+            Secret
+          </p>
+          <h2 className="mt-4 text-3xl font-black tracking-tight">
+            Consistency and quality leads
+          </h2>
+          <p className="mt-5 text-lg leading-8 text-slate-300">
+            Consistency and quality leads.
+          </p>
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            {[
+              "Consistent outreach compounds faster than random bursts of activity",
+              "High-quality leads improve reply rates and sales conversations",
+              "Better targeting makes every channel work harder",
+            ].map((point) => (
+              <div
+                key={point}
+                className="rounded-[1.5rem] border border-slate-800 bg-white/5 p-5"
+              >
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />
+                  <p className="text-sm font-semibold leading-7 text-slate-200">
+                    {point}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </>
+    ),
+    cta: {
+      eyebrow: "Build pipeline faster",
+      title: "Generate clients with LeadIntel.",
+      description:
+        "Start with stronger lead data so your outreach, networking, and content efforts point at better-fit prospects.",
+      primaryHref: "/login",
+      primaryLabel: "Start free",
+      secondaryHref: "/pricing",
+      secondaryLabel: "View pricing",
+    },
+    sidebar: {
+      title: "Agency growth rules",
+      items: [
+        "Use more than one acquisition channel.",
+        "Prioritize consistency over short bursts.",
+        "Lead quality shapes conversion rates.",
+      ],
+    },
+  },
+  {
+    slug: "b2b-prospecting-strategies",
+    title: "Top B2B Prospecting Strategies",
+    heading: "B2B Prospecting Strategies",
+    description: "Learn modern B2B prospecting strategies that work.",
+    excerpt:
+      "A concise overview of the prospecting strategies that matter most now: better targeting, smarter automation, and coordinated outreach across channels.",
+    keyword: "B2B prospecting strategies",
+    publishedAt: "2026-03-28T00:00:00.000Z",
+    category: "B2B prospecting",
+    theme: "blue",
+    keywords: [
+      "modern prospecting",
+      "data-driven prospecting",
+      "multi-channel outreach",
+      "B2B sales prospecting",
+    ],
+    badge: {
+      icon: Radar,
+      label: "Prospecting playbook",
+    },
+    quickTakeaway: {
+      eyebrow: "Prospecting takeaway",
+      title:
+        "The strongest B2B prospecting strategies combine better data, faster execution, and tighter outreach coordination.",
+      description:
+        "Prospecting is evolving rapidly, and teams that treat list quality as the foundation usually outperform teams that only optimize messaging volume.",
+    },
+    toc: [
+      {
+        id: "best-strategies",
+        label: "Best strategies",
+      },
+      {
+        id: "key-insight",
+        label: "Key insight",
+      },
+    ],
+    content: (
+      <>
+        <section
+          id="best-strategies"
+          className="scroll-mt-28 rounded-[2.25rem] border border-white/70 bg-white/80 p-8 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.28)] backdrop-blur-2xl md:p-10"
+        >
+          <h2 className="text-3xl font-black tracking-tight text-slate-900">
+            Best Strategies
+          </h2>
+          <p className="mt-5 text-lg leading-8 text-slate-600">
+            Prospecting is evolving rapidly.
+          </p>
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            {[
+              {
+                title: "Data-driven targeting",
+                description:
+                  "The best prospecting starts with accurate company, role, and fit data instead of broad unqualified lists.",
+                icon: Radar,
+              },
+              {
+                title: "Automation",
+                description:
+                  "Automation helps teams source, enrich, and qualify prospects faster without repeating manual list-building work.",
+                icon: Bot,
+              },
+              {
+                title: "Multi-channel outreach",
+                description:
+                  "Prospects respond better when email, LinkedIn, and other touchpoints work together around the same targeting strategy.",
+                icon: Sparkles,
+              },
+            ].map((strategy) => (
+              <div
+                key={strategy.title}
+                className="rounded-[1.75rem] border border-slate-200 bg-slate-50/80 p-6"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white text-blue-600 shadow-sm">
+                    <strategy.icon className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-black text-slate-900">
+                      {strategy.title}
+                    </h3>
+                    <p className="mt-3 text-sm leading-7 text-slate-600">
+                      {strategy.description}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section
+          id="key-insight"
+          className="scroll-mt-28 rounded-[2.25rem] border border-slate-900/90 bg-slate-950 p-8 text-white shadow-[0_32px_120px_-48px_rgba(15,23,42,0.72)] md:p-10"
+        >
+          <p className="text-[10px] font-black uppercase tracking-[0.35em] text-blue-300">
+            Key insight
+          </p>
+          <h2 className="mt-4 text-3xl font-black tracking-tight">
+            Data quality determines success
+          </h2>
+          <p className="mt-5 text-lg leading-8 text-slate-300">
+            Data quality determines success.
+          </p>
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            {[
+              "Better data sharpens targeting before outreach begins",
+              "Verified records improve efficiency across every channel",
+              "High-quality lists make automation and personalization more effective",
+            ].map((insight) => (
+              <div
+                key={insight}
+                className="rounded-[1.5rem] border border-slate-800 bg-white/5 p-5"
+              >
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-blue-400" />
+                  <p className="text-sm font-semibold leading-7 text-slate-200">
+                    {insight}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </>
+    ),
+    cta: {
+      eyebrow: "Upgrade your workflow",
+      title: "Improve your prospecting with LeadIntel.",
+      description:
+        "Use stronger data and faster enrichment to build better prospect lists before your team starts outreach.",
+      primaryHref: "/login",
+      primaryLabel: "Start free",
+      secondaryHref: "/pricing",
+      secondaryLabel: "View pricing",
+    },
+    sidebar: {
+      title: "Prospecting rules",
+      items: [
+        "Target from data instead of assumptions.",
+        "Use automation to reduce repetitive research.",
+        "Treat data quality as the base layer for outreach.",
+      ],
+    },
+  },
+  {
+    slug: "find-startup-leads",
+    title: "How to Find Startup Leads",
+    heading: "How to Find Startup Leads",
+    description: "Learn how to discover startup leads for outreach and sales.",
+    excerpt:
+      "A practical guide to finding startup leads across public platforms and turning scattered company data into an outreach-ready list.",
+    keyword: "find startup leads",
+    publishedAt: "2026-03-28T00:00:00.000Z",
+    category: "Startup prospecting",
+    theme: "emerald",
+    keywords: [
+      "startup lead generation",
+      "startup prospecting",
+      "find startup founders",
+      "startup outreach leads",
+    ],
+    badge: {
+      icon: Sparkles,
+      label: "Startup sourcing guide",
+    },
+    quickTakeaway: {
+      eyebrow: "Startup takeaway",
+      title:
+        "The fastest way to find startup leads is to pull them from multiple public sources into one clean workflow.",
+      description:
+        "Startup data is usually fragmented across directories, social platforms, and launch communities. Centralized sourcing makes outreach faster and more consistent.",
+    },
+    toc: [
+      {
+        id: "where-to-find-them",
+        label: "Where to find them",
+      },
+      {
+        id: "challenges",
+        label: "Challenges",
+      },
+      {
+        id: "solution",
+        label: "Solution",
+      },
+    ],
+    content: (
+      <>
+        <section
+          id="where-to-find-them"
+          className="scroll-mt-28 rounded-[2.25rem] border border-white/70 bg-white/80 p-8 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.28)] backdrop-blur-2xl md:p-10"
+        >
+          <h2 className="text-3xl font-black tracking-tight text-slate-900">
+            Where to Find Them
+          </h2>
+          <p className="mt-5 text-lg leading-8 text-slate-600">
+            Startups are ideal clients for many services.
+          </p>
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            {[
+              {
+                title: "Product Hunt",
+                description:
+                  "A strong source for newly launched products and active startup teams looking for early growth.",
+                icon: Sparkles,
+              },
+              {
+                title: "LinkedIn",
+                description:
+                  "Useful for finding founders, operators, and startup employees by role, industry, and company stage.",
+                icon: Search,
+              },
+              {
+                title: "Startup directories",
+                description:
+                  "Directories help surface company names, categories, websites, and other lead signals across the ecosystem.",
+                icon: DatabaseZap,
+              },
+            ].map((source) => (
+              <div
+                key={source.title}
+                className="rounded-[1.75rem] border border-slate-200 bg-slate-50/80 p-6"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white text-emerald-700 shadow-sm">
+                    <source.icon className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-black text-slate-900">
+                      {source.title}
+                    </h3>
+                    <p className="mt-3 text-sm leading-7 text-slate-600">
+                      {source.description}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section
+          id="challenges"
+          className="scroll-mt-28 rounded-[2.25rem] border border-white/70 bg-white/80 p-8 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.28)] backdrop-blur-2xl md:p-10"
+        >
+          <h2 className="text-3xl font-black tracking-tight text-slate-900">
+            Challenges
+          </h2>
+          <p className="mt-5 text-lg leading-8 text-slate-600">
+            Data is scattered across platforms.
+          </p>
+          <div className="mt-8 rounded-[2rem] border border-amber-200 bg-amber-50/80 p-6">
+            <div className="flex items-start gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white text-amber-600 shadow-sm">
+                <TriangleAlert className="h-5 w-5" />
+              </div>
+              <p className="text-sm leading-7 text-slate-700">
+                Startup prospecting gets messy fast when one source has launch
+                visibility, another has employee details, and another has the
+                website or category. Manual collection creates fragmented lists
+                and slows down qualification.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section
+          id="solution"
+          className="scroll-mt-28 rounded-[2.25rem] border border-slate-900/90 bg-slate-950 p-8 text-white shadow-[0_32px_120px_-48px_rgba(15,23,42,0.72)] md:p-10"
+        >
+          <p className="text-[10px] font-black uppercase tracking-[0.35em] text-emerald-300">
+            Solution
+          </p>
+          <h2 className="mt-4 text-3xl font-black tracking-tight">
+            Use tools that centralize startup lead data
+          </h2>
+          <p className="mt-5 text-lg leading-8 text-slate-300">
+            Use tools that centralize lead data.
+          </p>
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            {[
+              "Pull startup leads from multiple discovery channels faster",
+              "Keep company and contact data in one place for qualification",
+              "Move from research to outreach without manual cleanup",
+            ].map((benefit) => (
+              <div
+                key={benefit}
+                className="rounded-[1.5rem] border border-slate-800 bg-white/5 p-5"
+              >
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />
+                  <p className="text-sm font-semibold leading-7 text-slate-200">
+                    {benefit}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </>
+    ),
+    cta: {
+      eyebrow: "Startup lead discovery",
+      title: "Discover startup leads instantly with LeadIntel.",
+      description:
+        "Centralize scattered startup data into one prospecting workflow so your team can qualify leads and start outreach faster.",
+      primaryHref: "/login",
+      primaryLabel: "Start free",
+      secondaryHref: "/pricing",
+      secondaryLabel: "View pricing",
+    },
+    sidebar: {
+      title: "Startup sourcing rules",
+      items: [
+        "Use multiple sources instead of relying on one directory.",
+        "Centralize fragmented startup data before outreach starts.",
+        "Prioritize workflows that reduce manual list cleanup.",
+      ],
+    },
+  },
+  {
     slug: "find-emails-of-leads",
     title: "How to Find Emails of Potential Clients",
     heading: "How to Find Emails of Leads",
