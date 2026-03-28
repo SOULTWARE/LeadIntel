@@ -59,6 +59,356 @@ export function getBlogPostPath(slug: string) {
 
 export const blogPosts: BlogPost[] = [
   {
+    slug: "find-emails-of-leads",
+    title: "How to Find Emails of Potential Clients",
+    heading: "How to Find Emails of Leads",
+    description: "Discover how to find verified emails for your leads.",
+    excerpt:
+      "A practical look at the fastest way to find verified emails for B2B leads without relying on guesswork or stale databases.",
+    keyword: "find emails of leads",
+    publishedAt: "2026-03-28T00:00:00.000Z",
+    category: "Email discovery",
+    theme: "blue",
+    keywords: [
+      "find verified emails",
+      "lead email finder",
+      "B2B email discovery",
+      "email enrichment tools",
+    ],
+    badge: {
+      icon: MailCheck,
+      label: "Email discovery guide",
+    },
+    quickTakeaway: {
+      eyebrow: "Email takeaway",
+      title:
+        "The fastest path to better outreach is verified contact data, not more guessing.",
+      description:
+        "The quality of your email list sets the ceiling for reply rates. Better discovery and verification beat bigger lists almost every time.",
+    },
+    toc: [
+      {
+        id: "methods",
+        label: "Methods",
+      },
+      {
+        id: "recommended-approach",
+        label: "Recommended approach",
+      },
+    ],
+    content: (
+      <>
+        <section
+          id="methods"
+          className="scroll-mt-28 rounded-[2.25rem] border border-white/70 bg-white/80 p-8 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.28)] backdrop-blur-2xl md:p-10"
+        >
+          <h2 className="text-3xl font-black tracking-tight text-slate-900">
+            Methods
+          </h2>
+          <p className="mt-5 text-lg leading-8 text-slate-600">
+            Email is still the backbone of B2B outreach.
+          </p>
+          <div className="mt-8 grid gap-4">
+            {[
+              {
+                title: "Guessing Emails",
+                description: "Unreliable and inefficient.",
+                detail:
+                  "Pattern guessing can work occasionally, but it creates a lot of wasted effort and leaves too much room for bounce risk.",
+                icon: Search,
+              },
+              {
+                title: "Buying Databases",
+                description: "Often outdated.",
+                detail:
+                  "Large databases may look convenient, but stale contact records usually mean lower deliverability and weaker targeting.",
+                icon: TriangleAlert,
+              },
+              {
+                title: "Using Tools",
+                description: "Best option for accuracy.",
+                detail:
+                  "Email discovery tools are the strongest option when they combine enrichment with verification and current prospect data.",
+                icon: MailCheck,
+              },
+            ].map((method) => (
+              <div
+                key={method.title}
+                className="rounded-[1.85rem] border border-slate-200 bg-slate-50/80 p-6 md:p-7"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white text-blue-600 shadow-sm">
+                    <method.icon className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-black text-slate-900">
+                      {method.title}
+                    </h3>
+                    <p className="mt-3 text-base font-semibold leading-7 text-slate-700">
+                      {method.description}
+                    </p>
+                    <p className="mt-2 text-sm leading-7 text-slate-600">
+                      {method.detail}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section
+          id="recommended-approach"
+          className="scroll-mt-28 rounded-[2.25rem] border border-slate-900/90 bg-slate-950 p-8 text-white shadow-[0_32px_120px_-48px_rgba(15,23,42,0.72)] md:p-10"
+        >
+          <p className="text-[10px] font-black uppercase tracking-[0.35em] text-blue-300">
+            Recommended approach
+          </p>
+          <h2 className="mt-4 text-3xl font-black tracking-tight">
+            Find verified contact data before outreach starts
+          </h2>
+          <p className="mt-5 text-lg leading-8 text-slate-300">
+            Use tools like LeadIntel to find verified emails instantly.
+          </p>
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            {[
+              "Reduce wasted time on manual guessing",
+              "Avoid relying on stale purchased lists",
+              "Move verified contacts directly into outbound workflows",
+            ].map((benefit) => (
+              <div
+                key={benefit}
+                className="rounded-[1.5rem] border border-slate-800 bg-white/5 p-5"
+              >
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-blue-400" />
+                  <p className="text-sm font-semibold leading-7 text-slate-200">
+                    {benefit}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </>
+    ),
+    cta: {
+      eyebrow: "Speed up email discovery",
+      title: "Find emails faster with LeadIntel.",
+      description:
+        "Build cleaner lead lists with verified emails so your outreach starts with better data and fewer deliverability problems.",
+      primaryHref: "/login",
+      primaryLabel: "Start free",
+      secondaryHref: "/pricing",
+      secondaryLabel: "View pricing",
+    },
+    sidebar: {
+      title: "Email discovery rules",
+      items: [
+        "Do not rely on guessing if accuracy matters.",
+        "Treat bought databases as stale unless verified.",
+        "Use enrichment tools to improve speed and quality.",
+      ],
+    },
+  },
+  {
+    slug: "cold-email-lead-generation",
+    title: "Cold Email Lead Generation Guide (2026)",
+    heading: "Cold Email Lead Generation",
+    description: "Learn how to generate leads using cold email effectively.",
+    excerpt:
+      "A practical cold email workflow focused on targeting, personalization, and lead quality before a campaign goes live.",
+    keyword: "cold email lead generation",
+    publishedAt: "2026-03-28T00:00:00.000Z",
+    category: "Cold email prospecting",
+    theme: "emerald",
+    keywords: [
+      "cold email leads",
+      "cold outreach targeting",
+      "email prospecting",
+      "verified leads for cold email",
+    ],
+    badge: {
+      icon: Mail,
+      label: "Cold email playbook",
+    },
+    quickTakeaway: {
+      eyebrow: "Cold email takeaway",
+      title:
+        "Cold email performs best when list quality is high before the first message is sent.",
+      description:
+        "Strong copy helps, but poor targeting kills response rates. Better lead selection and verified contact data usually matter more than sending more volume.",
+    },
+    toc: [
+      {
+        id: "what-makes-cold-email-work",
+        label: "What makes cold email work?",
+      },
+      {
+        id: "biggest-mistake",
+        label: "Biggest mistake",
+      },
+      {
+        id: "fix",
+        label: "Fix",
+      },
+      {
+        id: "better-approach",
+        label: "Better approach",
+      },
+    ],
+    content: (
+      <>
+        <section
+          id="what-makes-cold-email-work"
+          className="scroll-mt-28 rounded-[2.25rem] border border-white/70 bg-white/80 p-8 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.28)] backdrop-blur-2xl md:p-10"
+        >
+          <h2 className="text-3xl font-black tracking-tight text-slate-900">
+            What Makes Cold Email Work?
+          </h2>
+          <p className="mt-5 text-lg leading-8 text-slate-600">
+            Cold email remains one of the highest ROI channels.
+          </p>
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            {[
+              {
+                title: "Good targeting",
+                description:
+                  "The best campaigns start with leads that match your niche, offer, and buyer profile.",
+              },
+              {
+                title: "Personalization",
+                description:
+                  "Emails perform better when the message reflects the prospect's role, company context, or likely pain point.",
+              },
+              {
+                title: "Strong subject lines",
+                description:
+                  "You only get a reply if the email gets opened, so the subject line still matters.",
+              },
+            ].map((item) => (
+              <div
+                key={item.title}
+                className="rounded-[1.75rem] border border-slate-200 bg-slate-50/80 p-6"
+              >
+                <h3 className="text-xl font-black text-slate-900">
+                  {item.title}
+                </h3>
+                <p className="mt-3 text-sm leading-7 text-slate-600">
+                  {item.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section
+          id="biggest-mistake"
+          className="scroll-mt-28 rounded-[2.25rem] border border-white/70 bg-white/80 p-8 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.28)] backdrop-blur-2xl md:p-10"
+        >
+          <h2 className="text-3xl font-black tracking-tight text-slate-900">
+            Biggest Mistake
+          </h2>
+          <p className="mt-5 text-lg leading-8 text-slate-600">
+            Sending emails to poor-quality leads.
+          </p>
+          <div className="mt-8 rounded-[2rem] border border-amber-200 bg-amber-50/80 p-6">
+            <div className="flex items-start gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white text-amber-600 shadow-sm">
+                <TriangleAlert className="h-5 w-5" />
+              </div>
+              <p className="text-sm leading-7 text-slate-700">
+                Low-quality data creates a chain reaction: bad fit leads lower
+                reply rates, weak contact data hurts deliverability, and the
+                team starts changing copy when the real issue is list quality.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section
+          id="fix"
+          className="scroll-mt-28 rounded-[2.25rem] border border-white/70 bg-white/80 p-8 shadow-[0_24px_80px_-40px_rgba(15,23,42,0.28)] backdrop-blur-2xl md:p-10"
+        >
+          <h2 className="text-3xl font-black tracking-tight text-slate-900">
+            Fix
+          </h2>
+          <p className="mt-5 text-lg leading-8 text-slate-600">
+            Focus on data quality first.
+          </p>
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            {[
+              "Define the exact audience before building a list.",
+              "Verify company, role, and contact details before launch.",
+              "Only personalize after the prospect list is clean.",
+            ].map((point) => (
+              <div
+                key={point}
+                className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm"
+              >
+                <p className="text-sm font-semibold leading-7 text-slate-700">
+                  {point}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section
+          id="better-approach"
+          className="scroll-mt-28 rounded-[2.25rem] border border-slate-900/90 bg-slate-950 p-8 text-white shadow-[0_32px_120px_-48px_rgba(15,23,42,0.72)] md:p-10"
+        >
+          <p className="text-[10px] font-black uppercase tracking-[0.35em] text-emerald-300">
+            Better approach
+          </p>
+          <h2 className="mt-4 text-3xl font-black tracking-tight">
+            Build cold email campaigns on verified prospect data
+          </h2>
+          <p className="mt-5 text-lg leading-8 text-slate-300">
+            Use LeadIntel to generate verified leads before sending emails.
+          </p>
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            {[
+              "Source cleaner leads before writing copy",
+              "Enrich records with contact data that is ready for outreach",
+              "Reduce wasted cold email volume on poor-fit prospects",
+            ].map((benefit) => (
+              <div
+                key={benefit}
+                className="rounded-[1.5rem] border border-slate-800 bg-white/5 p-5"
+              >
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />
+                  <p className="text-sm font-semibold leading-7 text-slate-200">
+                    {benefit}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </>
+    ),
+    cta: {
+      eyebrow: "Improve your list quality",
+      title: "Get better leads for your cold emails with LeadIntel.",
+      description:
+        "Generate cleaner prospect lists before you send a single campaign so your targeting, personalization, and reply rates all start from a stronger base.",
+      primaryHref: "/login",
+      primaryLabel: "Start free",
+      secondaryHref: "/pricing",
+      secondaryLabel: "View pricing",
+    },
+    sidebar: {
+      title: "Cold email checklist",
+      items: [
+        "Target the right audience before writing copy.",
+        "Do not send to poor-quality or incomplete records.",
+        "Verify leads first, then scale email volume.",
+      ],
+    },
+  },
+  {
     slug: "scrape-linkedin-leads",
     title: "How to Scrape LinkedIn Leads (Step-by-Step Guide)",
     heading: "How to Scrape LinkedIn Leads",
