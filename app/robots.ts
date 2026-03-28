@@ -1,22 +1,13 @@
 import type { MetadataRoute } from "next";
 import { siteConfig } from "@/lib/seo";
-
-const publicAllowList = [
-  "/",
-  "/about",
-  "/contact",
-  "/how-to-find-b2b-leads",
-  "/pricing",
-  "/privacy",
-  "/terms",
-];
+import { publicSitePaths } from "@/lib/routing";
 
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
       {
         userAgent: "*",
-        allow: publicAllowList,
+        allow: publicSitePaths,
         disallow: ["/api/", "/auth/"],
       },
       {
@@ -27,7 +18,7 @@ export default function robots(): MetadataRoute.Robots {
           "Claude-User",
           "PerplexityBot",
         ],
-        allow: publicAllowList,
+        allow: publicSitePaths,
         disallow: ["/api/", "/auth/"],
       },
     ],
